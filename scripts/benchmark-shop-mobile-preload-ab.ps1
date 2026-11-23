@@ -6,14 +6,14 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 
-# Read-only experiment against https://halleus.ir/shop, using a dedicated Chrome profile.
+# R2: read-only experiment on live site; hydration reinsertion prevented in B test browser only.
 # All generated data stays in Downloads; nothing is written to the repository or VPS.
 $target = '4d5fa08ad755f62624d2db6a108bdaf0fdb64cbc'
 $tag = 'v2026.11.23-shop-mobile-hero-preload-4d5fa08'
 $downloadDir = Join-Path $HOME 'Downloads'
 $stamp = (Get-Date).ToUniversalTime().ToString('yyyyMMdd-HHmmss')
-$outDir = Join-Path $downloadDir "HalleusShopPreloadAB-results-$stamp"
-$jsPath = Join-Path ([System.IO.Path]::GetTempPath()) "HalleusShopPreloadAB-$stamp-$([guid]::NewGuid().ToString('N')).js"
+$outDir = Join-Path $downloadDir "HalleusShopPreloadAB-R2-results-$stamp"
+$jsPath = Join-Path ([System.IO.Path]::GetTempPath()) "HalleusShopPreloadAB-R2-$stamp-$([guid]::NewGuid().ToString('N')).js"
 
 if (-not (Test-Path -LiteralPath $RepoPath -PathType Container)) { throw 'SAFETY_FATAL: REPO_NOT_FOUND' }
 if (-not (Test-Path -LiteralPath (Join-Path $RepoPath '.git'))) { throw 'SAFETY_FATAL: NOT_A_GIT_WORKTREE' }
@@ -79,7 +79,7 @@ let chromeProcess;
 let profilePath;
 let cdp;
 let fatalError;
-let runData = {schema:1, status:'STARTED', url:URL_TARGET, targetCommit:'4d5fa08ad755f62624d2db6a108bdaf0fdb64cbc', startUtc:new Date().toISOString(), preloaded:[], withoutPreload:[], attempts:[], environment:{node:process.version,os:os.platform(),cpu:os.cpus()[0]?.model||null,viewport:VIEWPORT,cpuThrottlingRate:CPU_RATE,network:NETWORK},notes:['Controlled local CDP PerformanceObserver test, not a Lighthouse Performance Score or Google PSI run.', 'Both arms intercept and fulfill the same HTML document; thus this measures an A/B under buffered HTML response, not exact production streaming behavior.','No changes are made to GitHub, source, VPS, or production content.']};
+let runData = {schema:2, status:'STARTED', url:URL_TARGET, targetCommit:'4d5fa08ad755f62624d2db6a108bdaf0fdb64cbc', startUtc:new Date().toISOString(), preloaded:[], withoutPreload:[], attempts:[], environment:{node:process.version,os:os.platform(),cpu:os.cpus()[0]?.model||null,viewport:VIEWPORT,cpuThrottlingRate:CPU_RATE,network:NETWORK},notes:['Controlled local CDP PerformanceObserver test, not a Lighthouse Performance Score or Google PSI run.', 'Both arms buffer and fulfill the same HTML document; this is a controlled proxy, not native streaming.', 'B removes initial preload links and prevents React/JS from reinserting that exact preload link; any script-triggered duplicate hero request invalidates the trial.', 'Request count is not automatically transfer count. Encoded bytes and loadingFinished are tracked separately.','No changes are made to GitHub, source, VPS, or production content.']};
 if (!OUTPUT_DIR || !CHROME_EXE) throw new Error('Missing --output or --chrome');
 fs.mkdirSync(OUTPUT_DIR,{recursive:true});
 const writeJson = () => fs.writeFileSync(path.join(OUTPUT_DIR,'results.json'),JSON.stringify(runData,null,2),'utf8');
@@ -102,11 +102,63 @@ class DevTools {
   send(method,params={},sessionId,timeout=30000){const id=++this.id;return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{this.pending.delete(id);reject(new Error(`${method}: TIMEOUT`))},timeout);this.pending.set(id,{resolve,reject,timer,method});try{this.ws.send(JSON.stringify({id,method,params,...(sessionId?{sessionId}:{})}))}catch(e){clearTimeout(timer);this.pending.delete(id);reject(e)}})}
   close(){try{this.ws.close()}catch{}}
 }
-const INJECT_SCRIPT = `(()=>{
-  const probe=window.__halleusProbe={lcps:[],cls:0,shifts:[],errors:[]};
-  try {new PerformanceObserver(l=>{for(const e of l.getEntries())probe.lcps.push({ms:e.startTime,renderMs:e.renderTime,loadMs:e.loadTime,size:e.size,url:e.url||null,element:e.element?e.element.tagName.toLowerCase():null,id:e.element?.id||null,className:typeof e.element?.className==='string'?e.element.className.slice(0,200):null});}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){probe.errors.push('LCP: '+e.message)}
-  try {new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput){probe.cls+=e.value;probe.shifts.push({ms:e.startTime,value:e.value});}}).observe({type:'layout-shift',buffered:true});}catch(e){probe.errors.push('CLS: '+e.message)}
-})();`;
+// Executed before any page script, including hydration. A observes only; B additionally
+// prevents the exact target preload resource from being reattached by client JavaScript.
+// The guard is narrowly scoped to link[rel~=preload][href=hero-mobile-v012.webp].
+function injectionForArm(arm) {
+  const without = arm === 'B';
+  return `(()=>{
+    const probe = window.__halleusProbe = {lcps:[],cls:0,shifts:[],errors:[],
+      preloadGuard:{enabled:${without},suppressed:0,leaked:0,methods:[],observed:0}};
+    try {new PerformanceObserver(l=>{for(const e of l.getEntries())probe.lcps.push({ms:e.startTime,renderMs:e.renderTime,loadMs:e.loadTime,size:e.size,url:e.url||null,element:e.element?e.element.tagName.toLowerCase():null,id:e.element?.id||null,className:typeof e.element?.className==='string'?e.element.className.slice(0,200):null});}).observe({type:'largest-contentful-paint',buffered:true});}catch(e){probe.errors.push('LCP: '+e.message)}
+    try {new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput){probe.cls+=e.value;probe.shifts.push({ms:e.startTime,value:e.value});}}).observe({type:'layout-shift',buffered:true});}catch(e){probe.errors.push('CLS: '+e.message)}
+    if (!${without}) return;
+    const target = ${JSON.stringify(NEEDLE)};
+    const isTarget = (node) => {
+      if (!node || node.nodeType !== 1 || node.tagName !== 'LINK') return false;
+      const rel = String(node.getAttribute('rel')||'').toLowerCase().split(/\s+/);
+      if (!rel.includes('preload')) return false;
+      try {return new URL(node.getAttribute('href')||'',location.href).pathname === target;}catch{return false;}
+    };
+    const record = (method) => {probe.preloadGuard.suppressed++;probe.preloadGuard.methods.push(method);};
+    const filterFragment = (node,method) => {
+      if (!node || node.nodeType !== 11) return;
+      for (const child of Array.from(node.childNodes)) {
+        if (isTarget(child)) {node.removeChild(child);record(method);}
+      }
+    };
+    for (const method of ['appendChild','insertBefore','replaceChild']) {
+      const original = Node.prototype[method];
+      Node.prototype[method] = function(node,...args){
+        if(isTarget(node)){record(method);return method==='replaceChild'?args[0]:node;}
+        filterFragment(node,method);
+        return original.call(this,node,...args);
+      };
+    }
+    for (const method of ['append','prepend','replaceChildren']) {
+      const original = Element.prototype[method];
+      Element.prototype[method] = function(...nodes){
+        nodes=nodes.filter(node=>{if(isTarget(node)){record(method);return false;}filterFragment(node,method);return true;});
+        return original.apply(this,nodes);
+      };
+    }
+    const originalAdjacent=Element.prototype.insertAdjacentElement;
+    Element.prototype.insertAdjacentElement=function(position,node){
+      if(isTarget(node)){record('insertAdjacentElement');return node;}
+      return originalAdjacent.call(this,position,node);
+    };
+    const observer=new MutationObserver((records)=>{
+      for(const rec of records)for(const node of rec.addedNodes){
+        if(isTarget(node)) {probe.preloadGuard.leaked++;node.remove();}
+        else if(node.nodeType===1)for(const link of node.querySelectorAll('link[rel~=preload]')){
+          if(isTarget(link)){probe.preloadGuard.leaked++;link.remove();}
+        }
+      }
+    });
+    document.addEventListener('DOMContentLoaded',()=>{observer.observe(document,{childList:true,subtree:true});probe.preloadGuard.observed=1;},{once:true});
+  })();`;
+}
+
 async function startChrome(){
   profilePath=fs.mkdtempSync(path.join(os.tmpdir(),'halleus-shop-ab-chrome-'));
   const chromeArgs=['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profilePath}`,'--no-first-run','--no-default-browser-check','--disable-extensions','--disable-background-networking','--disable-sync','about:blank'];
@@ -132,7 +184,7 @@ async function startChrome(){
 function normalizeHeaders(headers){const blocked=new Set(['content-length','transfer-encoding','content-encoding','connection','keep-alive','trailer']);return (headers||[]).filter(h=>!blocked.has(h.name.toLowerCase()));}
 async function trial(arm,index){
   const {targetId}=await cdp.send('Target.createTarget',{url:'about:blank'});
-  let sessionId;let detach=[];let interceptionError;let intercept={seen:false,tagCount:0,removed:0,responseStatus:0,unexpectedHeader:false,htmlBytes:0};let networkRecords=new Map();let cacheEntries=0;
+  let sessionId;let detach=[];let interceptionError;let intercept={seen:false,tagCount:0,removed:0,responseStatus:0,unexpectedHeader:false,htmlBytes:0};let networkRecords=new Map();let cacheEntries=0;let documentRequestStart=null;
   try{
     ({sessionId}=await cdp.send('Target.attachToTarget',{targetId,flatten:true}));
     const cmd=(m,p={},t)=>cdp.send(m,p,sessionId,t);
@@ -143,13 +195,15 @@ async function trial(arm,index){
     await cmd('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
     await cmd('Emulation.setCPUThrottlingRate',{rate:CPU_RATE});
     await cmd('Network.emulateNetworkConditions',NETWORK);
-    await cmd('Page.addScriptToEvaluateOnNewDocument',{source:INJECT_SCRIPT});
+    await cmd('Page.addScriptToEvaluateOnNewDocument',{source:injectionForArm(arm)});
     detach.push(cdp.on('Network.requestWillBeSent',p=>{
+      if(p.type==='Document'&&p.request?.url?.replace(/\/$/,'')===URL_TARGET.replace(/\/$/,''))documentRequestStart=p.timestamp;
       if(p.request?.url?.includes(NEEDLE))networkRecords.set(p.requestId,{requestId:p.requestId,startTimestamp:p.timestamp,initiatorType:p.initiator?.type||null,url:p.request.url});
     },sessionId));
     detach.push(cdp.on('Network.requestServedFromCache',p=>{if(networkRecords.has(p.requestId))cacheEntries++},sessionId));
-    detach.push(cdp.on('Network.responseReceived',p=>{const r=networkRecords.get(p.requestId);if(r){r.status=p.response?.status;r.fromDiskCache=!!p.response?.fromDiskCache;r.protocol=p.response?.protocol}},sessionId));
+    detach.push(cdp.on('Network.responseReceived',p=>{const r=networkRecords.get(p.requestId);if(r){r.status=p.response?.status;r.fromDiskCache=!!p.response?.fromDiskCache;r.fromServiceWorker=!!p.response?.fromServiceWorker;r.protocol=p.response?.protocol}},sessionId));
     detach.push(cdp.on('Network.loadingFinished',p=>{const r=networkRecords.get(p.requestId);if(r){r.doneTimestamp=p.timestamp;r.encodedDataLength=p.encodedDataLength}},sessionId));
+    detach.push(cdp.on('Network.loadingFailed',p=>{const r=networkRecords.get(p.requestId);if(r){r.failed=true;r.errorText=p.errorText}},sessionId));
     detach.push(cdp.on('Fetch.requestPaused',p=>{
       (async()=>{
         if(!p.responseStatusCode || (p.responseStatusCode<200||p.responseStatusCode>=300)){
@@ -192,7 +246,7 @@ async function trial(arm,index){
     }
     assert(intercept.seen&&state==='complete',`INVALID_NAVIGATION: state=${state} intercepted=${intercept.seen}`);
     await sleep(2500);
-    const r=await cmd('Runtime.evaluate',{expression:`JSON.stringify(({p:window.__halleusProbe,paint:performance.getEntriesByType('paint').map(e=>({name:e.name,ms:e.startTime})),navigation:performance.getEntriesByType('navigation').map(e=>({responseStart:e.responseStart,domContentLoadedEventEnd:e.domContentLoadedEventEnd,loadEventEnd:e.loadEventEnd})),url:location.href,heroBackground:[...document.querySelectorAll('div,section')].map(e=>getComputedStyle(e).backgroundImage).find(s=>s.includes('/shop-preview/hero-mobile-v012.webp'))||''}))`,returnByValue:true,awaitPromise:true},15000);
+    const r=await cmd('Runtime.evaluate',{expression:`JSON.stringify(({p:window.__halleusProbe,paint:performance.getEntriesByType('paint').map(e=>({name:e.name,ms:e.startTime})),navigation:performance.getEntriesByType('navigation').map(e=>({responseStart:e.responseStart,domContentLoadedEventEnd:e.domContentLoadedEventEnd,loadEventEnd:e.loadEventEnd})),heroResourceTimings:performance.getEntriesByType('resource').filter(e=>e.name.includes('/shop-preview/hero-mobile-v012.webp')).map(e=>({startMs:e.startTime,fetchStartMs:e.fetchStart,requestStartMs:e.requestStart,responseStartMs:e.responseStart,responseEndMs:e.responseEnd,initiatorType:e.initiatorType,transferSize:e.transferSize,encodedBodySize:e.encodedBodySize})),remainingPreloadLinks:[...document.querySelectorAll('link[rel~=preload]')].filter(e=>{try{return new URL(e.getAttribute('href')||'',location.href).pathname==='/shop-preview/hero-mobile-v012.webp'}catch{return false}}).length,url:location.href,heroBackground:[...document.querySelectorAll('div,section')].map(e=>getComputedStyle(e).backgroundImage).find(s=>s.includes('/shop-preview/hero-mobile-v012.webp'))||''}))`,returnByValue:true,awaitPromise:true},15000);
     assert(!r.exceptionDetails,`RUNTIME_EVALUATION_FAILED ${r.exceptionDetails?.text||''}`);
     const payload=JSON.parse(r.result.value);
     assert(payload.url.replace(/\/$/,'')===URL_TARGET.replace(/\/$/,''),`NAVIGATED_TO_DIFFERENT_URL=${payload.url}`);
@@ -202,9 +256,26 @@ async function trial(arm,index){
     assert(payload.heroBackground.includes(NEEDLE),'MOBILE_HERO_NOT_USING_EXPECTED_IMAGE');
     const heroRequest=[...networkRecords.values()].filter(x=>x.url.includes(NEEDLE));
     assert(heroRequest.length>0,'HERO_NETWORK_REQUEST_NOT_OBSERVED');
-    const data={trial:index,arm,utc:new Date().toISOString(),lcpMs:Math.round(lcp.ms),fcpMs:Math.round(fcp.ms),cls:Number((p.cls||0).toFixed(5)),lcpElement:lcp,heroImageRequests:heroRequest,heroRequestCount:heroRequest.length,cacheEvents:cacheEntries,preloadLinkCount:intercept.tagCount,removedPreloadLinkCount:intercept.removed,responseStatus:intercept.responseStatus,responseHtmlBytes:intercept.htmlBytes,heroBackground:payload.heroBackground,paint:payload.paint,navigation:payload.navigation,observerErrors:p.errors,elapsedWallMs:Date.now()-start};
+    assert(documentRequestStart!==null,'DOCUMENT_START_TIME_MISSING');
+    for (const req of heroRequest) {
+      req.startRelativeToDocumentMs=Math.round((req.startTimestamp-documentRequestStart)*1000);
+      if(Number.isFinite(req.doneTimestamp)) req.finishedRelativeToDocumentMs=Math.round((req.doneTimestamp-documentRequestStart)*1000);
+      if(Number.isFinite(req.doneTimestamp))req.networkDurationMs=Math.round((req.doneTimestamp-req.startTimestamp)*1000);
+    }
+    const guard=p.preloadGuard||{};
+    assert(guard.enabled===(arm==='B'),'PRELOAD_GUARD_NOT_INITIALIZED');
+    assert(arm==='A'?payload.remainingPreloadLinks>0:payload.remainingPreloadLinks===0,'HYDRATION_REINSERTED_PRELOAD_LINK');
+    if(arm==='B'){
+      assert(guard.observed===1,'PRELOAD_HYDRATION_OBSERVER_NOT_ACTIVE');
+      assert(guard.leaked===0,'PRELOAD_GUARD_LEAKED_LINK');
+      assert(heroRequest.every(req=>req.initiatorType!=='script'),'SCRIPT_TRIGGERED_HERO_REQUEST_IN_NO_PRELOAD_ARM');
+    }
+    assert(heroRequest.every(req=>req.status===200 && Number.isFinite(req.doneTimestamp) && !req.failed),'INCOMPLETE_HERO_NETWORK_REQUEST');
+    const realTransfers=heroRequest.filter(req=>req.encodedDataLength>1000 && !req.fromDiskCache && !req.fromServiceWorker).length;
+    assert(realTransfers===1,'DUPLICATE_OR_MISSING_HERO_NETWORK_TRANSFER');
+    const data={trial:index,arm,utc:new Date().toISOString(),lcpMs:Math.round(lcp.ms),fcpMs:Math.round(fcp.ms),cls:Number((p.cls||0).toFixed(5)),lcpElement:lcp,heroImageRequests:heroRequest,heroRequestCount:heroRequest.length,heroTransfers:realTransfers,heroResourceTimings:payload.heroResourceTimings,preloadGuard:guard,remainingPreloadLinks:payload.remainingPreloadLinks,cacheEvents:cacheEntries,preloadLinkCount:intercept.tagCount,removedPreloadLinkCount:intercept.removed,responseStatus:intercept.responseStatus,responseHtmlBytes:intercept.htmlBytes,heroBackground:payload.heroBackground,paint:payload.paint,navigation:payload.navigation,observerErrors:p.errors,elapsedWallMs:Date.now()-start};
     assert(data.preloadLinkCount>0&&(arm==='A'?data.removedPreloadLinkCount===0:data.removedPreloadLinkCount===data.preloadLinkCount),'PRELOAD_EXPERIMENT_INVALID');
-    log(`  LCP=${data.lcpMs}ms FCP=${data.fcpMs}ms CLS=${data.cls} heroRequests=${data.heroRequestCount} links=${data.preloadLinkCount} removed=${data.removedPreloadLinkCount}`);
+    log(`  LCP=${data.lcpMs}ms FCP=${data.fcpMs}ms CLS=${data.cls} heroRequests=${data.heroRequestCount} transfers=${data.heroTransfers} reinsertBlocked=${guard.suppressed} links=${data.preloadLinkCount} removed=${data.removedPreloadLinkCount}`);
     return data;
   }finally{
     for(const unsubscribe of detach)unsubscribe();
@@ -213,18 +284,22 @@ async function trial(arm,index){
 }
 function buildReport(){
   const a=runData.preloaded,b=runData.withoutPreload;
-  const med=s=>({lcpMs:median(s.map(r=>r.lcpMs)),fcpMs:median(s.map(r=>r.fcpMs)),cls:median(s.map(r=>r.cls)),heroRequests:median(s.map(r=>r.heroRequestCount))});
+  const med=s=>({lcpMs:median(s.map(r=>r.lcpMs)),fcpMs:median(s.map(r=>r.fcpMs)),cls:median(s.map(r=>r.cls)),heroRequests:median(s.map(r=>r.heroRequestCount)),heroTransfers:median(s.map(r=>r.heroTransfers)),heroStartMs:median(s.map(r=>r.heroImageRequests[0].startRelativeToDocumentMs))});
   const x=med(a),y=med(b);
   const gainMs=y.lcpMs-x.lcpMs;
   const gainPercent=Number((gainMs/y.lcpMs*100).toFixed(2));
   const claim=(a.some(r=>r.lcpElement?.element!=='div')||b.some(r=>r.lcpElement?.element!=='div'))?'Inspect element attributes: LCP may not consistently be the hero.':'Inspect LCP element className in JSON to verify hero alignment.';
-  const summary={preload:x,noPreload:y,lcpGainMs:gainMs,lcpGainPercent:gainPercent,lcpImproved:gainMs>0};
+  // Do not interpret an A/B result as conclusive if the uncontrolled spread dwarfs the effect.
+  const spread = s => Math.max(...s.map(r=>r.lcpMs))-Math.min(...s.map(r=>r.lcpMs));
+  const spreadA=spread(a),spreadB=spread(b);
+  const conclusion = (Math.abs(gainMs) <= Math.max(spreadA,spreadB))?'INCONCLUSIVE_NOISE_DOMINATES':'DIRECTIONAL_ONLY';
+  const summary={preload:x,noPreload:y,lcpGainMs:gainMs,lcpGainPercent:gainPercent,lcpImproved:gainMs>0,spreadAms:spreadA,spreadBms:spreadB,conclusion};
   runData.summary=summary;
   const lines=[
     '# Halleus Shop - Mobile hero preload A/B',
     '',`- Date (UTC): ${new Date().toISOString()}`,`- Live URL: ${URL_TARGET}`,`- Chrome: ${runData.environment.browser}`,
     '- Method: Chrome DevTools Protocol; 390x844 viewport; 4x CPU throttle; 1.6 Mbps download / 750 Kbps upload / 150ms RTT; cache disabled; 5 A and 5 B interleaved.',
-    '- A = live HTML with preload; B = exactly the same live HTML after stripping the mobile hero preload `<link>` tags in browser memory. Both arms use response interception (buffered HTML).',
+    '- A = live HTML with preload; B = the same buffered live HTML with the target link removed and JS reinsertion guarded in the test browser. Both arms use response interception (buffered HTML).' ,
     '- Site itself, GitHub and VPS remain unchanged.',
     '', '| Metric (median) | A with preload | B without preload | A improvement vs B |',
     '|---|---:|---:|---:|',
@@ -232,16 +307,20 @@ function buildReport(){
     `| FCP (ms) | ${x.fcpMs} | ${y.fcpMs} | ${y.fcpMs-x.fcpMs} ms |`,
     `| CLS | ${x.cls} | ${y.cls} | n/a |`,
     `| Hero request count | ${x.heroRequests} | ${y.heroRequests} | inspect per-trial JSON |`,
-    '',`**Observed result:** ${gainMs>0?`preload was faster by ${gainMs} ms (${gainPercent}%) in this A/B test`:gainMs<0?`preload was slower by ${Math.abs(gainMs)} ms in this A/B test`:'no median LCP difference in this A/B test'}. This is a small 5+5 sample, not proof of user-perceived improvement or the PSI baseline difference.`,
-    '', '| Trial | Arm | LCP ms | FCP ms | CLS | Preload links | Removed | Hero requests | LCP element |',
-    '|---:|:---:|---:|---:|---:|---:|---:|---:|---|',
-    ...runData.attempts.filter(r=>r.status==='PASS').map(t=>{const r=t.data;return `| ${r.trial} | ${r.arm} | ${r.lcpMs} | ${r.fcpMs} | ${r.cls} | ${r.preloadLinkCount} | ${r.removedPreloadLinkCount} | ${r.heroRequestCount} | ${[r.lcpElement?.element,r.lcpElement?.className].filter(Boolean).join(' ').replace(/\|/g,'/')} |`}),
+    `| Hero completed transfers | ${x.heroTransfers} | ${y.heroTransfers} | inspect per-trial JSON |`,
+    `| First hero request after document (ms) | ${x.heroStartMs} | ${y.heroStartMs} | ${y.heroStartMs-x.heroStartMs} ms |`,
+    '',`**Observed result:** ${gainMs>0?`preload was faster by ${gainMs} ms (${gainPercent}%) in this A/B test`:gainMs<0?`preload was slower by ${Math.abs(gainMs)} ms in this A/B test`:'no median LCP difference in this A/B test'}. Verdict: ${conclusion}. This is a small 5+5 sample, not proof of user-perceived improvement or the PSI baseline difference.`,
+    '', '| Trial | Arm | LCP ms | FCP ms | CLS | Preload links | Removed | Client reinserts blocked | Remaining target links | Hero requests | Hero transfers | LCP element |',
+    '|---:|:---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|',
+    ...runData.attempts.filter(r=>r.status==='PASS').map(t=>{const r=t.data;return `| ${r.trial} | ${r.arm} | ${r.lcpMs} | ${r.fcpMs} | ${r.cls} | ${r.preloadLinkCount} | ${r.removedPreloadLinkCount} | ${r.preloadGuard?.suppressed||0} | ${r.remainingPreloadLinks} | ${r.heroRequestCount} | ${r.heroTransfers} | ${[r.lcpElement?.element,r.lcpElement?.className].filter(Boolean).join(' ').replace(/\|/g,'/')} |`}),
     '', '## Limitations',
     '- The existing PageSpeed Insights baseline of 5,800 ms uses different hardware and run conditions; DO NOT subtract these values from 5,800 ms.',
     '- Chrome PerformanceObserver LCP/FCP/CLS measurements are NOT Lighthouse scores or Lighthouse TBT.',
     '- CDP CPU throttling is a slowdown relative to this computer; identical settings do not fully normalize different CPUs.',
     '- Using Fetch.getResponseBody / Fetch.fulfillRequest buffers the page HTML in both A and B, so this experiment is a controlled proxy for page behavior, not exact native streaming.',
     '- CDN/Internet/server jitter remains possible. Five runs per arm give an exploratory result, not statistical certainty.',
+    '- Hydration guard is confined to the test browser; if unexpected target links or script-initiated hero requests remain, the trial FAILS and no result is claimed.',
+    `- Variability: A LCP range=${spreadA} ms, B LCP range=${spreadB} ms; verdict=${conclusion}.`,
     `- ${claim}`,
     '', '## Files',
     '- results.json: raw CDP metrics, times, resource request initiator/status/bytes, per-trial link counts, Chrome/environment metadata',
@@ -263,14 +342,23 @@ function buildReport(){
       for(let attempt=1;attempt<=2&&!done;attempt++){
         try{
           const data=await trial(arm,i+1);runData.attempts.push({trial:i+1,arm,attempt,status:'PASS',data});runData[arm==='A'?'preloaded':'withoutPreload'].push(data);done=true;
-        }catch(e){runData.attempts.push({trial:i+1,arm,attempt,status:'FAIL',error:e.message});log(`Trial ${i+1} attempt ${attempt} failed: ${e.message}`);if(attempt===2)throw new Error(`TRIAL_EXHAUSTED arm=${arm} trial=${i+1} root=${e.message}`);await sleep(1000)}
+        }catch(e){
+          runData.attempts.push({trial:i+1,arm,attempt,status:'FAIL',error:e.message});
+          log(`Trial ${i+1} attempt ${attempt} failed: ${e.message}`);
+          if(attempt===2){runData.failedTrials??=[];runData.failedTrials.push({trial:i+1,arm,root:e.message});}
+          else await sleep(1000);
+        }
         writeJson();
       }
     }
+    if(runData.failedTrials?.length){
+      throw new Error(`CANDIDATE_FAILURE: ${runData.failedTrials.length} invalid trials; roots=${JSON.stringify([...new Set(runData.failedTrials.map(x=>x.root))])}`);
+    }
     assert(runData.preloaded.length===RUN_COUNT&&runData.withoutPreload.length===RUN_COUNT,'INCOMPLETE_BALANCED_SAMPLES');
+    assert(runData.withoutPreload.every(r=>r.remainingPreloadLinks===0 && r.preloadGuard.enabled && r.preloadGuard.leaked===0),'INVALID_NO_PRELOAD_ARM');
     runData.status='PASS';runData.endUtc=new Date().toISOString();
     buildReport();writeJson();
-    log('A/B_DONE: report.md and results.json created');
+    log('A/B_DONE: validated trial report.md and results.json created');
     console.log(JSON.stringify(runData.summary));
   }catch(e){runData.status='FAIL';runData.endUtc=new Date().toISOString();runData.error=e.stack||e.message;writeJson();fs.writeFileSync(path.join(OUTPUT_DIR,'FAILURE.txt'),`${e.stack||e.message}\n`, 'utf8');console.error('AB_FAILED:',e.message);process.exitCode=1;
   }finally{
@@ -283,12 +371,12 @@ function buildReport(){
 '@
 
 try {
-    Write-Host '[2/3] 5x WITH PRELOAD + 5x WITHOUT PRELOAD (LIVE SITE)' -ForegroundColor Cyan
+    Write-Host '[2/3] VERIFIED HYDRATION-SAFE 5x+5x A/B (LIVE SITE)' -ForegroundColor Cyan
     [System.IO.File]::WriteAllText($jsPath, $js, (New-Object System.Text.UTF8Encoding($false)))
     & $nodeCmd.Source $jsPath '--url=https://halleus.ir/shop' "--chrome=$chrome" "--output=$outDir" '--runs=5'
     $exitCode = $LASTEXITCODE
     if ($exitCode -ne 0) {
-        $failureZip = Join-Path $downloadDir "HalleusShopPreloadAB-FailureLogs-$stamp.zip"
+        $failureZip = Join-Path $downloadDir "HalleusShopPreloadAB-R2-FailureLogs-$stamp.zip"
         if (Test-Path -LiteralPath $outDir) {
             Compress-Archive -LiteralPath $outDir -DestinationPath $failureZip -Force
             Write-Host "FAILURE_LOGS: $failureZip" -ForegroundColor Yellow
