@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent, type KeyboardEvent, type CSSProperties } from "react";
+import journeyStyles from "@/components/chart-form-journey.module.css";
 import type { HalleusCity } from "@/lib/locations/cities";
 import type { VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
 import { VedicD1NorthChart } from "./VedicD1NorthChart";
@@ -10,6 +11,7 @@ type CityDirectory = typeof import("@/lib/locations/cities");
 type Calendar = "jalali" | "gregorian";
 type Occurrence = "earlier" | "later";
 type FormFeedback = { kind: "error" | "unavailable"; message: string; issue?: string };
+type JourneyStep = "name" | "date" | "time" | "city";
 
 const CITY_LIMIT = 7;
 const API_PATH = "/api/vedic/d1";
@@ -36,12 +38,15 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
 
 /** Guest-only form. The only successful payload is the public FREE D1 reading. */
 export function VedicD1GuestForm() {
+  const [hydrated, setHydrated] = useState(false);
+  const [name, setName] = useState("");
+  const [editingStep, setEditingStep] = useState<JourneyStep>("name");
   const [calendar, setCalendar] = useState<Calendar>("jalali");
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
   const [cityQuery, setCityQuery] = useState("");
   const [cityId, setCityId] = useState("");
-  const [suggestions, setSuggestions] = useState<readonly HalleusCity[]>([]);
+  const [cityDirectory, setCityDirectory] = useState<CityDirectory | null>(null);
   const [cityLoading, setCityLoading] = useState(false);
   const [cityOpen, setCityOpen] = useState(false);
   const [occurrence, setOccurrence] = useState<Occurrence | "">("");
@@ -57,6 +62,7 @@ export function VedicD1GuestForm() {
 
   useEffect(() => {
     aliveRef.current = true;
+    setHydrated(true);
     return () => {
       aliveRef.current = false;
       activeRequestRef.current?.abort();
@@ -81,7 +87,7 @@ export function VedicD1GuestForm() {
       directoryRef.current = directory;
       if (aliveRef.current) {
         setCityLoading(false);
-        setSuggestions(directory.filterHalleusCities(cityQueryRef.current).slice(0, CITY_LIMIT));
+        setCityDirectory(directory);
       }
     } catch {
       cityLoadRef.current = null;
@@ -100,7 +106,7 @@ export function VedicD1GuestForm() {
     cityQueryRef.current = value;
     setCityId("");
     setCityOpen(true);
-    setSuggestions(directoryRef.current?.filterHalleusCities(value).slice(0, CITY_LIMIT) ?? []);
+    if (!directoryRef.current) void loadCityDirectory();
   }
 
   function chooseCity(city: HalleusCity) {
@@ -114,9 +120,42 @@ export function VedicD1GuestForm() {
     setCityOpen(false);
   }
 
+  const suggestions = useMemo(() =>
+    cityDirectory && cityOpen && !cityId && cityQuery.trim()
+      ? cityDirectory.filterHalleusCities(cityQuery).slice(0, CITY_LIMIT)
+      : [], [cityDirectory, cityOpen, cityId, cityQuery]);
+
+  const steps: { id: JourneyStep; label: string; complete: boolean }[] = [
+    { id: "name", label: "نام", complete: Boolean(name.trim()) },
+    { id: "date", label: "تاریخ", complete: Boolean(birthDate.trim()) },
+    { id: "time", label: "ساعت", complete: Boolean(birthTime.trim()) },
+    { id: "city", label: "شهر", complete: Boolean(cityId) },
+  ];
+  const completed = steps.filter(step => step.complete).length;
+  const collapsed = (step: JourneyStep) =>
+    steps.some(item => item.id === step && item.complete) && editingStep !== step;
+
+  function selectCityOnEnter(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter" || event.nativeEvent.isComposing) return;
+    event.preventDefault(); // Never submit or navigate while editing the city search.
+    const exact = directoryRef.current?.findHalleusCityByName(cityQuery.trim());
+    const next = exact ?? suggestions[0];
+    if (next) chooseCity(next);
+    else {
+      setCityOpen(true);
+      setFeedback({ kind: "error", message: "برای ادامه، شهر را از پیشنهادها انتخاب کن." });
+      if (!directoryRef.current) void loadCityDirectory();
+    }
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (submitting) return;
+    if (!name.trim()) {
+      setFeedback({ kind: "error", message: "نام را وارد کن." });
+      setEditingStep("name");
+      return;
+    }
     if (!cityId) {
       setFeedback({ kind: "error", message: "شهر تولد را از فهرست پیشنهادها انتخاب کن." });
       setCityOpen(true);
@@ -165,75 +204,183 @@ export function VedicD1GuestForm() {
   }
 
   return (
-    <div className={styles.formPanel}>
-      <h2 className={styles.formTitle} id="vedic-guest-form-title">اطلاعات تولد</h2>
-      <p className={styles.hint} id="vedic-form-help">برای طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. نام و ساخت حساب لازم نیست.</p>
-      <form className={styles.form} onSubmit={submit} aria-labelledby="vedic-guest-form-title" aria-describedby="vedic-form-help">
-        <fieldset className={styles.calendar}>
-          <legend>تقویم تاریخ تولد</legend>
-          <label className={styles.radio}>
-            <input type="radio" name="vedic-calendar" value="jalali" checked={calendar === "jalali"} onChange={() => { invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setCalendar("jalali"); setBirthDate(""); }} />
-            شمسی
-          </label>
-          <label className={styles.radio}>
-            <input type="radio" name="vedic-calendar" value="gregorian" checked={calendar === "gregorian"} onChange={() => { invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setCalendar("gregorian"); setBirthDate(""); }} />
-            میلادی
-          </label>
-        </fieldset>
-        <div className={styles.fieldGrid}>
-          <label className={styles.field} htmlFor="vedic-birth-date">
-            <span>تاریخ تولد</span>
-            <input id="vedic-birth-date" name="birthDate" type="text" autoComplete="off" inputMode="numeric" dir="ltr" required maxLength={16}
-              placeholder={calendar === "jalali" ? "۱۳۷۸/۰۵/۲۱" : "1999-08-12"}
-              value={birthDate} onChange={(event: ChangeEvent<HTMLInputElement>) => { invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setBirthDate(event.target.value); }} />
-            <span className={styles.fieldHelp}>{calendar === "jalali" ? "مثال: ۱۳۷۸/۰۵/۲۱" : "مثال: 1999-08-12"}</span>
-          </label>
-          <label className={styles.field} htmlFor="vedic-birth-time">
-            <span>ساعت دقیق تولد</span>
-            <input id="vedic-birth-time" name="birthTime" type="text" autoComplete="off" inputMode="numeric" dir="ltr" required maxLength={5}
-              placeholder="۰۹:۳۰" value={birthTime}
-              onChange={(event: ChangeEvent<HTMLInputElement>) => { invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setBirthTime(event.target.value); }} />
-            <span className={styles.fieldHelp}>با قالب ساعت:دقیقه؛ ساعت نامعلوم قابل محاسبه نیست.</span>
-          </label>
-        </div>
-        <div className={styles.field}>
-          <label htmlFor="vedic-city-search">شهر تولد</label>
-          <input id="vedic-city-search" name="birthCitySearch" type="search" autoComplete="off" required
-            placeholder="نام شهر را جست‌وجو کن" value={cityQuery}
-            aria-describedby="vedic-city-help" aria-invalid={feedback?.kind === "error" && !cityId}
-            aria-controls="vedic-city-options"
-            onFocus={() => { setCityOpen(true); void loadCityDirectory(); }}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => updateCity(event.target.value)} />
-          <span className={styles.fieldHelp} id="vedic-city-help">{cityId ? "شهر از فهرست معتبر انتخاب شده است." : "شهر را از پیشنهادهای زیر انتخاب کن؛ فقط تایپ نام کافی نیست."}</span>
-          {cityOpen && <ul id="vedic-city-options" className={styles.cityOptions} aria-label="پیشنهادهای شهر تولد">
-            {suggestions.map((city) => <li key={city.id}>
-              <button className={styles.cityOption} type="button" onClick={() => chooseCity(city)}>
-                {directoryRef.current?.getHalleusCityDisplayName(city) ?? city.faName}
+    <div className={styles.formRoot}>
+      <section className={"chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم چارت تولد ودیک">
+        <div className="chart-reference-shell">
+          <div className="chart-reference-content">
+            <p className={styles.hint} id="vedic-form-help">برای محاسبهٔ طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. نام فقط در همین صفحه نمایش داده می‌شود.</p>
+            {!hydrated && <p className={styles.loadingHint} role="status">در حال آماده‌سازی فرم…</p>}
+            <form className="chart-reference-form" id="vedic-guest-form"
+              onSubmit={submit} aria-label="اطلاعات تولد ودیک" aria-describedby="vedic-form-help">
+              <fieldset className={styles.fieldsLock} disabled={!hydrated}>
+                <legend className={styles.visuallyHidden}>اطلاعات تولد</legend>
+              <div className={journeyStyles.journeyProgress} aria-live="polite">
+                <div className={journeyStyles.progressHeading}>
+                  <span>آسمان ودیک تو در حال شکل‌گرفتنه</span>
+                  <strong>{completed.toLocaleString("fa-IR")} از ۴</strong>
+                </div>
+                <div className={journeyStyles.orbitTrack}>
+                  {steps.map((step, i) => (
+                    <span key={step.id} className={journeyStyles.orbitStep + (step.complete ? " " + journeyStyles.orbitComplete : "")}>
+                      <span className={journeyStyles.orbitDot} aria-hidden="true">{step.complete ? "✓" : (i + 1).toLocaleString("fa-IR")}</span>
+                      <span>{step.label}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div className="chart-form-progress" aria-live="polite">
+                <div className="chart-form-progress-header">
+                  <span>پیشرفت اطلاعات ضروری</span>
+                  <strong>{completed.toLocaleString("fa-IR")} از ۴</strong>
+                </div>
+                <div className="chart-form-progress-bar"
+                  style={{ "--chart-progress": `${completed * 25}%` } as CSSProperties} aria-hidden="true" />
+                <div className="chart-form-progress-steps">
+                  {steps.map(step => <span key={step.id} className={"chart-form-progress-step" + (step.complete ? " is-complete" : "")}>{step.label}</span>)}
+                </div>
+              </div>
+              <div className="chart-form-fields">
+                <div className={journeyStyles.journeyStep + (collapsed("name") ? " " + journeyStyles.stepCollapsed : "")} data-chart-step="name">
+                  <button type="button" className={journeyStyles.stepSummary} aria-controls="vedic-journey-name"
+                    aria-expanded={!collapsed("name")} onClick={() => setEditingStep("name")}>
+                    <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                    <span className={journeyStyles.summaryTitle}>نام</span>
+                    <strong className={journeyStyles.summaryValue}>{name.trim()}</strong>
+                    <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                  </button>
+                  <div className={journeyStyles.stepBody} id="vedic-journey-name" onFocusCapture={() => setEditingStep("name")}>
+                    <label className="chart-field chart-field-full" htmlFor="vedic-name">
+                      <span className="chart-field-label"><span aria-hidden="true">♙</span>نام</span>
+                      <input id="vedic-name" name="displayName" type="text" dir="rtl" lang="fa"
+                        autoComplete="name" required maxLength={60} placeholder="نام خود را به فارسی وارد کن"
+                        value={name} onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          invalidateResponse(); setName(event.target.value);
+                        }} />
+                      <small className="field-hint">نام فقط روی دستگاهت نمایش داده می‌شود و همراه اطلاعات تولد ارسال نمی‌شود.</small>
+                    </label>
+                  </div>
+                </div>
+                <div className={journeyStyles.journeyStep + (collapsed("date") ? " " + journeyStyles.stepCollapsed : "")} data-chart-step="date">
+                  <button type="button" className={journeyStyles.stepSummary} aria-controls="vedic-journey-date"
+                    aria-expanded={!collapsed("date")} onClick={() => setEditingStep("date")}>
+                    <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                    <span className={journeyStyles.summaryTitle}>تاریخ تولد</span>
+                    <strong className={journeyStyles.summaryValue}>{birthDate}</strong>
+                    <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                  </button>
+                  <div className={journeyStyles.stepBody} id="vedic-journey-date" onFocusCapture={() => setEditingStep("date")}>
+                    <div className="chart-field chart-field-full">
+                      <div className="chart-field-title-row chart-date-title-row">
+                        <label className="chart-field-label" htmlFor="vedic-birth-date"><span aria-hidden="true">▣</span>تاریخ تولد</label>
+                        <div className="date-mode-switch" role="group" aria-label="نوع تقویم تولد">
+                          <button type="button" className={"date-mode-button" + (calendar === "jalali" ? " is-active" : "")}
+                            aria-pressed={calendar === "jalali"} onClick={() => {
+                              invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setCalendar("jalali"); setBirthDate("");
+                            }}>شمسی</button>
+                          <button type="button" className={"date-mode-button" + (calendar === "gregorian" ? " is-active" : "")}
+                            aria-pressed={calendar === "gregorian"} onClick={() => {
+                              invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setCalendar("gregorian"); setBirthDate("");
+                            }}>میلادی</button>
+                        </div>
+                      </div>
+                      <input id="vedic-birth-date" name="birthDate" type="text" autoComplete="off"
+                        inputMode="numeric" dir="ltr" required maxLength={16}
+                        placeholder={calendar === "jalali" ? "۱۳۷۸/۰۵/۲۱" : "1999-08-12"}
+                        value={birthDate} onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setBirthDate(event.target.value);
+                        }} />
+                      <small className="field-hint">{calendar === "jalali" ? "مثال: ۱۳۷۸/۰۵/۲۱" : "مثال: 1999-08-12"}</small>
+                    </div>
+                  </div>
+                </div>
+                <div className={journeyStyles.journeyStep + (collapsed("time") ? " " + journeyStyles.stepCollapsed : "")} data-chart-step="time">
+                  <button type="button" className={journeyStyles.stepSummary} aria-controls="vedic-journey-time"
+                    aria-expanded={!collapsed("time")} onClick={() => setEditingStep("time")}>
+                    <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                    <span className={journeyStyles.summaryTitle}>ساعت تولد</span>
+                    <strong className={journeyStyles.summaryValue}>{birthTime}</strong>
+                    <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                  </button>
+                  <div className={journeyStyles.stepBody} id="vedic-journey-time" onFocusCapture={() => setEditingStep("time")}>
+                    <label className="chart-field chart-field-full" htmlFor="vedic-birth-time">
+                      <span className="chart-field-label"><span aria-hidden="true">◷</span>ساعت دقیق تولد</span>
+                      <input id="vedic-birth-time" name="birthTime" type="text" autoComplete="off"
+                        inputMode="numeric" dir="ltr" required maxLength={5} placeholder="۰۹:۳۰"
+                        value={birthTime} onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          invalidateResponse(); setNeedsOccurrence(false); setOccurrence(""); setBirthTime(event.target.value);
+                        }} />
+                      <small className="field-hint">مثال: ۰۹:۳۰؛ برای محاسبهٔ خانه‌های ودیک ساعت دقیق لازم است.</small>
+                    </label>
+                  </div>
+                </div>
+                <div className={journeyStyles.journeyStep + (collapsed("city") ? " " + journeyStyles.stepCollapsed : "")} data-chart-step="city">
+                  <button type="button" className={journeyStyles.stepSummary} aria-controls="vedic-journey-city"
+                    aria-expanded={!collapsed("city")} onClick={() => setEditingStep("city")}>
+                    <span className={journeyStyles.summaryCheck} aria-hidden="true">✓</span>
+                    <span className={journeyStyles.summaryTitle}>شهر تولد</span>
+                    <strong className={journeyStyles.summaryValue}>{cityQuery}</strong>
+                    <span className={journeyStyles.summaryEdit}>ویرایش</span>
+                  </button>
+                  <div className={journeyStyles.stepBody} id="vedic-journey-city" onFocusCapture={() => setEditingStep("city")}>
+                    <div className="chart-field chart-city-field chart-city-card">
+                      <label className="chart-city-label" htmlFor="vedic-city-search">
+                        <span className="chart-field-label"><span aria-hidden="true">⌖</span>شهر تولد</span>
+                        <input id="vedic-city-search" name="birthCitySearch" type="search"
+                          autoComplete="off" required placeholder="نام شهر تولد را وارد کن"
+                          value={cityQuery} aria-describedby="vedic-city-help"
+                          aria-invalid={feedback?.kind === "error" && !cityId}
+                          aria-controls="vedic-city-options"
+                          onFocus={() => { setCityOpen(true); void loadCityDirectory(); }}
+                          onChange={(event: ChangeEvent<HTMLInputElement>) => updateCity(event.target.value)}
+                          onKeyDown={selectCityOnEnter} />
+                      </label>
+                      <div id="vedic-city-options" className="city-suggestion-chips has-suggestions" role="group" aria-label="پیشنهادهای شهر تولد">
+                        {suggestions.map(city => (
+                          <button key={city.id} type="button" className="city-suggestion-chip"
+                            onClick={() => chooseCity(city)}>
+                            {directoryRef.current?.getHalleusCityDisplayName(city) ?? city.faName}
+                          </button>
+                        ))}
+                      </div>
+                      {cityLoading && <small className="field-hint" role="status">در حال دریافت فهرست شهرها…</small>}
+                      {!cityLoading && cityOpen && cityQuery.trim() && !cityId && suggestions.length === 0 &&
+                        <small className="field-hint">شهری پیدا نشد؛ عبارت دیگری امتحان کن.</small>}
+                      <small className="field-hint" id="vedic-city-help">
+                        {cityId ? "شهر از فهرست معتبر انتخاب شده است." : "یکی از پیشنهادها را بزن؛ Enter اولین پیشنهاد را انتخاب می‌کند."}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {needsOccurrence && <fieldset className={styles.occurrence}>
+                <legend>این ساعت در تاریخ انتخابی دوبار رخ داده است</legend>
+                <label><input type="radio" name="vedic-occurrence" checked={occurrence === "earlier"}
+                  onChange={() => { invalidateResponse(); setOccurrence("earlier"); }} /> بار اول</label>
+                <label><input type="radio" name="vedic-occurrence" checked={occurrence === "later"}
+                  onChange={() => { invalidateResponse(); setOccurrence("later"); }} /> بار دوم</label>
+              </fieldset>}
+              </fieldset>
+            </form>
+            <div className="chart-form-actions">
+              <button className="button chart-submit-button" type="submit" form="vedic-guest-form" disabled={!hydrated || submitting}>
+                {submitting ? "در حال محاسبهٔ چارت ودیک…" : "ساخت چارت تولد ودیک"}
               </button>
-            </li>)}
-            {cityLoading && <li className={styles.cityHint}>در حال دریافت فهرست شهرها…</li>}
-            {!cityLoading && !suggestions.length && <li className={styles.cityHint}>شهری پیدا نشد. نام دیگری امتحان کن.</li>}
-          </ul>}
+            </div>
+            <p className={styles.privacy}>محاسبهٔ پایه رایگان است؛ برای آن نیازی به حساب کاربری نیست.</p>
+            <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
+              {feedback && <p className={feedback.kind === "error" ? styles.error : styles.unavailable}>{feedback.message}</p>}
+              {reading && <p className={styles.success}>چارت رایگان محاسبه شد. نتیجه زیر فرم نمایش داده می‌شود.</p>}
+            </div>
+          </div>
         </div>
-        {needsOccurrence && <fieldset className={styles.calendar}>
-          <legend>این ساعت در تاریخ انتخابی دوبار رخ داده است</legend>
-          <label className={styles.radio}><input type="radio" name="vedic-occurrence" checked={occurrence === "earlier"} onChange={() => { invalidateResponse(); setOccurrence("earlier"); }} /> بار اول</label>
-          <label className={styles.radio}><input type="radio" name="vedic-occurrence" checked={occurrence === "later"} onChange={() => { invalidateResponse(); setOccurrence("later"); }} /> بار دوم</label>
-        </fieldset>}
-        <button className={styles.submit} type="submit" disabled={submitting}>
-          {submitting ? "در حال بررسی…" : "بررسی اطلاعات تولد"}
-        </button>
-        <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
-          {feedback && <p className={feedback.kind === "error" ? styles.error : styles.unavailable}>{feedback.message}</p>}
-          {reading && <p className={styles.success}>چارت رایگان محاسبه شد. نمودار و جدول پس از فرم قرار دارند.</p>}
-        </div>
-      </form>
+      </section>
       {reading && <section className={styles.freeResult} aria-label="نتیجهٔ رایگان چارت ودیک">
+        <p className={styles.resultGreeting}>{name.trim()}، چارت رایگان ودیک تو آماده است.</p>
         <p className={styles.freeReading}>{reading.shortReading.textFa}</p>
         <VedicD1NorthChart view={reading.view} />
-        <p className={styles.privacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
+        <p className={styles.resultPrivacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
       </section>}
-      <p className={styles.privacy}>اطلاعات تولدت در نشانی صفحه، کش مشترک یا تاریخچهٔ عمومی ذخیره نمی‌شود. نتیجهٔ رایگان فقط در همین صفحه نمایش داده می‌شود.</p>
+      <p className={styles.afterword}>نامت فقط روی همین صفحه نمایش داده می‌شود؛ اطلاعات تولد در نشانی صفحه یا کش مشترک ذخیره نمی‌شود.</p>
     </div>
   );
 }
