@@ -45,6 +45,68 @@ const MobileBirthTimePicker = dynamic(
   { ssr: false, loading: mobileWheelPlaceholder },
 );
 
+/**
+ * Keep the standalone mobile time wheels out of the initial React tree until
+ * the field approaches the viewport. Their 54px placeholder matches the wheel.
+ * Direct focus/touch and browsers without IntersectionObserver still work.
+ */
+function DeferredMobileBirthTimePicker({
+  value,
+  onConfirm,
+}: {
+  value: MobileTimeParts;
+  onConfirm: (value: MobileTimeParts) => void;
+}) {
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [nearby, setNearby] = useState(false);
+
+  useEffect(() => {
+    if (nearby) return;
+    const anchor = anchorRef.current;
+    if (!anchor) return;
+
+    const mobile = window.matchMedia("(max-width: 760px)");
+    let observer: IntersectionObserver | null = null;
+    let fallbackFrame: number | null = null;
+    const watch = () => {
+      observer?.disconnect();
+      if (fallbackFrame !== null) window.cancelAnimationFrame(fallbackFrame);
+      fallbackFrame = null;
+      if (!mobile.matches) return;
+      if (typeof IntersectionObserver === "undefined") {
+        fallbackFrame = window.requestAnimationFrame(() => setNearby(true));
+        return;
+      }
+      observer = new IntersectionObserver(([entry]) => {
+        if (entry?.isIntersecting) {
+          observer?.disconnect();
+          setNearby(true);
+        }
+      }, { rootMargin: "0px 0px 120px 0px" });
+      observer.observe(anchor);
+    };
+    watch();
+    mobile.addEventListener("change", watch);
+    return () => {
+      observer?.disconnect();
+      if (fallbackFrame !== null) window.cancelAnimationFrame(fallbackFrame);
+      mobile.removeEventListener("change", watch);
+    };
+  }, [nearby]);
+
+  return (
+    <div
+      ref={anchorRef}
+      onFocusCapture={() => setNearby(true)}
+      onPointerDownCapture={() => setNearby(true)}
+    >
+      {nearby ? (
+        <MobileBirthTimePicker value={value} onConfirm={onConfirm} />
+      ) : mobileWheelPlaceholder()}
+    </div>
+  );
+}
+
 // HALLEUS_CHART_DEFERRED_RUNTIME_BATCH5_R1
 const LazySupabaseAuthPanel = dynamic(
   () =>
@@ -1438,7 +1500,7 @@ export function ChartForm({
                 </div>
 
                 {!comparisonMode && birthTimeMode === "known" ? (
-                  <MobileBirthTimePicker value={birthTimeParts} onConfirm={applyMobileBirthTime} />
+                  <DeferredMobileBirthTimePicker value={birthTimeParts} onConfirm={applyMobileBirthTime} />
                 ) : null}
 
                 {birthTimeMode === "known" ? (
