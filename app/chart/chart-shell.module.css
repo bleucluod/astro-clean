@@ -3311,6 +3311,8 @@
   .heroQuickPreview{display:flex;align-items:center;gap:11px;margin-top:13px;color:#bfcfdb;font-size:.76rem;line-height:1.8}
   .heroQuickPreview img{flex:0 0 54px;width:54px;height:54px;border:1px solid rgba(182,204,221,.24);border-radius:11px;background:#0d1723;object-fit:cover}
   .heroVisual{display:none}
+  /* Mobile first paint: keep decorative hero elements still until interaction-heavy form settles. */
+  .heroCopy,.heroAtmosphere span{animation:none}
   .heroActions{margin-top:13px;gap:8px}
   .heroPrimary{min-height:48px;font-size:.91rem}
   .heroSecondary{min-height:34px;font-size:.77rem}
