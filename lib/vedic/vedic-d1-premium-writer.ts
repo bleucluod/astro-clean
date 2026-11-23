@@ -369,7 +369,7 @@ export function buildVedicD1PrivateManuscriptDraft(
     : '';
 
   let lagnaParagraphs = chapterOneAscName !== null && rulerId !== null && rulerRow !== null && rulerName !== null ? [
-    familiar + 'رایزینگ ودیکت در ' + chapterOneAscName + ' و درجهٔ ' + ascDegree + ' قرار دارد. ' +
+    familiar + 'رایزینگ ودیک تو در ' + chapterOneAscName + ' و درجهٔ ' + ascDegree + ' قرار دارد. ' +
       'در این نقشه، نقطهٔ شروع تو با ' + SIGN_VOICE[ascSign!] + ' شناخته می‌شود. ' +
       CHAPTER1_SIGN_LIFE[ascSign!] + ' این فقط یک توصیف کلی از شخصیت نیست؛ جای صاحب رایزینگ نشان می‌دهد این ویژگی در کدام بخش زندگی به کار می‌آید.',
     'این شیوهٔ برخورد فقط توی کار نیست؛ در خانه و کنار دوستان هم خودش را نشان می‌دهد. ' +

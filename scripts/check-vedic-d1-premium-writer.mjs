@@ -156,7 +156,7 @@ assert.ok(!uncertainRuler.paragraphsFa.join(' ').includes('مریخ در اری�
   'A boundary-uncertain Lagna ruler must not receive a definite house or sign');
 const named = buildVedicD1PrivateManuscriptDraft(makeChart(fixture.vectors[0]), { displayName: 'نیما' });
 const namedText = named.chapters[0].paragraphsFa.join(' ');
-assert.ok(namedText.startsWith('نیما، طالع ودیکت'), 'Name must feel natural in first line');
+assert.ok(namedText.startsWith('نیما، رایزینگ ودیک تو در '), 'Name must feel natural in first line');
 assert.ok(named.chapters[0].paragraphsFa.at(-1).startsWith('نیما،'),
   'Name should return naturally in conclusion');
 assert.ok(namedText.includes('اریس') && namedText.includes('تارس'),
