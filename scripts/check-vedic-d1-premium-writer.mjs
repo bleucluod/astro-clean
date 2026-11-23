@@ -54,8 +54,8 @@ for (const vector of fixture.vectors) {
       assert.equal(chapter.paragraphsFa.length, 6, vector.id + ': chapter 1 narrative depth');
       assert.ok(chapter.evidence.some(e => e.id === 'lagna-degree' && e.sourceField === 'ascendantLongitude'),
         vector.id + ': missing actual ascendant degree evidence');
-      assert.ok(chapter.paragraphsFa.some(p => p.includes('صاحب طالع تو')),
-        vector.id + ': missing Lagna lord interpretation');
+      assert.ok(chapter.paragraphsFa.some(p => p.includes('حاکم ')),
+        vector.id + ': missing Lagna ruler interpretation');
       const chapterText = chapter.paragraphsFa.join(' ');
       for (const filler of ['صرفاً نمادین', 'احتمالاً', 'شاید بتوان', 'به این تعبیر اعتماد نکن', 'اگر این دو نشان یکی باشند']) {
         assert.equal(chapterText.includes(filler), false,
@@ -129,18 +129,43 @@ const occupiedFirst = makeChart(fixture.vectors[0], { ascendant: 15, venus: 17 }
 const occupiedChapter = buildVedicD1PrivateManuscriptDraft(occupiedFirst).chapters[0];
 const occupant = occupiedChapter.evidence.find(e => e.id === 'lagna-first-house-body');
 assert.equal(occupant?.bodyId, 'venus', 'First-house Venus must be cited as independent evidence');
-assert.ok(occupiedChapter.paragraphsFa.join(' ').includes('حضور زهره'),
-  'First-house occupant must be interpreted in the narrative');
+assert.ok(occupiedChapter.paragraphsFa.join(' ').includes('زهره در اریس و خانهٔ 1'),
+  'First-house occupant must be interpreted with English zodiac name');
 const ownSignRuler = makeChart(fixture.vectors[0], { ascendant: 15, mars: 17 }, 0);
 const ownChapter = buildVedicD1PrivateManuscriptDraft(ownSignRuler).chapters[0];
-assert.ok(ownChapter.paragraphsFa.some(p => p.includes('طالع و صاحب آن در یک نشان')),
+assert.ok(ownChapter.paragraphsFa.some(p => p.includes('طالع و صاحب آن هر دو در اریس')),
   'Lagna lord in first house must use its real own-sign branch');
 
 const rulerBoundary = makeChart(fixture.vectors[0], { mars: 29.99 }, 3);
 const uncertainRuler = buildVedicD1PrivateManuscriptDraft(rulerBoundary).chapters[0];
 assert.equal(uncertainRuler.evidence.find(e => e.id === 'lagna-ruler-placement').status, 'near-boundary');
-assert.ok(!uncertainRuler.paragraphsFa.join(' ').includes('صاحب طالع تو مریخ است و در نشان'),
+assert.ok(!uncertainRuler.paragraphsFa.join(' ').includes('مریخ در اریس و خانهٔ'),
   'A boundary-uncertain Lagna ruler must not receive a definite house or sign');
+const named = buildVedicD1PrivateManuscriptDraft(makeChart(fixture.vectors[0]), { displayName: 'نیما' });
+const namedText = named.chapters[0].paragraphsFa.join(' ');
+assert.ok(namedText.startsWith('نیما، طالعِ ودیکت'), 'Name must feel natural in first line');
+assert.ok(namedText.includes('نیما، نخِ اصلی'), 'Name should return naturally in conclusion');
+assert.ok(namedText.includes('اریس') && namedText.includes('تارس'),
+  'English zodiac names in Persian script are required for the personal chapter');
+assert.ok(!namedText.includes('حمل') && !namedText.includes('ثور'),
+  'Old zodiac sign labels must not appear in personal chapter');
+assert.ok((namedText.match(/مثلاً|مثل وقتی|فرض کن/g) ?? []).length >= 4,
+  'Chapter 1 must include at least four recognizable everyday examples');
+assert.equal(buildVedicD1PrivateManuscriptDraft(makeChart(fixture.vectors[0]))
+  .chapters[0].paragraphsFa.join(' ').includes('نیما'), false,
+  'Optional name must not leak between requests');
+assert.equal(named.chapters[1].paragraphsFa.join(' ').includes('نیما'), false,
+  'Chapter 2 must not be modified by chapter 1 name personalization');
+for (const badName of ['<script>', '۱۲۳', 'علی 🌟', 'x'.repeat(41), '']) {
+  assert.throws(
+    () => buildVedicD1PrivateManuscriptDraft(makeChart(fixture.vectors[0]), { displayName: badName }),
+    /VEDIC_D1_DISPLAY_NAME_INVALID/,
+    'Unsafe or blank display name must not enter private text');
+}
+const sameHouseHost = makeChart(fixture.vectors[0], { ascendant: 15, mars: 45, venus: 50 }, 0);
+const sameHouseDraft = buildVedicD1PrivateManuscriptDraft(sameHouseHost).chapters[0];
+assert.ok(sameHouseDraft.paragraphsFa.some(p => p.includes('هر دو در خانهٔ 2 قرار گرفته‌اند')),
+  'Lord and its host in the same house must not duplicate two identical examples');
 const first = drafts[0].chapters[0];
 const second = drafts[1].chapters[0];
 assert.ok(first.evidence.some(e => e.factFa.includes('مریخ') && e.factFa.includes('خانهٔ 2')),
@@ -161,7 +186,7 @@ assert.equal(boundaryChart.uncertainty.placementSign.moon, true);
 assert.equal(uncertain.chapters[0].evidence[0].status, 'near-boundary');
 assert.ok(uncertain.chapters[0].evidence.some(e => e.id === 'lagna-sun-alternative'),
   'Uncertain Lagna must provide evidence for both fallback bodies');
-assert.ok(!uncertain.chapters[0].paragraphsFa.join(' ').includes('صاحب طالع تو'),
+assert.ok(!uncertain.chapters[0].paragraphsFa.join(' ').includes('حاکم اریس،'),
   'Uncertain ascendant must never assert a Lagna lord');
 assert.equal(uncertain.chapters[1].evidence[0].status, 'near-boundary');
 assert.ok(uncertain.chapters[0].paragraphsFa[0].includes('مرز دو نشان'));
@@ -190,11 +215,16 @@ for (const path of [
     !source.includes('private-d1-draft'), path + ' imports private report');
 }
 const writer = read('lib/vedic/vedic-d1-premium-writer.ts');
+assert.ok(writer.includes('chapterOneName(options.displayName)'),
+  'Display name must enter only the private writer options');
+assert.ok(writer.includes('chapterOneBodyFact(') && writer.includes('CHAPTER1_ZODIAC'),
+  'Personal chapter must use reader-facing English sign names in Persian script');
+assert.ok(!writer.includes('آراد'), 'A real name must never be hardcoded into the writer');
 assert.ok(writer.includes("row.id !== 'rahu' && row.id !== 'ketu'"),
   'Classical planet clusters must not count Rahu/Ketu as planets');
 assert.ok(writer.includes('buildVedicD1NorthView(chart)'));
 assert.ok(!writer.includes('generateReportContract'));
-console.log('PASS Vedic premium writer: 14 D1 charts, 12 Lagna rulers, real ascendant degrees, first-house occupant, host ruler, distinct chapter 1 prose, boundary cases, unchanged other chapters, guest isolation');
+console.log('PASS Vedic premium writer: 14 D1 charts, 12 Lagna rulers, optional safe name, zodiac transliteration, everyday examples, first-house occupant, host ruler, boundaries, guest isolation');
 console.log('Chapter 1 overlap between first two distinct charts (seven-word spans): ' + Math.round(overlap * 100) + '%');
 console.log('NOT RUN: authenticated ownership, private storage, payment or live report delivery');
 if (process.argv.includes('--preview')) {
