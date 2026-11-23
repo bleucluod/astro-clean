@@ -35,6 +35,13 @@ function ProductImage({ item }: { item: ShopV01Item }) {
 export function ShopV01Home({ products, showP02Invitation = true }: { products: ShopV01Item[]; showP02Invitation?: boolean }) {
   return (
     <div className={styles.shopHome}>
+      <link
+        rel="preload"
+        as="image"
+        href="/shop-preview/hero-mobile-v012.webp"
+        media="(max-width: 767px)"
+        fetchPriority="high"
+      />
       <section className={styles.heroSection} aria-labelledby="shop-title">
         <div className={styles.hero}>
           <div className={styles.heroCopy}>
