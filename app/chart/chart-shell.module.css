@@ -3750,16 +3750,3 @@
   .page .finalCta h2 { font-size: 1.16rem; line-height: 1.7; }
   .page .finalCta p { font-size: .85rem; line-height: 2.02; }
 }
-
-/* HALLEUS_CHART_ARTICLE_BLOCK_CONTAINMENT_20261123
-   Only below-form editorial articles. Unlike the reverted experiment,
-   this reserves block size, never a fabricated inline width for the RTL grid. */
-@media (max-width: 760px) {
-  @supports (content-visibility: auto) {
-    .page .supportSection {
-      min-width: 0;
-      content-visibility: auto;
-      contain-intrinsic-block-size: auto 400px;
-    }
-  }
-}
