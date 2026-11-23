@@ -24,7 +24,7 @@ export function VedicD1GuestResult() {
           <p className={chartStyles.heroLead}>نمودار شمال هند، جایگاه سیاره‌ها و خوانش کوتاه فارسیِ چارت محاسبه‌شده.</p>
         </div>
       </header>
-      {result ? (
+      {result?.kind === "timed" ? (
         <section className={styles.freeResult + " " + styles.reportResult} aria-label="نتیجهٔ رایگان چارت ودیک">
           <div className={styles.reportWelcome}>
             <span className={styles.reportKicker}>گزارش شخصی تو</span>
@@ -48,6 +48,13 @@ export function VedicD1GuestResult() {
             <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "این سه فصل صرفاً پیش‌نمایش محلی‌اند؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نشده است." : "فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است."}</p>
             <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
           </div>
+        </section>
+      ) : result?.kind === "untimed" ? (
+        <section className={styles.emptyResult} aria-label="نتیجهٔ ساعت نامشخص">
+          <h2>{result.name}، ساعت تولدت مشخص نیست</h2>
+          <p>بدون ساعت تولد، لاگنا و خانه‌های چارت D1 قابل تعیین نیستند.
+            به همین دلیل چارت دوازده‌خانه و فصل‌های شخصی را با ساعت فرضی نمی‌سازیم.</p>
+          <Link className={styles.resultBackLink} href="/chart/vedic">ثبت ساعت تولد</Link>
         </section>
       ) : (
         <section className={styles.emptyResult} role="status">

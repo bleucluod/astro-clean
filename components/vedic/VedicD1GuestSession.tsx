@@ -8,6 +8,7 @@ type VedicD1GuestDraft = {
   calendar: "jalali" | "gregorian";
   birthDate: string;
   birthTime: string;
+  unknownTime: boolean;
   cityQuery: string;
   cityId: string;
   occurrence: "" | "earlier" | "later";
@@ -19,9 +20,16 @@ export type VedicD1LocalPreview = {
 };
 
 export type VedicD1GuestResult = {
-  localPreview?:VedicD1LocalPreview | null;
+  kind: "timed";
+  localPreview?: VedicD1LocalPreview | null;
   name: string;
   reading: VedicD1FreeReading;
+  draft: VedicD1GuestDraft;
+} | {
+  kind: "untimed";
+  localPreview: null;
+  name: string;
+  reading: null;
   draft: VedicD1GuestDraft;
 };
 
