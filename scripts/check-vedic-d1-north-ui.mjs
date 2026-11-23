@@ -55,15 +55,13 @@ assert.ok(component.includes('d={VEDIC_D1_NORTH_GRID_PATH}'), 'The original Nort
 assert.ok(resultPage.includes('robots: { index: false, follow: false }'), 'Guest results must remain noindex');
 assert.ok(form.includes('isVedicD1FreeReading'), 'Guest must reject non-free/unexpected response');
 for(const phrase of ['@media (max-width: 640px)','min-width: 440px','overflow-x: auto',
-  'min-width: 520px','focus-visible','direction: ltr','grid-template-columns: minmax(0, 1fr)']) {
+  'min-width: 520px','focus-visible','direction: ltr','grid-template-columns: repeat(2, minmax(0, 1fr))']) {
   assert.ok(css.includes(phrase),'Missing responsive requirement: '+phrase);
 }
 assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,'CSS balanced braces');
 assert.ok(css.includes('.svg { width: 100%; min-width: 0; }'), 'The complete North Indian chart must fit on mobile');
 assert.ok(css.includes('.figure {') && css.includes('.summaryItem {'), 'Report visual panels must be present');
-for(const width of [320,360,412]) {
-  assert.ok(width<440,'Mobile width should scroll diagram, not shrink planet labels');
-  assert.ok(width<520,'Mobile width should scroll readable table');
-}
-console.log('PASS North Indian UI static guard: TSX syntax, complete table, unmirrored 12 houses, mobile overflow and verified free-reading props');
+assert.ok(css.includes('.summaryItem:last-child { grid-column: 1 / -1; }'), 'Mobile third summary tile must span the row');
+assert.ok(css.includes('.table { width: 100%; min-width: 520px;'), 'Table must remain horizontally scrollable');
+console.log('PASS North Indian UI static guard: TSX syntax, complete table, unmirrored 12 houses, mobile full-chart fitting, table scroll and verified free-reading props');
 console.log('NOT RUN: actual React DOM render, screenshot, screen-reader or Next.js production build');
