@@ -314,8 +314,8 @@ function Cloudflared {
   )
   $programFilesX86=[Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
   if($programFilesX86){
-    $paths+=Join-Path $programFilesX86 'cloudflared\cloudflared.exe'
-    $paths+=Join-Path $programFilesX86 'Cloudflare\cloudflared.exe'
+    $paths += (Join-Path $programFilesX86 'cloudflared\cloudflared.exe')
+    $paths += (Join-Path $programFilesX86 'Cloudflare\cloudflared.exe')
   }
   foreach($p in $paths){if(Test-Path -LiteralPath $p -PathType Leaf){return $p}}
   $packages=Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages'
@@ -412,7 +412,7 @@ function Failure-Zip {
         if($inputStream){$inputStream.Dispose()}
       }
     }
-    [IO.File]::WriteAllLines((Join-Path $stage 'snapshot-notes.txt'),[string[]]@('SKIPPED_LOGS:')+[string[]]$skipped,[Text.UTF8Encoding]::new($false))
+    [IO.File]::WriteAllLines((Join-Path $stage 'snapshot-notes.txt'),[string[]](@('SKIPPED_LOGS:')+[string[]]$skipped),[Text.UTF8Encoding]::new($false))
     $zip=Join-Path $downloads ('Halleus-PageSpeed-FailureLogs-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.zip')
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force -ErrorAction Stop
     Info ('FAILURE_LOGS_ZIP='+$zip)
