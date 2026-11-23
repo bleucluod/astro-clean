@@ -1,0 +1,947 @@
+{
+  "schema": "halleus/vedic-d1-independent-reference/v1",
+  "syntheticDataOnly": true,
+  "reference": {
+    "library": "Swiss Ephemeris via pyswisseph",
+    "version": "2.10.03",
+    "backend": "Moshier (FLG_MOSEPH), not Swiss ephemeris data files",
+    "siderealMode": "SE_SIDM_LAHIRI",
+    "flags": [
+      "FLG_MOSEPH",
+      "FLG_SIDEREAL",
+      "FLG_SPEED"
+    ],
+    "lunarNode": "MEAN_NODE",
+    "houses": "whole-sign derived from sidereal ascendant",
+    "ascendant": "houses_ex(..., b\"W\", FLG_SIDEREAL) ascmc[0]",
+    "coordinateBasis": "Swiss Ephemeris sidereal-of-date frame; no fixed 24-degree subtraction",
+    "utcMethod": "Python zoneinfo/IANA timezone historical offsets",
+    "generator": "scripts/generate-vedic-d1-reference.py"
+  },
+  "vectors": [
+    {
+      "id": "tehran-summer-midnight-1992",
+      "localDate": "1992-08-12",
+      "localTime": "00:05",
+      "timezone": "Asia/Tehran",
+      "latitude": 35.6892,
+      "longitude": 51.389,
+      "utcIso": "1992-08-11T19:35:00.000Z",
+      "ayanamshaDegrees": 23.759058765,
+      "ascendant": {
+        "longitude": 27.974929137,
+        "signIndex": 0,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 115.600756357,
+          "signIndex": 3,
+          "houseNumber": 4
+        },
+        "moon": {
+          "longitude": 277.960185522,
+          "signIndex": 9,
+          "houseNumber": 10
+        },
+        "mars": {
+          "longitude": 46.929036495,
+          "signIndex": 1,
+          "houseNumber": 2
+        },
+        "mercury": {
+          "longitude": 102.306229916,
+          "signIndex": 3,
+          "houseNumber": 4
+        },
+        "jupiter": {
+          "longitude": 143.521008761,
+          "signIndex": 4,
+          "houseNumber": 5
+        },
+        "venus": {
+          "longitude": 131.835002342,
+          "signIndex": 4,
+          "houseNumber": 5
+        },
+        "saturn": {
+          "longitude": 291.048614793,
+          "signIndex": 9,
+          "houseNumber": 10
+        },
+        "rahu": {
+          "longitude": 244.196130104,
+          "signIndex": 8,
+          "houseNumber": 9
+        },
+        "ketu": {
+          "longitude": 64.196130104,
+          "signIndex": 2,
+          "houseNumber": 3
+        }
+      },
+      "moonNakshatra": {
+        "index": 20,
+        "pada": 4
+      }
+    },
+    {
+      "id": "tehran-winter-late-1998",
+      "localDate": "1998-02-03",
+      "localTime": "23:55",
+      "timezone": "Asia/Tehran",
+      "latitude": 35.6892,
+      "longitude": 51.389,
+      "utcIso": "1998-02-03T20:25:00.000Z",
+      "ayanamshaDegrees": 23.829286773,
+      "ascendant": {
+        "longitude": 190.387296076,
+        "signIndex": 6,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 290.979226799,
+          "signIndex": 9,
+          "houseNumber": 4
+        },
+        "moon": {
+          "longitude": 19.64811893,
+          "signIndex": 0,
+          "houseNumber": 7
+        },
+        "mars": {
+          "longitude": 313.62510362,
+          "signIndex": 10,
+          "houseNumber": 5
+        },
+        "mercury": {
+          "longitude": 278.086971951,
+          "signIndex": 9,
+          "houseNumber": 4
+        },
+        "jupiter": {
+          "longitude": 306.028110707,
+          "signIndex": 10,
+          "houseNumber": 5
+        },
+        "venus": {
+          "longitude": 264.722876416,
+          "signIndex": 8,
+          "houseNumber": 3
+        },
+        "saturn": {
+          "longitude": 351.839242611,
+          "signIndex": 11,
+          "houseNumber": 6
+        },
+        "rahu": {
+          "longitude": 138.104272405,
+          "signIndex": 4,
+          "houseNumber": 11
+        },
+        "ketu": {
+          "longitude": 318.104272405,
+          "signIndex": 10,
+          "houseNumber": 5
+        }
+      },
+      "moonNakshatra": {
+        "index": 1,
+        "pada": 2
+      }
+    },
+    {
+      "id": "tehran-noon-2000",
+      "localDate": "2000-01-01",
+      "localTime": "12:00",
+      "timezone": "Asia/Tehran",
+      "latitude": 35.6892,
+      "longitude": 51.389,
+      "utcIso": "2000-01-01T08:30:00.000Z",
+      "ayanamshaDegrees": 23.853216717,
+      "ascendant": {
+        "longitude": 350.6105935,
+        "signIndex": 11,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 256.367036639,
+          "signIndex": 8,
+          "houseNumber": 10
+        },
+        "moon": {
+          "longitude": 197.715857845,
+          "signIndex": 6,
+          "houseNumber": 8
+        },
+        "mars": {
+          "longitude": 303.99697779,
+          "signIndex": 10,
+          "houseNumber": 12
+        },
+        "mercury": {
+          "longitude": 247.80916054,
+          "signIndex": 8,
+          "houseNumber": 10
+        },
+        "jupiter": {
+          "longitude": 1.39390513,
+          "signIndex": 0,
+          "houseNumber": 2
+        },
+        "venus": {
+          "longitude": 217.536275152,
+          "signIndex": 7,
+          "houseNumber": 9
+        },
+        "saturn": {
+          "longitude": 16.545350262,
+          "signIndex": 0,
+          "houseNumber": 2
+        },
+        "rahu": {
+          "longitude": 101.195151572,
+          "signIndex": 3,
+          "houseNumber": 5
+        },
+        "ketu": {
+          "longitude": 281.195151572,
+          "signIndex": 9,
+          "houseNumber": 11
+        }
+      },
+      "moonNakshatra": {
+        "index": 14,
+        "pada": 4
+      }
+    },
+    {
+      "id": "tehran-post-dst-2023",
+      "localDate": "2023-03-22",
+      "localTime": "12:00",
+      "timezone": "Asia/Tehran",
+      "latitude": 35.6892,
+      "longitude": 51.389,
+      "utcIso": "2023-03-22T08:30:00.000Z",
+      "ayanamshaDegrees": 24.178727303,
+      "ascendant": {
+        "longitude": 80.472923782,
+        "signIndex": 2,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 337.274272354,
+          "signIndex": 11,
+          "houseNumber": 10
+        },
+        "moon": {
+          "longitude": 345.748710221,
+          "signIndex": 11,
+          "houseNumber": 10
+        },
+        "mars": {
+          "longitude": 64.318193494,
+          "signIndex": 2,
+          "houseNumber": 1
+        },
+        "mercury": {
+          "longitude": 342.170195995,
+          "signIndex": 11,
+          "houseNumber": 10
+        },
+        "jupiter": {
+          "longitude": 352.634807613,
+          "signIndex": 11,
+          "houseNumber": 10
+        },
+        "venus": {
+          "longitude": 12.331104122,
+          "signIndex": 0,
+          "houseNumber": 11
+        },
+        "saturn": {
+          "longitude": 307.51309069,
+          "signIndex": 10,
+          "houseNumber": 9
+        },
+        "rahu": {
+          "longitude": 11.769997744,
+          "signIndex": 0,
+          "houseNumber": 11
+        },
+        "ketu": {
+          "longitude": 191.769997744,
+          "signIndex": 6,
+          "houseNumber": 5
+        }
+      },
+      "moonNakshatra": {
+        "index": 25,
+        "pada": 4
+      }
+    },
+    {
+      "id": "kabul-half-hour-1996",
+      "localDate": "1996-08-12",
+      "localTime": "11:30",
+      "timezone": "Asia/Kabul",
+      "latitude": 34.5553,
+      "longitude": 69.2075,
+      "utcIso": "1996-08-12T07:00:00.000Z",
+      "ayanamshaDegrees": 23.811050626,
+      "ascendant": {
+        "longitude": 193.833047523,
+        "signIndex": 6,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 116.032976722,
+          "signIndex": 3,
+          "houseNumber": 10
+        },
+        "moon": {
+          "longitude": 93.976536964,
+          "signIndex": 3,
+          "houseNumber": 10
+        },
+        "mars": {
+          "longitude": 77.852360752,
+          "signIndex": 2,
+          "houseNumber": 9
+        },
+        "mercury": {
+          "longitude": 141.698247171,
+          "signIndex": 4,
+          "houseNumber": 11
+        },
+        "jupiter": {
+          "longitude": 254.783786414,
+          "signIndex": 8,
+          "houseNumber": 3
+        },
+        "venus": {
+          "longitude": 70.555603759,
+          "signIndex": 2,
+          "houseNumber": 9
+        },
+        "saturn": {
+          "longitude": 343.094872075,
+          "signIndex": 11,
+          "houseNumber": 6
+        },
+        "rahu": {
+          "longitude": 166.749584357,
+          "signIndex": 5,
+          "houseNumber": 12
+        },
+        "ketu": {
+          "longitude": 346.749584357,
+          "signIndex": 11,
+          "houseNumber": 6
+        }
+      },
+      "moonNakshatra": {
+        "index": 7,
+        "pada": 1
+      }
+    },
+    {
+      "id": "kathmandu-quarter-hour-2010",
+      "localDate": "2010-10-04",
+      "localTime": "15:30",
+      "timezone": "Asia/Kathmandu",
+      "latitude": 27.7172,
+      "longitude": 85.324,
+      "utcIso": "2010-10-04T09:45:00.000Z",
+      "ayanamshaDegrees": 24.011960957,
+      "ascendant": {
+        "longitude": 301.245674087,
+        "signIndex": 10,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 167.055403496,
+          "signIndex": 5,
+          "houseNumber": 8
+        },
+        "moon": {
+          "longitude": 119.674193383,
+          "signIndex": 3,
+          "houseNumber": 6
+        },
+        "mars": {
+          "longitude": 199.196643113,
+          "signIndex": 6,
+          "houseNumber": 9
+        },
+        "mercury": {
+          "longitude": 157.376121552,
+          "signIndex": 5,
+          "houseNumber": 8
+        },
+        "jupiter": {
+          "longitude": 332.687057659,
+          "signIndex": 11,
+          "houseNumber": 2
+        },
+        "venus": {
+          "longitude": 198.933765603,
+          "signIndex": 6,
+          "houseNumber": 9
+        },
+        "saturn": {
+          "longitude": 164.148796802,
+          "signIndex": 5,
+          "houseNumber": 8
+        },
+        "rahu": {
+          "longitude": 252.986799086,
+          "signIndex": 8,
+          "houseNumber": 11
+        },
+        "ketu": {
+          "longitude": 72.986799086,
+          "signIndex": 2,
+          "houseNumber": 5
+        }
+      },
+      "moonNakshatra": {
+        "index": 8,
+        "pada": 4
+      }
+    },
+    {
+      "id": "mumbai-1982",
+      "localDate": "1982-04-15",
+      "localTime": "13:20",
+      "timezone": "Asia/Kolkata",
+      "latitude": 19.076,
+      "longitude": 72.8777,
+      "utcIso": "1982-04-15T07:50:00.000Z",
+      "ayanamshaDegrees": 23.604831436,
+      "ascendant": {
+        "longitude": 104.093332742,
+        "signIndex": 3,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 1.413158179,
+          "signIndex": 0,
+          "houseNumber": 10
+        },
+        "moon": {
+          "longitude": 258.274109632,
+          "signIndex": 8,
+          "houseNumber": 6
+        },
+        "mars": {
+          "longitude": 161.277955087,
+          "signIndex": 5,
+          "houseNumber": 3
+        },
+        "mercury": {
+          "longitude": 5.421939843,
+          "signIndex": 0,
+          "houseNumber": 10
+        },
+        "jupiter": {
+          "longitude": 193.201132787,
+          "signIndex": 6,
+          "houseNumber": 4
+        },
+        "venus": {
+          "longitude": 315.518003545,
+          "signIndex": 10,
+          "houseNumber": 8
+        },
+        "saturn": {
+          "longitude": 174.833848572,
+          "signIndex": 5,
+          "houseNumber": 3
+        },
+        "rahu": {
+          "longitude": 84.054997429,
+          "signIndex": 2,
+          "houseNumber": 12
+        },
+        "ketu": {
+          "longitude": 264.054997429,
+          "signIndex": 8,
+          "houseNumber": 6
+        }
+      },
+      "moonNakshatra": {
+        "index": 19,
+        "pada": 2
+      }
+    },
+    {
+      "id": "sydney-winter-1990",
+      "localDate": "1990-06-20",
+      "localTime": "08:40",
+      "timezone": "Australia/Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcIso": "1990-06-19T22:40:00.000Z",
+      "ayanamshaDegrees": 23.727444084,
+      "ascendant": {
+        "longitude": 88.151464472,
+        "signIndex": 2,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 64.646299792,
+          "signIndex": 2,
+          "houseNumber": 1
+        },
+        "moon": {
+          "longitude": 24.681622129,
+          "signIndex": 0,
+          "houseNumber": 11
+        },
+        "mars": {
+          "longitude": 350.497507531,
+          "signIndex": 11,
+          "houseNumber": 10
+        },
+        "mercury": {
+          "longitude": 50.031768416,
+          "signIndex": 1,
+          "houseNumber": 12
+        },
+        "jupiter": {
+          "longitude": 83.130167946,
+          "signIndex": 2,
+          "houseNumber": 1
+        },
+        "venus": {
+          "longitude": 30.285640856,
+          "signIndex": 1,
+          "houseNumber": 12
+        },
+        "saturn": {
+          "longitude": 270.034341985,
+          "signIndex": 9,
+          "houseNumber": 8
+        },
+        "rahu": {
+          "longitude": 285.735066168,
+          "signIndex": 9,
+          "houseNumber": 8
+        },
+        "ketu": {
+          "longitude": 105.735066168,
+          "signIndex": 3,
+          "houseNumber": 2
+        }
+      },
+      "moonNakshatra": {
+        "index": 1,
+        "pada": 4
+      }
+    },
+    {
+      "id": "buenos-aires-midnight-1970",
+      "localDate": "1970-12-31",
+      "localTime": "23:40",
+      "timezone": "America/Argentina/Buenos_Aires",
+      "latitude": -34.6037,
+      "longitude": -58.3816,
+      "utcIso": "1971-01-01T02:40:00.000Z",
+      "ayanamshaDegrees": 23.454828815,
+      "ascendant": {
+        "longitude": 143.737686233,
+        "signIndex": 4,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 256.572034807,
+          "signIndex": 8,
+          "houseNumber": 5
+        },
+        "moon": {
+          "longitude": 305.666014944,
+          "signIndex": 10,
+          "houseNumber": 7
+        },
+        "mars": {
+          "longitude": 202.675013918,
+          "signIndex": 6,
+          "houseNumber": 3
+        },
+        "mercury": {
+          "longitude": 248.418473825,
+          "signIndex": 8,
+          "houseNumber": 5
+        },
+        "jupiter": {
+          "longitude": 214.149438624,
+          "signIndex": 7,
+          "houseNumber": 4
+        },
+        "venus": {
+          "longitude": 211.432028305,
+          "signIndex": 7,
+          "houseNumber": 4
+        },
+        "saturn": {
+          "longitude": 22.493499876,
+          "signIndex": 0,
+          "houseNumber": 9
+        },
+        "rahu": {
+          "longitude": 302.49957484,
+          "signIndex": 10,
+          "houseNumber": 7
+        },
+        "ketu": {
+          "longitude": 122.49957484,
+          "signIndex": 4,
+          "houseNumber": 1
+        }
+      },
+      "moonNakshatra": {
+        "index": 22,
+        "pada": 4
+      }
+    },
+    {
+      "id": "london-summer-1952",
+      "localDate": "1952-07-14",
+      "localTime": "06:05",
+      "timezone": "Europe/London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcIso": "1952-07-14T05:05:00.000Z",
+      "ayanamshaDegrees": 23.197119525,
+      "ascendant": {
+        "longitude": 99.282357079,
+        "signIndex": 3,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 88.489100345,
+          "signIndex": 2,
+          "houseNumber": 12
+        },
+        "moon": {
+          "longitude": 359.20803887,
+          "signIndex": 11,
+          "houseNumber": 9
+        },
+        "mars": {
+          "longitude": 194.719397167,
+          "signIndex": 6,
+          "houseNumber": 4
+        },
+        "mercury": {
+          "longitude": 115.086675549,
+          "signIndex": 3,
+          "houseNumber": 1
+        },
+        "jupiter": {
+          "longitude": 22.81782139,
+          "signIndex": 0,
+          "houseNumber": 10
+        },
+        "venus": {
+          "longitude": 93.813741774,
+          "signIndex": 3,
+          "houseNumber": 1
+        },
+        "saturn": {
+          "longitude": 165.925711655,
+          "signIndex": 5,
+          "houseNumber": 3
+        },
+        "rahu": {
+          "longitude": 299.925609237,
+          "signIndex": 9,
+          "houseNumber": 7
+        },
+        "ketu": {
+          "longitude": 119.925609237,
+          "signIndex": 3,
+          "houseNumber": 1
+        }
+      },
+      "moonNakshatra": {
+        "index": 26,
+        "pada": 4
+      }
+    },
+    {
+      "id": "new-york-fall-2005",
+      "localDate": "2005-11-01",
+      "localTime": "00:03",
+      "timezone": "America/New_York",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcIso": "2005-11-01T05:03:00.000Z",
+      "ayanamshaDegrees": 23.937120239,
+      "ascendant": {
+        "longitude": 118.469717145,
+        "signIndex": 3,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 194.937284227,
+          "signIndex": 6,
+          "houseNumber": 4
+        },
+        "moon": {
+          "longitude": 184.755980757,
+          "signIndex": 6,
+          "houseNumber": 4
+        },
+        "mars": {
+          "longitude": 23.244986675,
+          "signIndex": 0,
+          "houseNumber": 10
+        },
+        "mercury": {
+          "longitude": 218.1563921,
+          "signIndex": 7,
+          "houseNumber": 5
+        },
+        "jupiter": {
+          "longitude": 187.387615032,
+          "signIndex": 6,
+          "houseNumber": 4
+        },
+        "venus": {
+          "longitude": 241.914809085,
+          "signIndex": 8,
+          "houseNumber": 6
+        },
+        "saturn": {
+          "longitude": 106.958484174,
+          "signIndex": 3,
+          "houseNumber": 1
+        },
+        "rahu": {
+          "longitude": 348.276799031,
+          "signIndex": 11,
+          "houseNumber": 9
+        },
+        "ketu": {
+          "longitude": 168.276799031,
+          "signIndex": 5,
+          "houseNumber": 3
+        }
+      },
+      "moonNakshatra": {
+        "index": 13,
+        "pada": 4
+      }
+    },
+    {
+      "id": "tromso-high-latitude-2022",
+      "localDate": "2022-05-21",
+      "localTime": "12:00",
+      "timezone": "Europe/Oslo",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcIso": "2022-05-21T10:00:00.000Z",
+      "ayanamshaDegrees": 24.165888791,
+      "ascendant": {
+        "longitude": 134.946518852,
+        "signIndex": 4,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 36.1798082,
+          "signIndex": 1,
+          "houseNumber": 10
+        },
+        "moon": {
+          "longitude": 288.459289076,
+          "signIndex": 9,
+          "houseNumber": 6
+        },
+        "mars": {
+          "longitude": 333.180354065,
+          "signIndex": 11,
+          "houseNumber": 8
+        },
+        "mercury": {
+          "longitude": 36.775668834,
+          "signIndex": 1,
+          "houseNumber": 10
+        },
+        "jupiter": {
+          "longitude": 337.785292802,
+          "signIndex": 11,
+          "houseNumber": 8
+        },
+        "venus": {
+          "longitude": 357.429748885,
+          "signIndex": 11,
+          "houseNumber": 8
+        },
+        "saturn": {
+          "longitude": 300.914709841,
+          "signIndex": 10,
+          "houseNumber": 7
+        },
+        "rahu": {
+          "longitude": 27.929242339,
+          "signIndex": 0,
+          "houseNumber": 9
+        },
+        "ketu": {
+          "longitude": 207.929242339,
+          "signIndex": 6,
+          "houseNumber": 3
+        }
+      },
+      "moonNakshatra": {
+        "index": 21,
+        "pada": 3
+      }
+    },
+    {
+      "id": "auckland-new-year-2001",
+      "localDate": "2001-01-01",
+      "localTime": "00:30",
+      "timezone": "Pacific/Auckland",
+      "latitude": -36.8485,
+      "longitude": 174.7633,
+      "utcIso": "2000-12-31T11:30:00.000Z",
+      "ayanamshaDegrees": 23.866575554,
+      "ascendant": {
+        "longitude": 152.035968734,
+        "signIndex": 5,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 256.235888605,
+          "signIndex": 8,
+          "houseNumber": 4
+        },
+        "moon": {
+          "longitude": 318.570281326,
+          "signIndex": 10,
+          "houseNumber": 6
+        },
+        "mars": {
+          "longitude": 190.766485291,
+          "signIndex": 6,
+          "houseNumber": 2
+        },
+        "mercury": {
+          "longitude": 259.560699013,
+          "signIndex": 8,
+          "houseNumber": 4
+        },
+        "jupiter": {
+          "longitude": 38.365712764,
+          "signIndex": 1,
+          "houseNumber": 9
+        },
+        "venus": {
+          "longitude": 302.524160021,
+          "signIndex": 10,
+          "houseNumber": 6
+        },
+        "saturn": {
+          "longitude": 30.747200098,
+          "signIndex": 1,
+          "houseNumber": 9
+        },
+        "rahu": {
+          "longitude": 81.846443554,
+          "signIndex": 2,
+          "houseNumber": 10
+        },
+        "ketu": {
+          "longitude": 261.846443554,
+          "signIndex": 8,
+          "houseNumber": 4
+        }
+      },
+      "moonNakshatra": {
+        "index": 23,
+        "pada": 4
+      }
+    },
+    {
+      "id": "quito-equator-2015",
+      "localDate": "2015-09-23",
+      "localTime": "05:45",
+      "timezone": "America/Guayaquil",
+      "latitude": -0.1807,
+      "longitude": -78.4678,
+      "utcIso": "2015-09-23T10:45:00.000Z",
+      "ayanamshaDegrees": 24.076828277,
+      "ascendant": {
+        "longitude": 150.196379506,
+        "signIndex": 5,
+        "houseNumber": 1
+      },
+      "placements": {
+        "sun": {
+          "longitude": 156.021316023,
+          "signIndex": 5,
+          "houseNumber": 1
+        },
+        "moon": {
+          "longitude": 271.801215185,
+          "signIndex": 9,
+          "houseNumber": 5
+        },
+        "mars": {
+          "longitude": 124.891069877,
+          "signIndex": 4,
+          "houseNumber": 12
+        },
+        "mercury": {
+          "longitude": 170.000868023,
+          "signIndex": 5,
+          "houseNumber": 1
+        },
+        "jupiter": {
+          "longitude": 135.195613153,
+          "signIndex": 4,
+          "houseNumber": 12
+        },
+        "venus": {
+          "longitude": 115.33135563,
+          "signIndex": 3,
+          "houseNumber": 11
+        },
+        "saturn": {
+          "longitude": 216.316193966,
+          "signIndex": 7,
+          "houseNumber": 3
+        },
+        "rahu": {
+          "longitude": 156.80411321,
+          "signIndex": 5,
+          "houseNumber": 1
+        },
+        "ketu": {
+          "longitude": 336.80411321,
+          "signIndex": 11,
+          "houseNumber": 7
+        }
+      },
+      "moonNakshatra": {
+        "index": 20,
+        "pada": 2
+      }
+    }
+  ]
+}

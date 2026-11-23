@@ -1,0 +1,69 @@
+/* Use the exact /chart shell, panel, field, step and button styles via chart-shell.module.css.
+   Only the Vedic-specific layout, feedback and result surface live here. */
+.vedicPage { min-width: 0; }
+.vedicPage *, .vedicPage *::before, .vedicPage *::after { box-sizing: border-box; }
+.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; color: #c7cfda; font-size: .8rem; }
+.breadcrumb a { color: #dceeff; text-underline-offset: 3px; }
+.vedicHero { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; padding: clamp(26px, 4vw, 42px) !important; }
+.resultHero { min-height: 0 !important; background: radial-gradient(circle at 10% 40%, rgba(188, 204, 220, .14), transparent 34%), linear-gradient(135deg, #080d13, #151d27) !important; }
+.resultHero::before { content: ""; position: absolute; left: -78px; top: -122px; width: 300px; height: 300px; border: 1px solid rgba(217,234,253,.13); border-radius: 50%; pointer-events: none; }
+.resultHero::after { opacity: .18; }
+.previewNotice { max-width: 66ch; margin: 14px 0 0; padding: 12px 14px; border: 1px solid rgba(125, 211, 252, .16); border-radius: 12px; color: #c7cfda; background: rgba(125, 211, 252, .04); line-height: 1.85; font-size: .82rem; }
+.vedicWorkspace { grid-template-areas: "form" !important; grid-template-columns: minmax(0, 1fr) !important; }
+.vedicWorkspace > * { min-width: 0; }
+.formRoot { min-width: 0; color: #ffffff; }
+.fieldsLock { min-width: 0; margin: 0; padding: 0; border: 0; display: grid; gap: 14px; }
+.visuallyHidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.loadingHint { margin: 0; color: #dceeff; font-size: .8rem; }
+.hint { margin: 0; color: #c7cfda; font-size: .8rem; line-height: 1.9; }
+.privacy { margin: 0; color: #c7cfda; font-size: .78rem; line-height: 1.8; }
+.status { min-height: 1px; }
+.error, .unavailable, .success { margin: 0; padding: 12px 14px; border-radius: 12px; font-size: .83rem; line-height: 1.85; }
+.error { border: 1px solid rgba(248, 113, 113, .3); background: rgba(127, 29, 29, .24); color: #fee2e2; }
+.unavailable { border: 1px solid rgba(125, 211, 252, .2); background: rgba(125, 211, 252, .06); color: #edf2f7; }
+.success { border: 1px solid rgba(125, 211, 252, .3); background: rgba(125, 211, 252, .08); color: #e0f2fe; }
+.occurrence { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 14px; border: 1px solid rgba(255,255,255,.18); border-radius: 13px; color: #fff; }
+.occurrence legend { padding: 0 8px; font-size: .82rem; }
+.formRoot :global(.chart-field input) { font-size: 16px !important; }
+.occurrence label { display: inline-flex; align-items: center; min-height: 44px; gap: 7px; font-size: .84rem; }
+.occurrence input { width: 18px; height: 18px; accent-color: #9acff3; }
+.emptyResult { display: grid; gap: 12px; padding: clamp(20px, 4vw, 32px); border: 1px solid var(--chart-border); border-radius: 20px; background: #0b0d11; color: #edf2f7; }
+.emptyResult h2 { margin: 0; font-size: 1.2rem; }
+.emptyResult p { margin: 0; font-size: .88rem; line-height: 1.95; color: #c7cfda; }
+.resultBackLink { display: inline-flex; align-items: center; justify-content: center; width: fit-content; min-height: 44px; padding: 9px 16px; border: 1px solid rgba(220,238,255,.3); border-radius: 12px; color: #ffffff; background: #202c39; text-decoration: none; font-weight: 740; }
+.resultBackLink:focus-visible { outline: 2px solid #dceeff; outline-offset: 3px; }
+.freeResult { display: grid; min-width: 0; gap: clamp(19px, 3vw, 30px); margin: 18px 22px 22px; padding: clamp(14px, 3vw, 24px); border: 1px solid #BCCCDC; border-radius: 22px; background: #F8FAFC; color: #243447; }
+.reportResult { margin: 0; padding: clamp(14px, 3vw, 34px); border-radius: 24px; box-shadow: 0 18px 48px rgba(9, 18, 30, .1); }
+.reportWelcome { position: relative; display: grid; gap: 9px; min-width: 0; overflow: hidden; padding: clamp(18px, 3vw, 30px); border: 1px solid #D9EAFD; border-radius: 20px; background: linear-gradient(120deg, #D9EAFD, #F8FAFC 74%); }
+.reportWelcome::after { content: ""; position: absolute; left: -44px; top: -75px; width: 230px; height: 230px; border: 1px solid rgba(82,101,122,.14); border-radius: 50%; pointer-events: none; }
+.reportWelcome > * { position: relative; z-index: 1; }
+.reportKicker { width: fit-content; padding: 5px 11px; border: 1px solid #BCCCDC; border-radius: 99px; background: rgba(255,255,255,.66); color: #3A4A5C; font-size: .73rem; font-weight: 780; }
+.resultGreeting { margin: 0; color: #243447; font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 860; line-height: 1.8; }
+.freeReading { max-width: 73ch; margin: 0; color: #2F4052; font-size: clamp(.86rem, 1.3vw, .96rem); line-height: 2.1; }
+.reportFooter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 13px; padding: 16px 0 0; border-top: 1px solid #D9EAFD; }
+.resultPrivacy { margin: 0; color: #52657a; font-size: .8rem; line-height: 1.8; }
+.afterword { margin: 0 22px 20px; color: #c7cfda; font-size: .77rem; line-height: 1.8; }
+.explanation { display: grid; gap: 9px; }
+.explanation h2 { margin: 0; font-size: 1.23rem; line-height: 1.7; color: #fff; }
+.explanation p { margin: 0; color: #c7cfda; font-size: .83rem; line-height: 1.9; }
+@media (max-width: 640px) {
+  .vedicHero { padding: 22px !important; }
+  .vedicWorkspace { grid-template-columns: minmax(0, 1fr) !important; }
+  .freeResult { margin: 12px; padding: 12px; }
+  .reportResult { margin: 0; padding: 12px; border-radius: 17px; }
+  .reportWelcome { padding: 16px; border-radius: 15px; }
+  .reportFooter { align-items: stretch; }
+  .reportFooter .resultBackLink { width: 100%; }
+  .afterword { margin-inline: 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vedicPage *, .vedicPage *::before, .vedicPage *::after { transition: none !important; animation: none !important; }
+}
+
+/* Development-only manuscript preview, not rendered in production. */
+.localPreview { margin-top: 28px; padding: clamp(16px,3vw,28px); border-radius: 18px; background: #f8fafc; border: 1px solid #bcccdc; color: #243447; }
+.localPreview > h2 { margin: 0 0 12px; font-size: 1.35rem; }
+.localPreview > p { line-height: 2; }
+.previewChapter { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid #bcccdc; }
+.previewChapter h3 { margin: 0 0 16px; color: #243447; }
+.previewChapter p { line-height: 2.25; margin: 0 0 20px; max-width: 80ch; }
