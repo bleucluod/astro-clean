@@ -80,7 +80,7 @@ assert.ok(!/\bname\b/.test(payload) && !/\bdisplayName\b/.test(payload),
   'Guest display name must never enter the API');
 assert.ok(!/latitude|longitude|timezone/i.test(payload), 'Coordinates/timezone must not enter API');
 
-assert.ok(form.includes('const [birthTime, setBirthTime] = useState("");'));
+assert.ok(form.includes('const [birthTime, setBirthTime] = useState(result?.draft.birthTime ?? "");'));
 assert.match(form, /if \(!cityId\)/);
 assert.match(form, /if \(response\.status === 400 && data\.code === "INPUT_INVALID"\)/);
 assert.match(form, /response\.status === 200 && data\.ok === true/);
