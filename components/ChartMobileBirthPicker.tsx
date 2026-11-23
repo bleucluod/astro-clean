@@ -61,6 +61,14 @@ function DateWheel({
   const [wheelTouched, setWheelTouched] = useState(false);
   const settlingRef = useRef(true);
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value));
+  // Virtualize untouched wheels without changing native scroll distance or snap positions.
+  // Mount every option on the first interaction so dragging and keyboard controls stay native.
+  const firstRenderedIndex = !wheelTouched && options.length > 9
+    ? Math.max(0, selectedIndex - 3)
+    : 0;
+  const lastRenderedIndex = !wheelTouched && options.length > 9
+    ? Math.min(options.length, selectedIndex + 4)
+    : options.length;
 
   useEffect(() => {
     settlingRef.current = true;
@@ -96,6 +104,7 @@ function DateWheel({
       pointerRef.current.moved = true;
     }
     if (settlingRef.current) return;
+    if (!wheelTouched) setWheelTouched(true);
     const index = Math.max(0, Math.min(
       options.length - 1,
       Math.round(event.currentTarget.scrollTop / DATE_WHEEL_ITEM_HEIGHT),
@@ -159,6 +168,7 @@ function DateWheel({
           onWheel={() => setWheelTouched(true)}
           role="spinbutton"
           tabIndex={0}
+          onFocus={() => setWheelTouched(true)}
           aria-label={label + "؛ لمس برای ورود دستی، کشیدن برای انتخاب"}
           aria-valuemin={0}
           aria-valuemax={options.length - 1}
@@ -167,7 +177,10 @@ function DateWheel({
           onScroll={handleScroll}
           onKeyDown={handleKeyDown}
         >
-          {options.map((option) => (
+          {firstRenderedIndex > 0 ? (
+            <span aria-hidden="true" style={{ display: "block", height: firstRenderedIndex * DATE_WHEEL_ITEM_HEIGHT }} />
+          ) : null}
+          {options.slice(firstRenderedIndex, lastRenderedIndex).map((option) => (
             <span
               key={option.value || "empty"}
               aria-hidden="true"
@@ -176,6 +189,9 @@ function DateWheel({
               {option.label}
             </span>
           ))}
+          {lastRenderedIndex < options.length ? (
+            <span aria-hidden="true" style={{ display: "block", height: (options.length - lastRenderedIndex) * DATE_WHEEL_ITEM_HEIGHT }} />
+          ) : null}
         </div>
         <span className={styles.wheelSelection} aria-hidden="true" />
       </div>
