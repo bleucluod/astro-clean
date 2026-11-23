@@ -50,6 +50,18 @@ for (const vector of fixture.vectors) {
     assert.ok(chapter.paragraphsFa.length >= 4, vector.id + ': thin chapter ' + chapter.id);
     assert.ok(chapter.paragraphsFa.every(p => p.trim().length >= 70));
     assert.ok(chapter.evidence.length >= 2);
+    if (i === 0 && !chart.uncertainty.ascendantSign) {
+      assert.equal(chapter.paragraphsFa.length, 6, vector.id + ': chapter 1 narrative depth');
+      assert.ok(chapter.evidence.some(e => e.id === 'lagna-degree' && e.sourceField === 'ascendantLongitude'),
+        vector.id + ': missing actual ascendant degree evidence');
+      assert.ok(chapter.paragraphsFa.some(p => p.includes('صاحب طالع تو')),
+        vector.id + ': missing Lagna lord interpretation');
+      const chapterText = chapter.paragraphsFa.join(' ');
+      for (const filler of ['صرفاً نمادین', 'احتمالاً', 'شاید بتوان', 'به این تعبیر اعتماد نکن', 'اگر این دو نشان یکی باشند']) {
+        assert.equal(chapterText.includes(filler), false,
+          vector.id + ': repeated disclaimer or inactive conditional: ' + filler);
+      }
+    }
     if (i === 1) assert.ok(chapter.evidence.some(e => e.bodyId === 'sun'), 'Moon chapter must cite Sun');
     if (i === 3) assert.ok(chapter.evidence.some(e => e.id === 'focus-primary'), 'Synthesis must cite a real house');
     assert.equal(new Set(chapter.evidence.map(x => x.id)).size, chapter.evidence.length);
@@ -73,7 +85,8 @@ for (const vector of fixture.vectors) {
   }
   const free = JSON.stringify(buildVedicD1FreeReading(chart));
   for (const forbidden of ['private-d1-draft', 'paragraphsFa', 'writerRulesVersion',
-    'lagna-ruler-placement', 'focus-primary', 'sun-moon-context',
+    'lagna-ruler-placement', 'lagna-degree', 'lagna-first-house-body',
+    'lagna-ruler-sign-host', 'focus-primary', 'sun-moon-context',
     'focus-house-companion', '"chapters"']) {
     assert.equal(free.includes(forbidden), false, vector.id + ' premium leak in free reading');
   }
@@ -92,6 +105,42 @@ for (let sign = 0; sign < 12; sign++) {
   assert.ok(fact.factFa.includes('خانهٔ ' + String(body.houseNumber)),
     'wrong Whole Sign house for traditional ruler sign ' + sign);
 }
+// Content must be meaningfully different across independent D1 charts.
+function shingles(text, size = 7) {
+  const words = text.replace(/[«»؛؟!،.()]/g, ' ').split(/\s+/).filter(Boolean);
+  const result = new Set();
+  for (let index = 0; index + size <= words.length; index++) {
+    result.add(words.slice(index, index + size).join(' '));
+  }
+  return result;
+}
+const textA = drafts[0].chapters[0].paragraphsFa.join(' ');
+const textB = drafts[1].chapters[0].paragraphsFa.join(' ');
+const gramsA = shingles(textA);
+const gramsB = shingles(textB);
+const repeated = [...gramsA].filter(value => gramsB.has(value)).length;
+const overlap = repeated / Math.min(gramsA.size, gramsB.size);
+assert.ok(overlap < 0.55, 'Chapter 1 must not be a mostly shared template: ' + overlap);
+assert.ok(drafts[0].chapters[0].paragraphsFa.every(
+  paragraph => !drafts[1].chapters[0].paragraphsFa.includes(paragraph)),
+  'Chapter 1 should have no identical full paragraph across unlike Lagna and ruler');
+
+const occupiedFirst = makeChart(fixture.vectors[0], { ascendant: 15, venus: 17 }, 0);
+const occupiedChapter = buildVedicD1PrivateManuscriptDraft(occupiedFirst).chapters[0];
+const occupant = occupiedChapter.evidence.find(e => e.id === 'lagna-first-house-body');
+assert.equal(occupant?.bodyId, 'venus', 'First-house Venus must be cited as independent evidence');
+assert.ok(occupiedChapter.paragraphsFa.join(' ').includes('حضور زهره'),
+  'First-house occupant must be interpreted in the narrative');
+const ownSignRuler = makeChart(fixture.vectors[0], { ascendant: 15, mars: 17 }, 0);
+const ownChapter = buildVedicD1PrivateManuscriptDraft(ownSignRuler).chapters[0];
+assert.ok(ownChapter.paragraphsFa.some(p => p.includes('طالع و صاحب آن در یک نشان')),
+  'Lagna lord in first house must use its real own-sign branch');
+
+const rulerBoundary = makeChart(fixture.vectors[0], { mars: 29.99 }, 3);
+const uncertainRuler = buildVedicD1PrivateManuscriptDraft(rulerBoundary).chapters[0];
+assert.equal(uncertainRuler.evidence.find(e => e.id === 'lagna-ruler-placement').status, 'near-boundary');
+assert.ok(!uncertainRuler.paragraphsFa.join(' ').includes('صاحب طالع تو مریخ است و در نشان'),
+  'A boundary-uncertain Lagna ruler must not receive a definite house or sign');
 const first = drafts[0].chapters[0];
 const second = drafts[1].chapters[0];
 assert.ok(first.evidence.some(e => e.factFa.includes('مریخ') && e.factFa.includes('خانهٔ 2')),
@@ -110,6 +159,10 @@ const uncertain = buildVedicD1PrivateManuscriptDraft(boundaryChart);
 assert.equal(boundaryChart.uncertainty.ascendantSign, true);
 assert.equal(boundaryChart.uncertainty.placementSign.moon, true);
 assert.equal(uncertain.chapters[0].evidence[0].status, 'near-boundary');
+assert.ok(uncertain.chapters[0].evidence.some(e => e.id === 'lagna-sun-alternative'),
+  'Uncertain Lagna must provide evidence for both fallback bodies');
+assert.ok(!uncertain.chapters[0].paragraphsFa.join(' ').includes('صاحب طالع تو'),
+  'Uncertain ascendant must never assert a Lagna lord');
 assert.equal(uncertain.chapters[1].evidence[0].status, 'near-boundary');
 assert.ok(uncertain.chapters[0].paragraphsFa[0].includes('مرز دو نشان'));
 assert.ok(!uncertain.chapters[1].paragraphsFa[0].includes('ماه در ثور قرار دارد'));
@@ -141,7 +194,8 @@ assert.ok(writer.includes("row.id !== 'rahu' && row.id !== 'ketu'"),
   'Classical planet clusters must not count Rahu/Ketu as planets');
 assert.ok(writer.includes('buildVedicD1NorthView(chart)'));
 assert.ok(!writer.includes('generateReportContract'));
-console.log('PASS Vedic premium writer: 14 reference charts, 12 Lagna rulers, 4 deeper Persian chapters, house clusters, Sun/Moon crosscheck, boundaries, free/private isolation');
+console.log('PASS Vedic premium writer: 14 D1 charts, 12 Lagna rulers, real ascendant degrees, first-house occupant, host ruler, distinct chapter 1 prose, boundary cases, unchanged other chapters, guest isolation');
+console.log('Chapter 1 overlap between first two distinct charts (seven-word spans): ' + Math.round(overlap * 100) + '%');
 console.log('NOT RUN: authenticated ownership, private storage, payment or live report delivery');
 if (process.argv.includes('--preview')) {
   console.log('SYNTHETIC D1 SAMPLE — NOT A USER REPORT');
