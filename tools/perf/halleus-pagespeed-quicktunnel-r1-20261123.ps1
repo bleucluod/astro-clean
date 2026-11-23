@@ -121,9 +121,51 @@ function Logged([string]$dir,[string]$command,[string[]]$commandArgs,[string]$lo
     } finally {$ErrorActionPreference=$old}
   } finally {Pop-Location}
 }
+function Build-NoDbPreview([string]$dir,[string]$logFile){
+  # Preview-only overlay. Changes only Wiki server storage handling for build-time
+  # prerendering; /chart's source is unchanged. Restore original bytes on all exits.
+  $wikiPath=Join-Path $dir 'lib/wiki/wiki-repository.ts'
+  if(-not(Test-Path $wikiPath -PathType Leaf)){Fatal ('Wiki source missing: '+$wikiPath)}
+  $originalBytes=[IO.File]::ReadAllBytes($wikiPath)
+  $source=[Text.UTF8Encoding]::new($false,$true).GetString($originalBytes)
+  $patternRuntime='(?m)^function isProductionWikiRuntime\(\) \{\r?\n  return process\.env\.NODE_ENV === "production";\r?\n\}'
+  $patternFooter='(?m)^export const getLatestPublicWikiFooterArticles = cache\(async \(\) =>\r?\n  loadPersistedFooterArticles\(\),\r?\n\);'
+  if([regex]::Matches($source,$patternRuntime).Count -ne 1 -or
+     [regex]::Matches($source,$patternFooter).Count -ne 1){
+    Fatal 'Preview Wiki overlay source contract changed: refusing unknown patch'
+  }
+  $newline=if($source.Contains(([string][char]13+[char]10))){[string][char]13+[char]10}else{[string][char]10}
+  $replacementRuntime='function isProductionWikiRuntime() {'+$newline+
+    '  return false; // HALLEUS_PSI_PREVIEW_WIKI_FALLBACK_ONLY'+$newline+'}'
+  $replacementFooter='export const getLatestPublicWikiFooterArticles = cache(async () =>'+$newline+
+    '  [] as PublicWikiFooterArticle[], // HALLEUS_PSI_PREVIEW_WIKI_FOOTER_NO_DB'+$newline+');'
+  $candidate=[regex]::Replace($source,$patternRuntime,$replacementRuntime)
+  $candidate=[regex]::Replace($candidate,$patternFooter,$replacementFooter)
+  if($candidate -eq $source -or
+     -not $candidate.Contains('HALLEUS_PSI_PREVIEW_WIKI_FALLBACK_ONLY') -or
+     -not $candidate.Contains('HALLEUS_PSI_PREVIEW_WIKI_FOOTER_NO_DB')){
+    Fatal 'Preview Wiki overlay patch was not generated'
+  }
+  $ok=$false
+  try {
+    [IO.File]::WriteAllText($wikiPath,$candidate,[Text.UTF8Encoding]::new($false))
+    Info 'TEMPORARY_PREVIEW_OVERLAY: Wiki no-DB fallback; /chart unmodified'
+    $ok=Logged $dir 'pnpm' @('build') $logFile
+  } finally {
+    [IO.File]::WriteAllBytes($wikiPath,$originalBytes)
+    $post=@(& git.exe -C $dir status --porcelain=v1 --untracked-files=all)
+    $statusCode=$LASTEXITCODE
+    $post=@($post | Where-Object {$_})
+    if($statusCode -ne 0 -or $post.Count){
+      Fatal ('Preview source not restored cleanly: '+$dir+' git_exit='+$statusCode+' status='+($post -join '; '))
+    }
+    Info ('RESTORED_PREVIEW_SOURCE: '+$dir)
+  }
+  return $ok
+}
 function Build([string]$label,[string]$dir,[string]$sha){
   if(-not(Check-Worktree $dir $sha)){Fatal ('Missing '+$label)}
-  $fingerprint=$sha+'/'+(Get-FileHash (Join-Path $dir 'pnpm-lock.yaml') -Algorithm SHA256).Hash+'/'+(& node --version)+'/'+(& pnpm --version)
+  $fingerprint=$sha+'/'+(Get-FileHash (Join-Path $dir 'pnpm-lock.yaml') -Algorithm SHA256).Hash+'/'+(& node --version)+'/'+(& pnpm --version)+'/wiki-preview-no-db-r2'
   $stamp=Join-Path $Runtime ($label+'.stamp')
   $buildId=Join-Path $dir '.next/BUILD_ID'
   if((Test-Path $stamp) -and (Test-Path $buildId) -and (Get-Content $stamp -Raw).Trim() -eq $fingerprint){Info ('RESUMED_PASS build '+$label);return}
@@ -137,7 +179,7 @@ function Build([string]$label,[string]$dir,[string]$sha){
     if(-not(Logged $dir 'node' @($guard) (Join-Path $Logs ($label+'-'+[IO.Path]::GetFileName($guard)+'.log')))){$Failures.Add($label+'/guard/'+$guard)}
   }
   Info ('Building '+$label+' (see '+$Logs+')')
-  if(-not(Logged $dir 'pnpm' @('build') (Join-Path $Logs ($label+'-build.log')))){
+  if(-not(Build-NoDbPreview $dir (Join-Path $Logs ($label+'-build.log')))){
     $Failures.Add($label+'/build')
   } elseif(-not(Test-Path $buildId)) {
     $Failures.Add($label+'/BUILD_ID-missing')
