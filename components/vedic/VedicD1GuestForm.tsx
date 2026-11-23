@@ -342,7 +342,7 @@ export function VedicD1GuestForm() {
                         {suggestions.map(city => (
                           <button key={city.id} type="button" className="city-suggestion-chip"
                             onClick={() => chooseCity(city)}>
-                            {directoryRef.current?.getHalleusCityDisplayName(city) ?? city.faName}
+                            {cityDirectory?.getHalleusCityDisplayName(city) ?? city.faName}
                           </button>
                         ))}
                       </div>
