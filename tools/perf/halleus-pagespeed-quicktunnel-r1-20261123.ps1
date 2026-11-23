@@ -307,10 +307,24 @@ http.createServer((req,res)=>{
 function Cloudflared {
   $cmd=Get-Command cloudflared.exe -ErrorAction SilentlyContinue
   if($cmd){return $cmd.Source}
-  foreach($p in @(
+  $paths=@(
     (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\cloudflared.exe'),
-    (Join-Path $env:ProgramFiles 'cloudflared\cloudflared.exe')
-  )) {if(Test-Path $p){return $p}}
+    (Join-Path $env:ProgramFiles 'cloudflared\cloudflared.exe'),
+    (Join-Path $env:ProgramFiles 'Cloudflare\cloudflared.exe')
+  )
+  $programFilesX86=[Environment]::GetEnvironmentVariable('ProgramFiles(x86)')
+  if($programFilesX86){
+    $paths+=Join-Path $programFilesX86 'cloudflared\cloudflared.exe'
+    $paths+=Join-Path $programFilesX86 'Cloudflare\cloudflared.exe'
+  }
+  foreach($p in $paths){if(Test-Path -LiteralPath $p -PathType Leaf){return $p}}
+  $packages=Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages'
+  if(Test-Path -LiteralPath $packages -PathType Container){
+    foreach($d in @(Get-ChildItem -LiteralPath $packages -Directory -Filter 'Cloudflare.cloudflared*')){
+      $exe=Join-Path $d.FullName 'cloudflared.exe'
+      if(Test-Path -LiteralPath $exe -PathType Leaf){return $exe}
+    }
+  }
   return $null
 }
 function Tunnel-Url {
@@ -326,6 +340,12 @@ function Start-Variant([string]$kind){
   $work=if($kind -eq 'a'){$WorkA}else{$WorkB}
   $sha=if($kind -eq 'a'){$ShaA}else{$ShaB}
   if(-not(Check-Worktree $work $sha) -or -not(Test-Path (Join-Path $work '.next/BUILD_ID'))){Fatal ('Build not prepared: '+$kind)}
+  $cloud=Cloudflared
+  if(-not $cloud){
+    $Failures.Add('EXTERNAL_BLOCK/cloudflared-missing')
+    Info 'Install Cloudflare Quick Tunnel CLI: winget install --id Cloudflare.cloudflared --exact'
+    return
+  }
   $s=Read-State;Ports-Safe $s
   if($s.ContainsKey('next')){
     Stop-Owned $s 'next'
@@ -353,8 +373,6 @@ function Start-Variant([string]$kind){
   }
   if($Failures.Count){return}
   if(-not $s.ContainsKey('tunnel') -or -not(Owns 'tunnel' $s['tunnel'])){
-    $cloud=Cloudflared
-    if(-not $cloud){$Failures.Add('EXTERNAL_BLOCK/cloudflared-missing');Info 'Install: winget install --id Cloudflare.cloudflared --exact';return}
     foreach($file in @('config.yml','config.yaml')){
       if(Test-Path (Join-Path (Join-Path $HOME '.cloudflared') $file)){Fatal 'Existing .cloudflared config prevents Quick Tunnel'}
     }
@@ -369,14 +387,43 @@ function Start-Variant([string]$kind){
   Info 'Same URL for A/B as long as the tunnel stays running.'
 }
 function Failure-Zip {
-  if(-not(Test-Path $Logs)){return}
-  $downloads=Join-Path $HOME 'Downloads'
-  New-Item -ItemType Directory $downloads -Force | Out-Null
-  $summary=Join-Path $Logs 'failure-summary.txt'
-  [IO.File]::WriteAllLines($summary,[string[]]@('HEAD='+$MainHead,'A='+$ShaA,'B='+$ShaB,'FAILURES:')+[string[]]$Failures,[Text.UTF8Encoding]::new($false))
-  $zip=Join-Path $downloads ('Halleus-PageSpeed-FailureLogs-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.zip')
-  Compress-Archive -LiteralPath $Logs -DestinationPath $zip -Force
-  Info ('FAILURE_LOGS_ZIP='+$zip)
+  if(-not(Test-Path -LiteralPath $Logs -PathType Container)){return}
+  $stage=$null
+  try {
+    $downloads=Join-Path $HOME 'Downloads'
+    New-Item -ItemType Directory -Force -Path $downloads | Out-Null
+    $summary=Join-Path $Logs 'failure-summary.txt'
+    [IO.File]::WriteAllLines($summary,[string[]](@('HEAD='+$MainHead,'A='+$ShaA,'B='+$ShaB,'FAILURES:')+[string[]]$Failures),[Text.UTF8Encoding]::new($false))
+    # Snapshot logs before archiving. A running Next.js process may keep its log files open.
+    $stage=Join-Path $Runtime ('failure-snapshot-'+[guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $stage | Out-Null
+    $skipped=[System.Collections.Generic.List[string]]::new()
+    foreach($f in @(Get-ChildItem -LiteralPath $Logs -File)){
+      $inputStream=$null
+      $outputStream=$null
+      try {
+        $inputStream=[IO.File]::Open($f.FullName,[IO.FileMode]::Open,[IO.FileAccess]::Read,[IO.FileShare]::ReadWrite)
+        $outputStream=[IO.File]::Create((Join-Path $stage $f.Name))
+        $inputStream.CopyTo($outputStream)
+      } catch {
+        $skipped.Add($f.Name+': '+$_.Exception.GetType().Name)
+      } finally {
+        if($outputStream){$outputStream.Dispose()}
+        if($inputStream){$inputStream.Dispose()}
+      }
+    }
+    [IO.File]::WriteAllLines((Join-Path $stage 'snapshot-notes.txt'),[string[]]@('SKIPPED_LOGS:')+[string[]]$skipped,[Text.UTF8Encoding]::new($false))
+    $zip=Join-Path $downloads ('Halleus-PageSpeed-FailureLogs-'+(Get-Date -Format 'yyyyMMdd-HHmmss')+'.zip')
+    Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $zip -Force -ErrorAction Stop
+    Info ('FAILURE_LOGS_ZIP='+$zip)
+    if($skipped.Count){Info ('LOCKED_LOGS_NOT_COPIED='+($skipped -join ', '))}
+  } catch {
+    Info ('FAILURE_LOG_ARCHIVE_ERROR='+$_.Exception.Message)
+  } finally {
+    if($stage -and (Test-Path -LiteralPath $stage -PathType Container)){
+      Remove-Item -LiteralPath $stage -Recurse -Force -ErrorAction SilentlyContinue
+    }
+  }
 }
 try {
   Verify-Repo;Verify-Lab
