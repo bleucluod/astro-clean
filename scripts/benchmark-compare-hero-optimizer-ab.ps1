@@ -72,29 +72,59 @@ class CDP{
 }
 const PROBE=`(()=>{window.__compareAB={lcp:[],cls:0,errors:[]};const p=window.__compareAB;try{new PerformanceObserver(l=>{for(const x of l.getEntries())p.lcp.push({ms:x.startTime,renderMs:x.renderTime,loadMs:x.loadTime,url:x.url||'',tag:x.element?.tagName||'',className:String(x.element?.className||'').slice(0,150)})}).observe({type:'largest-contentful-paint',buffered:true})}catch(e){p.errors.push('LCP:'+e.message)}try{new PerformanceObserver(l=>{for(const x of l.getEntries())if(!x.hadRecentInput)p.cls+=x.value}).observe({type:'layout-shift',buffered:true})}catch(e){p.errors.push('CLS:'+e.message)}})();`;
 async function preflight(){
- // Chrome-native preflight follows the same Windows proxy/network path as the benchmark.
- // It validates and warms the Next.js image endpoint, without editing production.
+ // A direct Page.navigate to a binary image can legitimately report ERR_ABORTED.
+ // Instead, navigate to the already-verified same-origin HTML page and ask
+ // that page to fetch and decode the optimized image. No server mutations.
  const {targetId}=await cdp.send('Target.createTarget',{url:'about:blank'});
- let session,offs=[],resource=null,fail=null;
+ let session;
  try{
  ({sessionId:session}=await cdp.send('Target.attachToTarget',{targetId,flatten:true}));
  const cmd=(m,p={},t=30000)=>cdp.send(m,p,session,t);
  await cmd('Page.enable');await cmd('Runtime.enable');await cmd('Network.enable');
  await cmd('Network.setCacheDisabled',{cacheDisabled:true});
- offs.push(cdp.on('Network.responseReceived',p=>{if(p.response?.url===B_URL)resource={id:p.requestId,status:p.response.status,mime:p.response.mimeType,headers:p.response.headers||{}}},session));
- offs.push(cdp.on('Network.loadingFinished',p=>{if(resource&&resource.id===p.requestId)resource.bytes=p.encodedDataLength},session));
- offs.push(cdp.on('Network.loadingFailed',p=>{fail=p.errorText||'FAILED'},session));
- const started=Date.now(),nav=await cmd('Page.navigate',{url:B_URL},35000);
- if(nav.errorText)throw Error('EXTERNAL_BLOCK: NEXT_IMAGE_NAV_'+nav.errorText);
- let ready=false;for(let i=0;i<120;i++){if(Date.now()-started>60000)break;await sleep(400);try{const v=await cmd('Runtime.evaluate',{expression:'document.readyState',returnByValue:true},6000);if(v.result?.value==='complete'){ready=true;break}}catch{}}
- await sleep(700);
- data.preflight={status:resource?.status||null,mime:resource?.mime||null,bytes:resource?.bytes||null,elapsedMs:Date.now()-started,failed:fail};save();
- assert(ready&&!fail&&resource,`EXTERNAL_BLOCK: NEXT_IMAGE_ENDPOINT_UNAVAILABLE_${fail||'INCOMPLETE'}`);
- assert(resource.status===200,`EXTERNAL_BLOCK: NEXT_IMAGE_ENDPOINT_HTTP_${resource.status}`);
- assert(String(resource.mime).startsWith('image/'),`EXTERNAL_BLOCK: NEXT_IMAGE_MIME_${resource.mime}`);
- assert(resource.bytes>10000&&resource.bytes<145016,`CANDIDATE_FAILURE: NEXT_OPTIMIZED_IMAGE_NOT_SMALLER_${resource.bytes}`);
- log(`Candidate validated via Chrome: ${resource.bytes} bytes, ${resource.mime}; endpoint warmed`);
- }finally{offs.forEach(f=>f());try{await cdp.send('Target.closeTarget',{targetId},undefined,7000)}catch{}}
+ await cmd('Network.setBypassServiceWorker',{bypass:true});
+ const nav=await cmd('Page.navigate',{url:PAGE},35000);
+ if(nav.errorText)throw Error('EXTERNAL_BLOCK: NEXT_IMAGE_PREFLIGHT_PAGE_'+nav.errorText);
+ const started=Date.now();let ready=false;
+ for(let i=0;i<130;i++){
+   if(Date.now()-started>65000)break;
+   await sleep(400);
+   try{const r=await cmd('Runtime.evaluate',{expression:'location.origin+"|"+document.readyState',returnByValue:true},6000);
+     if(r.result?.value===BASE+'|complete'){ready=true;break}
+   }catch{}
+ }
+ assert(ready,'EXTERNAL_BLOCK: NEXT_IMAGE_PREFLIGHT_PAGE_NOT_READY');
+ const expression=`(async()=>{
+   try{
+     const response=await fetch(${JSON.stringify(B_URL)}, {
+       cache:'reload',headers:{Accept:'image/avif,image/webp,image/apng,image/svg+xml,image/*;q=0.8,*/*;q=0.5'}
+     });
+     const mime=(response.headers.get('content-type')||'').split(';')[0].trim().toLowerCase();
+     const buffer=await response.arrayBuffer();
+     const info={status:response.status,mime,bytes:buffer.byteLength,finalUrl:response.url,
+       width:null,height:null,decodeError:null,method:'same-origin fetch + createImageBitmap'};
+     if(response.ok && mime.startsWith('image/')){
+       try{
+         const bitmap=await createImageBitmap(new Blob([buffer],{type:mime}));
+         info.width=bitmap.width;info.height=bitmap.height;bitmap.close();
+       }catch(e){info.decodeError=String(e)}
+     }
+     return info;
+   }catch(e){return {error:String(e),name:e?.name||'Error',method:'same-origin fetch'};}
+ })()`;
+ const result=await cmd('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true},75000);
+ assert(!result.exceptionDetails,'EXTERNAL_BLOCK: NEXT_IMAGE_EVALUATE_'+(result.exceptionDetails?.text||'UNKNOWN'));
+ const candidate=result.result?.value;
+ assert(candidate&&typeof candidate==='object','EXTERNAL_BLOCK: NEXT_IMAGE_PREFLIGHT_NO_RESULT');
+ data.preflight=candidate;save();
+ assert(!candidate.error,'EXTERNAL_BLOCK: NEXT_IMAGE_FETCH_'+candidate.error);
+ assert(candidate.status===200,`CANDIDATE_FAILURE: NEXT_IMAGE_HTTP_${candidate.status}`);
+ assert(candidate.mime?.startsWith('image/'),`CANDIDATE_FAILURE: NEXT_IMAGE_MIME_${candidate.mime}`);
+ assert(!candidate.decodeError&&candidate.width>0&&candidate.height>0,`CANDIDATE_FAILURE: NEXT_IMAGE_DECODE_${candidate.decodeError}`);
+ assert(candidate.width<=1080,`CANDIDATE_FAILURE: NEXT_IMAGE_NOT_RESIZED_${candidate.width}`);
+ assert(candidate.bytes>10000&&candidate.bytes<144724,`CANDIDATE_FAILURE: NEXT_OPTIMIZED_IMAGE_NOT_SMALLER_${candidate.bytes}`);
+ log(`Candidate verified: ${candidate.bytes} body bytes, ${candidate.width}x${candidate.height}, ${candidate.mime}; optimizer warmed`);
+ }finally{try{await cdp.send('Target.closeTarget',{targetId},undefined,7000)}catch{}}
 }
 async function startChrome(){profile=fs.mkdtempSync(path.join(os.tmpdir(),'halleus-compare-optimizer-ab-'));
  const flags=['--headless=new','--remote-debugging-port=0',`--user-data-dir=${profile}`,'--no-first-run','--no-default-browser-check','--disable-extensions','--disable-background-networking','--disable-sync','about:blank'];if(process.platform==='linux'&&process.getuid?.()===0)flags.unshift('--no-sandbox');
@@ -125,7 +155,7 @@ async function trial(arm,index){
  const v=await cmd('Runtime.evaluate',{expression:expr,returnByValue:true,awaitPromise:true},15000);assert(!v.exceptionDetails,'BROWSER_EVALUATION_FAILED');const pg=JSON.parse(v.result?.value||'null');
  const lcp=pg?.probe?.lcp?.at(-1),fcp=pg?.paint?.find(x=>x.name==='first-contentful-paint');const requests=[...hero.values()];
  assert(pg?.url===PAGE,'WRONG_PAGE');assert(docStatus===200,'DOCUMENT_STATUS_'+docStatus);assert(pg?.img?.complete&&pg.img.width>0,'HERO_IMAGE_INCOMPLETE');
- assert(lcp&&fcp,'MISSING_METRICS');assert(lcp.url?.includes(HERO),'HERO_NOT_LCP');
+ assert(lcp&&fcp,'MISSING_METRICS');assert(lcp.url?.includes(HERO.slice(1)),'HERO_NOT_LCP');
  assert(intercepted===1,`INVALID_INTERCEPTION_COUNT_${intercepted}`);assert(requests.length===1,`INVALID_HERO_REQUEST_COUNT_${requests.length}`);
  const h=requests[0];assert(h.status===200&&h.end!=null&&!h.failed&&h.bytes>0,'HERO_NETWORK_FAILED');assert(h.mime?.startsWith('image/'),'BAD_HERO_MIME');assert(!h.cache&&!h.serviceWorker,'HERO_FROM_CACHE');
  // CDP response URL can contain the rewritten path on some Chrome versions, but
