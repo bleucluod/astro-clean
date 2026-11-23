@@ -69,10 +69,17 @@ function Ensure-Lab {
 function Check-Worktree([string]$path,[string]$sha) {
   if(-not(Test-Path $path)){return $false}
   if(-not(Test-Path (Join-Path $path '.git') -PathType Leaf)){Fatal ('Existing directory not a linked worktree: '+$path)}
-  $h=(& git.exe -C $path rev-parse HEAD | Select-Object -First 1)
-  if($LASTEXITCODE -ne 0 -or $h -ne $sha){Fatal ('Unexpected worktree HEAD: '+$path)}
-  $dirty=@(& git.exe -C $path status --porcelain=v1 --untracked-files=all | Where-Object {$_})
-  if($LASTEXITCODE -ne 0 -or $dirty.Count){Fatal ('Dirty preview worktree: '+$path)}
+  $headOutput=@(& git.exe -C $path rev-parse --verify HEAD)
+  $headExit=$LASTEXITCODE
+  $actualHead=if($headOutput.Count -eq 1){([string]$headOutput[0]).Trim()}else{'<invalid-head-output>'}
+  if($headExit -ne 0 -or $actualHead -ne $sha){
+    Fatal ('Unexpected worktree HEAD: path='+$path+' expected='+$sha+' actual='+$actualHead+' git_exit='+$headExit)
+  }
+  $dirty=@(& git.exe -C $path status --porcelain=v1 --untracked-files=all)
+  $statusExit=$LASTEXITCODE
+  if($statusExit -ne 0){Fatal ('Cannot read worktree status: '+$path+' git_exit='+$statusExit)}
+  $dirty=@($dirty | Where-Object {$_})
+  if($dirty.Count){Fatal ('Dirty preview worktree: '+$path+' entries='+$dirty.Count)}
   $envs=@(Get-ChildItem $path -File -Force -Filter '.env*' | Where-Object {$_.Name -ne '.env.example'})
   if($envs.Count){Fatal ('Preview environment file found at '+$path)}
   return $true
