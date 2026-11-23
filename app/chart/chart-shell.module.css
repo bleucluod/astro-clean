@@ -3750,3 +3750,33 @@
   .page .finalCta h2 { font-size: 1.16rem; line-height: 1.7; }
   .page .finalCta p { font-size: .85rem; line-height: 2.02; }
 }
+
+/* HALLEUS_CHART_OFFSCREEN_EDUCATION_LAYOUT_20261123
+   Keep the hero, birth form and near-form content eagerly rendered.
+   Offscreen explanatory sections retain their server HTML and natural reading order.
+   The estimates are placeholders only until each section is first rendered. */
+@media (max-width: 760px) {
+  @supports (content-visibility: auto) {
+    .page .education[data-chart-section="report-details"] {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 2600px;
+    }
+
+    .page .education[data-chart-section="calculation"],
+    .page .education[data-chart-section="unknown-time"],
+    .page .education[data-chart-section="personal-report"] {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 570px;
+    }
+
+    .page .education[data-chart-section="faq"] {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 1300px;
+    }
+
+    .page .finalCta {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 250px;
+    }
+  }
+}
