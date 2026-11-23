@@ -251,7 +251,7 @@ export function VedicD1GuestForm() {
       <section className={"chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم چارت تولد ودیک">
         <div className="chart-reference-shell">
           <div className="chart-reference-content">
-            <p className={styles.hint} id="vedic-form-help">برای محاسبهٔ طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. نام فقط برای نمایش گزارش در همین مرورگر نگه داشته می‌شود و به API ارسال نمی‌شود.</p>
+            <p className={styles.hint} id="vedic-form-help">برای محاسبهٔ طالع و خانه‌های ودیک، ساعت دقیق و شهر تولد لازم است. {process.env.NODE_ENV === "development" ? "نام فقط به API پیش‌نمایش محلی فرستاده می‌شود و ذخیره نمی‌شود." : "نام در همین مرورگر می‌ماند و به API عمومی ارسال نمی‌شود."}</p>
             {!hydrated && <p className={styles.loadingHint} role="status">در حال آماده‌سازی فرم…</p>}
             <form className="chart-reference-form" id="vedic-guest-form"
               onSubmit={submit} aria-label="اطلاعات تولد ودیک" aria-describedby="vedic-form-help">
@@ -299,7 +299,7 @@ export function VedicD1GuestForm() {
                         value={name} onChange={(event: ChangeEvent<HTMLInputElement>) => {
                           invalidateResponse(); setName(event.target.value);
                         }} />
-                      <small className="field-hint">نام فقط روی دستگاهت نمایش داده می‌شود و همراه اطلاعات تولد ارسال نمی‌شود.</small>
+                      <small className="field-hint">{process.env.NODE_ENV === "development" ? "نام برای شخصی‌سازی متن به سرور محلی فرستاده می‌شود؛ ذخیره نمی‌شود." : "نام فقط روی دستگاهت نمایش داده می‌شود و به API عمومی نمی‌رود."}</small>
                     </label>
                   </div>
                 </div>

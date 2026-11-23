@@ -45,7 +45,7 @@ export function VedicD1GuestResult() {
             </section>
           )}
           <div className={styles.reportFooter}>
-            <p className={styles.resultPrivacy}>فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است.</p>
+            <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "این سه فصل صرفاً پیش‌نمایش محلی‌اند؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نشده است." : "فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است."}</p>
             <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
           </div>
         </section>
