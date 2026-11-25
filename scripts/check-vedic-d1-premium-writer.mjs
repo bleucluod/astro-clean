@@ -237,6 +237,9 @@ for(const path of ['lib/vedic/vedic-d1-free-reading.ts','lib/vedic/vedic-d1-serv
   check('public isolation/' + path, () => {
     const source=read(path);
     assert.ok(!source.includes('vedic-d1-premium-writer')&&!source.includes('buildVedicD1PrivateManuscriptDraft')&&!source.includes('private-d1-draft'));
+    if (path.startsWith('components/')) {
+      assert.ok(!source.includes('vedic-d1-server-preview')&&!source.includes('vedic-d1-server-reading'));
+    }
   });
 }
 check('source isolation',()=>{

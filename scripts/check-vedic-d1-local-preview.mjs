@@ -50,5 +50,7 @@ assert.ok(!writer.includes('آراد'),'Never hardcode a personal name in writer
 const free=readFileSync(resolve(root,'app/api/vedic/d1/route.ts'),'utf8');
 assert.ok(!free.includes('premium-writer'),'Public free route must stay free');
 const form=readFileSync(resolve(root,'components/vedic/VedicD1GuestForm.tsx'),'utf8');
-assert.ok(form.includes('process.env.NODE_ENV === "development"'));
+const resultPage=readFileSync(resolve(root,'components/vedic/VedicD1GuestResult.tsx'),'utf8');
+assert.ok(!form.includes('/api/vedic/d1/local-preview'),'Do not fetch full text automatically');
+assert.ok(resultPage.includes('process.env.NODE_ENV !== "development"')&&resultPage.includes('onClick={openLocalPreview}'));
 console.log('PASS: local-only private D1 preview; production 404, external-host 404, cross-origin 403, four chapters in order, no sensitive provenance');

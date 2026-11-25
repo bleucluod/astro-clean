@@ -12,6 +12,7 @@ import { calculateVedicD1TropicalInput, type VedicAstronomyEnginePort } from './
 import { projectVedicD1Longitudes } from './vedic-d1-projection.ts';
 import { assembleVedicD1Chart, type VedicD1SiderealSnapshot, type VedicD1AssembledChart } from './vedic-d1-assembly.ts';
 import { buildVedicD1FreeReading } from './vedic-d1-free-reading.ts';
+import { buildVedicD1ServerPreview } from './vedic-d1-server-preview.ts';
 import type { VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
 
 export const VEDIC_D1_CERTIFIED_CALCULATION_VERSION = 'vedic-d1-astronomy-engine-2.1.19-lahiri/1' as const;
@@ -55,5 +56,13 @@ export function calculateVedicD1GuestReading(
   birth: VedicD1ValidatedBirth,
   astronomy: VedicAstronomyEnginePort,
 ): VedicD1FreeReading {
-  return buildVedicD1FreeReading(calculateVedicD1Chart(birth, astronomy));
+  const chart = calculateVedicD1Chart(birth, astronomy);
+  const reading = buildVedicD1FreeReading(chart);
+  try {
+    // The complete draft never leaves this server-side projection.
+    return { ...reading, premiumPreview: buildVedicD1ServerPreview(chart) };
+  } catch {
+    // A manuscript failure must not prevent the guest from receiving a valid chart.
+    return reading;
+  }
 }

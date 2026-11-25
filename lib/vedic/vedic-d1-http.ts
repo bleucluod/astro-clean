@@ -4,7 +4,7 @@
  * without one the route still fails closed with 503.
  */
 import type { VedicD1InputResult, VedicD1ValidatedBirth } from './vedic-d1-contract.ts';
-import { VEDIC_D1_READING_VERSION, type VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
+import { VEDIC_D1_READING_VERSION, VEDIC_D1_PREMIUM_CHAPTERS, isVedicD1PremiumPreview, type VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
 
 export const VEDIC_D1_HTTP_VERSION = 'vedic-d1-http/v1' as const;
 export const VEDIC_D1_MAX_BODY_BYTES = 4096;
@@ -126,7 +126,10 @@ export async function handleVedicD1Post(
       kind: 'free-d1',
       view: reading.view,
       shortReading: reading.shortReading,
-      availablePremiumChapterTitles: reading.availablePremiumChapterTitles,
+      availablePremiumChapterTitles: VEDIC_D1_PREMIUM_CHAPTERS.map(chapter => chapter.title),
+      premiumPreview: isVedicD1PremiumPreview(reading.premiumPreview)
+        ? reading.premiumPreview.map(({ id, title, excerptFa }) => ({ id, title, excerptFa }))
+        : null,
       premiumStatus: 'not-available',
     };
     return Response.json({ ok: true, reading: safeReading }, { status: 200, headers: PRIVATE_HEADERS });

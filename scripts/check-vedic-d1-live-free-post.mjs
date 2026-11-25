@@ -22,7 +22,9 @@ registerHooks({
 const require = createRequire(import.meta.url);
 const astronomy = require('./vendor/astronomy-engine-2.1.19.cjs');
 const { validateVedicD1BirthRequest } = await import('../lib/vedic/vedic-d1-contract.ts');
-const { calculateVedicD1GuestReading } = await import('../lib/vedic/vedic-d1-server-reading.ts');
+const { calculateVedicD1GuestReading, calculateVedicD1Chart } = await import('../lib/vedic/vedic-d1-server-reading.ts');
+const { buildVedicD1PrivateManuscriptDraft } = await import('../lib/vedic/vedic-d1-premium-writer.ts');
+const { extractVedicD1ChapterExcerpt } = await import('../lib/vedic/vedic-d1-server-preview.ts');
 const { handleVedicD1Post } = await import('../lib/vedic/vedic-d1-http.ts');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = JSON.parse(readFileSync(resolve(root, 'fixtures/vedic-d1-reference-v1.json'), 'utf8'));
@@ -34,6 +36,9 @@ const makeRequest = data => new Request('https://example.invalid/api/vedic/d1', 
   body: JSON.stringify(data),
 });
 let successful = 0;
+let shown = 0;
+let withheld = 0;
+const count = text => text.trim() ? text.trim().split(/\s+/u).length : 0;
 for (const vector of fixture.vectors) {
   const resolveBirth = input => validateVedicD1BirthRequest(input, {
     findCityById: id => id === vector.id ? ({
@@ -72,6 +77,26 @@ for (const vector of fixture.vectors) {
   assert.equal(payload.reading.premiumStatus, 'not-available');
   assert.equal(payload.reading.availablePremiumChapterTitles.length, 4);
   assert.equal(payload.reading.shortReading.evidence.length, 2);
+  const draft = buildVedicD1PrivateManuscriptDraft(calculateVedicD1Chart(parsed.value, astronomy));
+  const preview = payload.reading.premiumPreview;
+  assert.ok(Array.isArray(preview), vector.id + ': preview generation failed');
+  assert.equal(preview.length,4);
+  assert.deepEqual(preview,computed.premiumPreview);
+  for (const [i,row] of preview.entries()) {
+    const chapter = draft.chapters[i];
+    const full = chapter.paragraphsFa.join('\n\n').trim();
+    assert.deepEqual(Object.keys(row).sort(),['excerptFa','id','title']);
+    assert.equal(row.id,chapter.id);
+    assert.equal(row.title,chapter.title);
+    assert.equal(row.excerptFa,extractVedicD1ChapterExcerpt(chapter.paragraphsFa));
+    if (row.excerptFa === null) { withheld++; continue; }
+    assert.ok(full.startsWith(row.excerptFa),vector.id + ': not an exact prefix');
+    assert.ok(count(row.excerptFa) <= Math.floor(count(full)/5),vector.id + ': exceeds 20%');
+    assert.ok(row.excerptFa.length < full.length);
+    assert.ok(/[.!؟?…][»”’"')\]]*$/u.test(row.excerptFa));
+    assert.ok(!text.includes(JSON.stringify(full).slice(1,-1)),'full chapter leaked');
+    shown++;
+  }
   for(const forbidden of [
     'private-draft-not-authorized','paragraphsFa','chapters','ownerId',
     vector.utcIso, vector.id, vector.localDate, 'birthTime','cityId',
@@ -97,6 +122,8 @@ const throwing=await handleVedicD1Post(makeRequest(ordinary),resolver,
   ()=>{throw Error('PRIVATE_DETAILS_MUST_NEVER_LEAK');});
 assert.equal(throwing.status,503);
 assert.equal(JSON.stringify(await throwing.json()).includes('PRIVATE_DETAILS'),false);
-console.log('PASS Step07 actual Astronomy Engine guest pipeline: '+successful+
-  ' certified source vectors, HTTP 200 free D1, 9 bodies, no premium/birth leak, no-store');
+assert.ok(shown>0,'No guest excerpts generated');
+console.log('PASS actual Astronomy Engine guest pipeline: '+successful+
+  ' certified vectors, '+shown+' sentence-bounded excerpts, '+withheld+
+  ' withheld due to strict cap; no full manuscript/birth leak, no-store');
 console.log('NOT RUN: Next production build, actual full Halleus city/Jalali route, mobile/browser rendering');

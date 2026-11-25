@@ -35,6 +35,7 @@ export function buildVedicD1FreeReading(chart: VedicD1AssembledChart): VedicD1Fr
       evidence,
     },
     availablePremiumChapterTitles: VEDIC_D1_PREMIUM_CHAPTERS.map(chapter => chapter.title),
+    premiumPreview: null,
     premiumStatus: 'not-available',
   };
 }

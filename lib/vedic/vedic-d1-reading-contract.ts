@@ -24,12 +24,32 @@ export type VedicD1FactualEvidence = {
   factFa: string;
 };
 
-/** Public guest payload: no premium text, evidence or private document. */
+/** Only a sentence-bounded public prefix of each chapter, never a manuscript. */
+export type VedicD1ChapterExcerpt = {
+  id: VedicD1PremiumChapterId;
+  title: string;
+  excerptFa: string | null;
+};
+
+export function isVedicD1PremiumPreview(value: unknown): value is readonly VedicD1ChapterExcerpt[] {
+  return Array.isArray(value) && value.length === VEDIC_D1_PREMIUM_CHAPTERS.length &&
+    VEDIC_D1_PREMIUM_CHAPTERS.every((expected, index) => {
+      const item: unknown = value[index];
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return false;
+      const row = item as Record<string, unknown>;
+      return row.id === expected.id && row.title === expected.title &&
+        (row.excerptFa === null ||
+          (typeof row.excerptFa === 'string' && row.excerptFa.trim().length > 0));
+    });
+}
+
+/** Public guest payload: chart and excerpts only; no full text or private evidence. */
 export type VedicD1FreeReading = {
   responseVersion: typeof VEDIC_D1_READING_VERSION;
   kind: 'free-d1';
   view: VedicD1NorthView;
   shortReading: { textFa: string; evidence: readonly VedicD1FactualEvidence[] };
   availablePremiumChapterTitles: readonly string[];
+  premiumPreview: readonly VedicD1ChapterExcerpt[] | null;
   premiumStatus: 'not-available';
 };

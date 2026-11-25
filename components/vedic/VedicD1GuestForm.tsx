@@ -10,8 +10,8 @@ import journeyStyles from "@/components/chart-form-journey.module.css";
 import pickerStyles from "@/components/chart-mobile-birth-picker.module.css";
 import type { MobileDateParts, MobileTimeParts } from "@/components/ChartMobileBirthPicker";
 import type { HalleusCity } from "@/lib/locations/cities";
-import { VEDIC_D1_PREMIUM_CHAPTERS, type VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
-import { useVedicD1GuestSession, type VedicD1LocalPreview } from "./VedicD1GuestSession";
+import { isVedicD1PremiumPreview, type VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
+import { useVedicD1GuestSession } from "./VedicD1GuestSession";
 import { VedicChartSelect } from "./VedicChartSelect";
 import styles from "./vedic-d1-guest.module.css";
 
@@ -130,6 +130,7 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
   const short = r.shortReading as Record<string, unknown> | null;
   return r.kind === "free-d1" && r.responseVersion === "vedic-d1-reading/1" &&
     r.premiumStatus === "not-available" &&
+    (r.premiumPreview === null || isVedicD1PremiumPreview(r.premiumPreview)) &&
     Array.isArray(r.availablePremiumChapterTitles) &&
     r.availablePremiumChapterTitles.length === 4 &&
     Boolean(view) && view?.version === "vedic-d1-north-layout/1" &&
@@ -325,36 +326,9 @@ export function VedicD1GuestForm() {
         setFeedback({ kind: "unavailable", message: "نتیجهٔ معتبر دریافت نشد؛ دوباره تلاش کن." });
         return;
       }
-      let localPreview: VedicD1LocalPreview | null = null;
-      if (process.env.NODE_ENV === "development") {
-        try {
-          const previewResponse = await fetch("/api/vedic/d1/local-preview", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            cache: "no-store", credentials: "same-origin", signal: controller.signal,
-            body: JSON.stringify({ ...birthPayload, displayName: name.trim() }),
-          });
-          const candidate: unknown = await previewResponse.json();
-          const dataPreview = candidate && typeof candidate === "object"
-            ? candidate as Record<string, unknown> : {};
-          const value = dataPreview.manuscript as Record<string, unknown> | null;
-          if (previewResponse.ok && dataPreview.ok === true && value &&
-              typeof value.writerRulesVersion === "string" &&
-              Array.isArray(value.chapters) && value.chapters.length === VEDIC_D1_PREMIUM_CHAPTERS.length &&
-              value.chapters.every((item, index) => item && typeof item === "object" &&
-                item.id === VEDIC_D1_PREMIUM_CHAPTERS[index].id &&
-                item.title === VEDIC_D1_PREMIUM_CHAPTERS[index].title && Array.isArray(item.paragraphsFa) &&
-                item.paragraphsFa.length >= 4 &&
-                item.paragraphsFa.every((line: unknown) => typeof line === "string"))) {
-            localPreview = value as VedicD1LocalPreview;
-          }
-        } catch {
-          // The public free result remains usable if the dev preview is unavailable.
-        }
-      }
       if (!aliveRef.current || requestRef.current !== controller) return;
       setResult({ kind: "timed", name: name.trim(), reading: data.reading,
-        localPreview, draft });
+        localPreview: null, draft });
       router.push("/chart/vedic/result");
     } catch {
       if (!controller.signal.aborted && aliveRef.current) {

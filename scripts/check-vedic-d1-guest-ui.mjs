@@ -44,7 +44,7 @@ for(const marker of [
  'event.preventDefault()', 'setCityId("")', 'chooseCity(match)',
  'API_PATH = "/api/vedic/d1"', 'isVedicD1FreeReading',
  'AbortController', 'cache: "no-store"',
- 'credentials: "same-origin"', 'process.env.NODE_ENV === "development"',
+ 'credentials: "same-origin"',
  'setResult({ kind: "untimed"', 'setResult({ kind: "timed"',
  'if (unknownTime)', 'validGregorian', 'parseJalaliDateInput',
  'setNeedsOccurrence(true)', 'setOccurrence("earlier")',
@@ -66,11 +66,13 @@ assert.ok(!form.includes('birthTime: "12:00"')&&!form.includes('UNKNOWN_BIRTH_TI
   'No guessed time for untimed D1');
 assert.ok(form.indexOf('if (unknownTime)') < form.indexOf('const response = await fetch(API_PATH'),
   'Unknown time must avoid a forged public calculation');
-assert.ok(form.includes('...birthPayload, displayName: name.trim()'),
-  'Only the localhost private preview receives the display name');
-assert.ok(!form.includes('body: JSON.stringify({ ...birthPayload, displayName: name.trim() })') ||
-  form.indexOf('process.env.NODE_ENV === "development"') < form.indexOf('...birthPayload, displayName: name.trim()'),
-  'Name must not enter the public free API');
+assert.ok(!form.includes('/api/vedic/d1/local-preview') && !form.includes('displayName:'),
+  'Free form must never fetch the full manuscript or send the name');
+assert.ok(result.includes('process.env.NODE_ENV !== "development"') &&
+  result.includes('onClick={openLocalPreview}') && result.includes('displayName: name.trim()'),
+  'Only an explicit development inspection may request full text');
+assert.ok(result.includes('premiumPreview') && result.includes('chapterLock') && result.includes('excerptFa'),
+  'Guest result renders only server excerpts with a decorative lock');
 assert.ok(select.includes('chart-native-select')&&select.includes('chart-select-trigger')&&
   select.includes('chart-select-options')&&select.includes('role="listbox"'),
   'Desktop/custom and mobile/native selectors must share /chart markup');

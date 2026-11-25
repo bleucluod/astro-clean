@@ -71,3 +71,18 @@
   .vedicWorkspace { margin: 0 !important; }
   .formRoot :global(.chart-reference-content) { padding-bottom: 12px !important; }
 }
+
+/* Chapter lock is a decorative placeholder: it contains no hidden manuscript text. */
+.chapterPreviewList { display: grid; gap: 16px; min-width: 0; }
+.chapterPreviewList > h2 { margin: 0; font-size: 1.25rem; color: #243447; }
+.lockedChapter { display: grid; gap: 10px; min-width: 0; padding: clamp(14px, 3vw, 24px); border: 1px solid #BCCCDC; border-radius: 16px; background: #fff; }
+.lockedChapter h3 { margin: 0; color: #243447; font-size: 1.05rem; line-height: 1.85; }
+.chapterExcerpt { margin: 0; color: #2F4052; line-height: 2.15; white-space: pre-line; overflow-wrap: anywhere; }
+.chapterLock { position: relative; display: grid; place-items: center; min-height: 90px; color: #365D85; isolation: isolate; }
+.lockLines { position: absolute; inset: 3px 0; display: grid; align-content: space-around; gap: 8px; padding: 4px 0; mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); }
+.lockLines span { display: block; height: 7px; width: 95%; border-radius: 10px; background: #BCCCDC; }
+.lockLines span:nth-child(2) { width: 83%; }
+.lockLines span:nth-child(3) { width: 92%; }
+.lockLines span:nth-child(4) { width: 65%; }
+.chapterLock svg { z-index: 1; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #F8FAFC; border: 1px solid #D9EAFD; }
+.lockCaption { margin: 0; color: #52657A; font-size: .84rem; line-height: 1.8; text-align: center; }

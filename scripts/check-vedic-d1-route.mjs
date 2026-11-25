@@ -40,6 +40,11 @@ assert.equal(payload.ok,true);
 assert.equal(payload.reading?.kind,'free-d1');
 assert.equal(payload.reading?.view?.rows?.length,9);
 assert.equal(payload.reading?.premiumStatus,'not-available');
+assert.equal(payload.reading.premiumPreview.length,4);
+assert.ok(payload.reading.premiumPreview.every(row =>
+  Object.keys(row).sort().join(',')==='excerptFa,id,title' &&
+  (row.excerptFa===null || typeof row.excerptFa==='string')));
+assert.ok(payload.reading.premiumPreview.some(row=>typeof row.excerptFa==='string'));
 for(const forbidden of ['birthDate','birthTime','utcIso','cityId','chapters','paragraphsFa','private-draft-not-authorized'])
   assert.equal(validText.includes(forbidden),false,'private data in guest response: '+forbidden);
 const unknown=await route.POST(req({...input,cityId:'unrecognized-city'}));
