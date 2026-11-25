@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import { VedicD1GuestForm } from "./VedicD1GuestForm";
 import { VedicD1GuestResult } from "./VedicD1GuestResult";
@@ -54,7 +55,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>چرا نشان ماه من با چارت غربی فرق دارد؟</h2>
-        <p className={chartStyles.editorialParagraph}>اگر اطلاعات تولدت را در هر دو فرم یکسان وارد کرده‌ای و دو نام متفاوت می‌بینی، اول روش محاسبه را نگاه کن. هالیوس در چارت ودیک از روش سایدریال با مبنای لاهیری استفاده می‌کند. مبدأ نشان‌ها در این روش با چارت تروپیکال فرق دارد و این اختلاف می‌تواند جای ماه را از یک نشان به نشان کناری ببرد. برای مقایسه، تاریخ، ساعت و شهرت را در <a href="/chart">چارت تولد غربی</a> هم یکسان وارد کن.</p>
+        <p className={chartStyles.editorialParagraph}>اگر اطلاعات تولدت را در هر دو فرم یکسان وارد کرده‌ای و دو نام متفاوت می‌بینی، اول روش محاسبه را نگاه کن. هالیوس در چارت ودیک از روش سایدریال با مبنای لاهیری استفاده می‌کند. مبدأ نشان‌ها در این روش با چارت تروپیکال فرق دارد و این اختلاف می‌تواند جای ماه را از یک نشان به نشان کناری ببرد. برای مقایسه، تاریخ، ساعت و شهرت را در <Link href="/chart">چارت تولد غربی</Link> هم یکسان وارد کن.</p>
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>ساعت و شهر تولد کجای نقشه اثر می‌گذارند؟</h2>
@@ -62,7 +63,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>در گزارش رایگان و تفسیر کامل چه می‌خوانی؟</h2>
-        <p className={chartStyles.editorialParagraph}>در نسخهٔ رایگان نقشه، جدول جایگاه‌ها و یک خوانش کوتاه فارسی در اختیارت قرار می‌گیرد. اگر بخواهی ارتباط این جایگاه‌ها را دنبال کنی، گزارش کامل چهار فصل دارد. از لاگنا و سیارهٔ حاکم آن شروع می‌کنی، بعد به ماه و الگوی عاطفی می‌رسی، پیوند خانه‌ها را می‌خوانی و در فصل آخر برداشت‌ها را کنار هم می‌بینی. برای آشنایی با اصطلاحات هم می‌توانی <a href="/wiki/free-vedic-birth-chart">راهنمای خواندن چارت ودیک</a> را بخوانی.</p>
+        <p className={chartStyles.editorialParagraph}>در نسخهٔ رایگان نقشه، جدول جایگاه‌ها و یک خوانش کوتاه فارسی در اختیارت قرار می‌گیرد. اگر بخواهی ارتباط این جایگاه‌ها را دنبال کنی، گزارش کامل چهار فصل دارد. از لاگنا و سیارهٔ حاکم آن شروع می‌کنی، بعد به ماه و الگوی عاطفی می‌رسی، پیوند خانه‌ها را می‌خوانی و در فصل آخر برداشت‌ها را کنار هم می‌بینی. برای آشنایی با اصطلاحات هم می‌توانی <Link href="/wiki/free-vedic-birth-chart">راهنمای خواندن چارت ودیک</Link> را بخوانی.</p>
       </section>
     </div>
   );

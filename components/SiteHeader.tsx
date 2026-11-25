@@ -70,9 +70,14 @@ export function SiteHeader() {
   const [isHidden, setIsHidden] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mobileMenuPathname, setMobileMenuPathname] = useState(pathname);
+
+  if (mobileMenuPathname !== pathname) {
+    setMobileMenuPathname(pathname);
+    setIsMobileMenuOpen(false);
+  }
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
     window.dispatchEvent(new Event("halleus:route-changed"));
   }, [pathname]);
 
