@@ -68,7 +68,7 @@ export async function POST(request: Request): Promise<Response> {
     });
     return Response.json({ok:true, manuscript:{
       writerRulesVersion:draft.writerRulesVersion,
-      chapters:draft.chapters.slice(0,3).map(chapter => ({
+      chapters:draft.chapters.map(chapter => ({
         id:chapter.id, title:chapter.title, paragraphsFa:chapter.paragraphsFa,
       })),
     }}, {status:200, headers:HEADERS});

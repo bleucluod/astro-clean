@@ -10,7 +10,7 @@ import journeyStyles from "@/components/chart-form-journey.module.css";
 import pickerStyles from "@/components/chart-mobile-birth-picker.module.css";
 import type { MobileDateParts, MobileTimeParts } from "@/components/ChartMobileBirthPicker";
 import type { HalleusCity } from "@/lib/locations/cities";
-import type { VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
+import { VEDIC_D1_PREMIUM_CHAPTERS, type VedicD1FreeReading } from "@/lib/vedic/vedic-d1-reading-contract";
 import { useVedicD1GuestSession, type VedicD1LocalPreview } from "./VedicD1GuestSession";
 import { VedicChartSelect } from "./VedicChartSelect";
 import styles from "./vedic-d1-guest.module.css";
@@ -340,9 +340,10 @@ export function VedicD1GuestForm() {
           const value = dataPreview.manuscript as Record<string, unknown> | null;
           if (previewResponse.ok && dataPreview.ok === true && value &&
               typeof value.writerRulesVersion === "string" &&
-              Array.isArray(value.chapters) && value.chapters.length === 3 &&
-              value.chapters.every(item => item && typeof item === "object" &&
-                typeof item.title === "string" && Array.isArray(item.paragraphsFa) &&
+              Array.isArray(value.chapters) && value.chapters.length === VEDIC_D1_PREMIUM_CHAPTERS.length &&
+              value.chapters.every((item, index) => item && typeof item === "object" &&
+                item.id === VEDIC_D1_PREMIUM_CHAPTERS[index].id &&
+                item.title === VEDIC_D1_PREMIUM_CHAPTERS[index].title && Array.isArray(item.paragraphsFa) &&
                 item.paragraphsFa.length >= 4 &&
                 item.paragraphsFa.every((line: unknown) => typeof line === "string"))) {
             localPreview = value as VedicD1LocalPreview;

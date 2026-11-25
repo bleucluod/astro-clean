@@ -80,7 +80,10 @@ function assertDraft(chart, draft, label) {
     assert.ok(lagna.evidence.some(e => e.id === 'lagna-degree' && e.sourceField === 'ascendantLongitude'));
     const ruler = lagna.evidence.find(e => e.id === 'lagna-ruler-placement');
     assert.equal(ruler?.bodyId, rulers[chart.ascendantSignIndex]);
-    assert.ok(lagna.paragraphsFa.some(p => p.includes('حاکم')));
+    assert.ok(lagna.paragraphsFa.some(p => p.includes('حاکم') || p.includes('صاحب رایزینگ')), label + ': Lagna ruler interpretation missing');
+    if (chart.uncertainty.placementHouse[ruler.bodyId]) {
+      assert.equal(ruler.status, 'near-boundary');
+    }
     assert.ok(lagna.paragraphsFa.join(' ').includes(signs[chart.ascendantSignIndex]));
   }
   assert.ok(moon.evidence.some(e => e.bodyId === 'moon'));
@@ -172,8 +175,22 @@ check('same-house host', () => {
   assert.ok(d.chapters[0].evidence.some(e=>e.id==='lagna-ruler-sign-host'&&ascii(e.factFa).includes('خانهٔ 2')));
 });
 check('co-tenants', () => {
-  const d=buildVedicD1PrivateManuscriptDraft(makeChart(fixture.vectors[0],{ascendant:15,mars:45,jupiter:46,venus:47},0));
-  assert.equal(d.chapters[0].evidence.filter(e=>e.id.startsWith('lagna-lord-companion-')).length,2);
+  const chart=makeChart(fixture.vectors[0],{ascendant:15,mars:45,jupiter:46,venus:47},0);
+  const d=buildVedicD1PrivateManuscriptDraft(chart);
+  const c=d.chapters[0];
+  // Venus is both the sign host and a co-tenant; one factual source, two roles.
+  const expected=['jupiter','venus'];
+  for(const body of expected) {
+    const actual=chart.placements.find(p=>p.id===body);
+    assert.equal(actual.houseNumber,2);
+    const facts=c.evidence.filter(e=>e.sourceField==='placements.'+body+'.houseNumber');
+    assert.equal(facts.length,1,body+': missing or duplicated placement evidence');
+    assert.equal(facts[0].status,'certain');
+    assert.ok(ascii(facts[0].factFa).includes('خانهٔ 2'));
+    assert.ok(c.paragraphsFa.join(' ').includes(body==='venus'?'زهره':'مشتری'));
+  }
+  assert.ok(c.evidence.some(e=>e.id==='lagna-ruler-sign-host'&&e.bodyId==='venus'));
+  assert.ok(c.evidence.some(e=>e.id.startsWith('lagna-lord-companion-')&&e.bodyId==='jupiter'));
 });
 check('boundary ascendant and moon', () => {
   const chart=makeChart(fixture.vectors[0],{ascendant:30.01,moon:29.99,mars:30.01},3);

@@ -35,7 +35,7 @@ export function VedicD1GuestResult() {
           {process.env.NODE_ENV === "development" && (
             <section className={styles.localPreview} aria-label="پیش‌نمایش خصوصی فصل‌های ودیک">
               <h2>پیش‌نمایش محلی گزارش کامل</h2>
-              <p>این سه فصل فقط در محیط توسعه تولید می‌شوند؛ گزارش عمومی همچنان رایگان است.</p>
+              <p>این چهار فصل فقط در محیط توسعه تولید می‌شوند؛ گزارش عمومی همچنان رایگان است.</p>
               {result.localPreview ? result.localPreview.chapters.map((chapter,i) => (
                 <article key={chapter.id} className={styles.previewChapter}>
                   <h3>فصل {(i+1).toLocaleString("fa-IR")} — {chapter.title}</h3>
@@ -45,7 +45,7 @@ export function VedicD1GuestResult() {
             </section>
           )}
           <div className={styles.reportFooter}>
-            <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "این سه فصل صرفاً پیش‌نمایش محلی‌اند؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نشده است." : "فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است."}</p>
+            <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "این چهار فصل صرفاً پیش‌نمایش محلی‌اند؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نشده است." : "فصل‌های پرمیوم هنوز فعال نیستند. این نتیجه فقط خوانش رایگان است."}</p>
             <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
           </div>
         </section>

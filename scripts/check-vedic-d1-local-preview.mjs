@@ -37,7 +37,9 @@ assert.equal(success.status,200,'Actual localhost private generator must run');
 assert.equal(success.headers.get('cache-control'),'private, no-store, max-age=0');
 const result=await success.json();
 assert.equal(result.ok,true);
-assert.equal(result.manuscript.chapters.length,3);
+assert.deepEqual(result.manuscript.chapters.map(c=>c.id), [
+  'lagna-lord','moon-emotions','houses-planets','personal-synthesis',
+]);
 assert.equal(result.manuscript.chapters[0].title,'لاگنا و سیارهٔ حاکم');
 assert.ok(result.manuscript.chapters.every(c=>c.paragraphsFa.length>=4));
 assert.ok(JSON.stringify(result).includes('نیما'));
@@ -49,4 +51,4 @@ const free=readFileSync(resolve(root,'app/api/vedic/d1/route.ts'),'utf8');
 assert.ok(!free.includes('premium-writer'),'Public free route must stay free');
 const form=readFileSync(resolve(root,'components/vedic/VedicD1GuestForm.tsx'),'utf8');
 assert.ok(form.includes('process.env.NODE_ENV === "development"'));
-console.log('PASS: local-only private D1 preview; production 404, external-host 404, cross-origin 403, three chapters, no sensitive provenance');
+console.log('PASS: local-only private D1 preview; production 404, external-host 404, cross-origin 403, four chapters in order, no sensitive provenance');
