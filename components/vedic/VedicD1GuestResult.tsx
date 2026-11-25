@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { VedicD1FullReport } from "./VedicD1FullReport";
+import { VedicD1PurchaseOffer } from "./VedicD1PurchaseOffer";
 import { VEDIC_D1_PREMIUM_CHAPTERS } from "@/lib/vedic/vedic-d1-reading-contract";
 import { VedicD1NorthChart } from "./VedicD1NorthChart";
 import { useVedicD1GuestSession, type VedicD1LocalPreview } from "./VedicD1GuestSession";
@@ -20,6 +21,12 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, [isFullPreview]);
+
+  function goToPurchase() {
+    const title = document.getElementById("vedic-purchase-title");
+    title?.focus({ preventScroll: true });
+    title?.scrollIntoView({ block: "center", behavior: "auto" });
+  }
 
   function closeLocalPreview() {
     setResult(current => current?.kind === "timed" ? { ...current, localPreview: null } : current);
@@ -102,11 +109,11 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
                     <path d="M12 14v3" />
                   </svg>
                 </div>
-                <p className={styles.lockCaption}>ادامهٔ فصل در گزارش کامل</p>
+                <button type="button" className={styles.lockAction} onClick={goToPurchase}>ادامهٔ فصل در گزارش کامل</button>
               </article>
             ))}
-            <p className={styles.lockCaption}>خرید گزارش کامل هنوز فعال نیست.</p>
           </section>
+          <VedicD1PurchaseOffer name={result.name} />
           {process.env.NODE_ENV === "development" && (
             <section className={styles.localPreview} aria-label="بازبینی محلی گزارش کامل">
               <h2>بازبینی توسعه</h2>

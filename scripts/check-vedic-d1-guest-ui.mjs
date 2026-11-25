@@ -8,6 +8,7 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const read=path=>readFileSync(resolve(root,path),'utf8');
 const form=read('components/vedic/VedicD1GuestForm.tsx');
 const full=read('components/vedic/VedicD1FullReport.tsx');
+const offer=read('components/vedic/VedicD1PurchaseOffer.tsx');
 const select=read('components/vedic/VedicChartSelect.tsx');
 const session=read('components/vedic/VedicD1GuestSession.tsx');
 const result=read('components/vedic/VedicD1GuestResult.tsx');
@@ -29,6 +30,7 @@ for(const [path,content] of [
  ['components/vedic/VedicD1GuestSession.tsx',session],
  ['components/vedic/VedicD1GuestResult.tsx',result],
  ['components/vedic/VedicD1FullReport.tsx',full],
+ ['components/vedic/VedicD1PurchaseOffer.tsx',offer],
  ['app/vedic/page.tsx',page],
  ['components/vedic/VedicD1Screen.tsx',screen],
 ]){
@@ -90,6 +92,15 @@ assert.ok(full.includes('manuscript.chapters.map') && full.includes('chapter.par
   !full.includes('premium-writer') && !full.includes('chapterLock'),
   'Full reader presents only the provided manuscript, never obtains entitlement or regenerates text');
 assert.ok(css.includes('.fullContents') && css.includes('.fullChapter') && css.includes('.fullParagraphs'));
+assert.ok(result.includes('onClick={goToPurchase}') && result.includes('getElementById("vedic-purchase-title")') &&
+  result.includes('<VedicD1PurchaseOffer name={result.name} />'));
+assert.ok(offer.includes('process.env.NODE_ENV === "development"') &&
+  offer.includes('hidden={!reviewOpen}') && offer.includes('aria-expanded={reviewOpen}') &&
+  offer.includes('disabled>ادامه و پرداخت') && offer.includes('disabled>خرید به‌زودی فعال می‌شود'));
+for (const banned of ['fetch(', 'localStorage', 'sessionStorage', 'router.push(', 'premium-writer', 'local-preview']) {
+  assert.ok(!offer.includes(banned), 'Offer may not initiate payment or data operations: '+banned);
+}
+assert.ok(css.includes('.purchaseOffer') && css.includes('.purchasePrimary:disabled'));
 assert.ok(select.includes('chart-native-select')&&select.includes('chart-select-trigger')&&
   select.includes('chart-select-options')&&select.includes('role="listbox"'),
   'Desktop/custom and mobile/native selectors must share /chart markup');

@@ -94,3 +94,18 @@
   .fullContents { grid-template-columns: minmax(0, 1fr); padding-inline: 4px; }
   .fullChapter { padding-inline: 4px; }
 }
+
+/* One offer for all four chapters. The individual locks only navigate to it. */
+.lockAction { justify-self: center; min-height: 44px; padding: 6px 12px; border: 0; background: transparent; font: inherit; font-size: .84rem; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; }
+.purchaseOffer { width: min(920px, 100%); margin-inline: auto; display: grid; gap: 14px; padding: clamp(20px, 4vw, 34px); border: 1px solid var(--editorial-line); border-radius: 20px; background: #0b0d11; }
+.purchaseOffer h2, .purchaseOffer h3, .purchaseOffer p { margin: 0; }
+.purchaseOffer h2 { font-size: clamp(1.25rem, 3vw, 1.65rem); line-height: 1.6; }
+.purchaseOffer p, .purchaseReview li { line-height: 1.95; overflow-wrap: anywhere; }
+.purchaseOffer small { font-size: .78rem; }
+.purchaseBenefits { display: flex; flex-wrap: wrap; gap: 8px; }
+.purchaseBenefits span { padding: 7px 10px; border-radius: 9px; border: 1px solid var(--editorial-line); font-size: .8rem; color: var(--editorial-body); }
+.vedicReader .purchasePrimary { min-height: 48px; width: 100%; padding: 10px 14px; border: 1px solid transparent; border-radius: 12px; background: #e8ecf0; color: #11141a !important; font: inherit; font-weight: 800; cursor: pointer; }
+.vedicReader .purchasePrimary:disabled { opacity: .52; cursor: not-allowed; }
+.purchaseReview:not([hidden]) { display: grid; gap: 10px; border-top: 1px solid var(--editorial-line); padding-top: 16px; }
+.purchaseReview ol { margin: 0; padding-inline-start: 22px; }
+.purchaseOffer :is(button, h2):focus-visible, .lockAction:focus-visible { outline: 2px solid #aeb8c5; outline-offset: 3px; }
