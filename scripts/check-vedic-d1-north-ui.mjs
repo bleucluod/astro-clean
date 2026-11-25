@@ -44,7 +44,7 @@ for(const unsafe of ['use client','localStorage','sessionStorage','fetch(','wind
   'generateReportContract','sampleChart','mockChart','synthetic-fixture','createPortal']) {
   assert.ok(!component.includes(unsafe),'Unapproved UI runtime behavior: '+unsafe);
 }
-assert.ok(screen.includes('<VedicD1GuestResult onEdit={editBirth} />'),'UI must use the verified result screen');
+assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;'),'UI must use the verified result screen');
 assert.ok(!form.includes('<VedicD1NorthChart'), 'Form must hand off to result state without rendering chart');
 assert.ok(result.includes('<VedicD1NorthChart view={result.reading.view} />'), 'Result must render ONLY verified server-supplied free view');
 for (const phrase of ['reportStyles.adaptiveHero', 'reportStyles.reader', 'reportStyles.ambientLogo', 'styles.reportFooter']) {

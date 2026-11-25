@@ -14,7 +14,8 @@ const run=(name,cmd,args,options={})=>{
  return status;
 };
 const node=process.execPath;
-const guard=name=>run(name,node,['--experimental-strip-types','scripts/'+name+'.mjs']);
+// BitPay's existing TypeScript error class uses a parameter property.
+const guard=name=>run(name,node,[name==='check-vedic-d1-payment-flow'?'--experimental-transform-types':'--experimental-strip-types','scripts/'+name+'.mjs']);
 const base='b71a4e05d3a2b274028dc572cbcb1eaf3453375b';
 const git=(args)=>spawnSync('git',args,{cwd:root,encoding:'utf8'});
 const origin=git(['remote','get-url','origin']);
