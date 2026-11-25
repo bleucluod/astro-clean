@@ -5,6 +5,11 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import r3Batch03Manifest from "@/content/r3-batch03/release-data-manifest.json";
 import r3Batch04Manifest from "@/content/r3-batch04/release-data-manifest.json";
+import roadmapV5Batch01 from "@/content/seo/roadmap-v5-wiki-patches-01.json";
+import roadmapV5Batch02 from "@/content/seo/roadmap-v5-wiki-patches-02.json";
+import roadmapV5Batch03 from "@/content/seo/roadmap-v5-wiki-patches-03.json";
+import roadmapV5Batch04 from "@/content/seo/roadmap-v5-wiki-patches-04.json";
+import { verifyAppliedArticle } from "@/scripts/roadmap-v5-wiki-edits.mjs";
 import { getAdminDatabase } from "@/lib/admin/admin-database";
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
 import { submitWikiIndexNowUrlsBestEffort } from "@/lib/wiki/wiki-indexnow";
@@ -175,6 +180,60 @@ async function revalidateApprovedR3Batch04() {
   );
 }
 
+// One-off cache invalidation for the exact approved roadmap v5 database patch.
+async function revalidateApprovedRoadmapV5() {
+  const patches = [
+    ...roadmapV5Batch01.patches, ...roadmapV5Batch02.patches,
+    ...roadmapV5Batch03.patches, ...roadmapV5Batch04.patches,
+  ];
+  const slugs = patches.map((patch) => patch.slug);
+  const pairs = patches.flatMap((patch) =>
+    patch.checks.map((check) => patch.slug + "|" + check.destination));
+  const notReady = (reason: string) => NextResponse.json(
+    { ok: false, reason },
+    { status: 409, headers: { "cache-control": "private, no-store" } },
+  );
+  if (slugs.length !== 52 || new Set(slugs).size !== 52 ||
+      slugs.some((slug) => !/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(slug)) ||
+      pairs.length !== 69 || new Set(pairs).size !== 69) {
+    return notReady("roadmap-v5-manifest-invalid");
+  }
+
+  const sql = getAdminDatabase();
+  const rows = await sql`
+    select id::text as id, slug, intro, key_points, sections, body_markdown
+    from public.wiki_articles
+    where slug = any(${slugs}::text[])
+      and status = 'published' and is_indexable = true
+      and published_at <= now() and scheduled_for is null and deleted_at is null
+  `;
+  const bySlug = new Map(rows.map((row) => [String(row.slug), row]));
+  if (rows.length !== 52) return notReady("roadmap-v5-database-parity-not-ready");
+  for (const patch of patches) {
+    const row = bySlug.get(patch.slug);
+    if (!row) return notReady("roadmap-v5-database-parity-not-ready");
+    try {
+      verifyAppliedArticle(row, patch);
+    } catch {
+      return notReady("roadmap-v5-database-parity-not-ready");
+    }
+  }
+  const states = await readWikiPublicRevalidationStates(
+    slugs.map((slug) => String(bySlug.get(slug)!.id)),
+  );
+  if (states.length !== 52 || states.some((state, index) =>
+    !state || !state.isPublic || state.slug !== slugs[index]
+  )) return notReady("roadmap-v5-public-state-mismatch");
+
+  for (const state of states) {
+    if (state) revalidateWikiPublicChange({ before: null, after: state });
+  }
+  return NextResponse.json(
+    { ok: true, kind: "approved-roadmap-v5-cache-revalidated", count: states.length },
+    { headers: { "cache-control": "private, no-store" } },
+  );
+}
+
 export async function POST(request: Request) {
   if (!authorized(request)) {
     return NextResponse.json(
@@ -189,6 +248,9 @@ export async function POST(request: Request) {
     }
     if (request.headers.get("x-halleus-wiki-cache-revalidate") === "r3-batch04") {
       return await revalidateApprovedR3Batch04();
+    }
+    if (request.headers.get("x-halleus-wiki-cache-revalidate") === "roadmap-v5") {
+      return await revalidateApprovedRoadmapV5();
     }
     const result = await processDueWikiPublishJobs();
     for (const change of result.publishedChanges) {
