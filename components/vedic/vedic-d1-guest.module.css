@@ -40,9 +40,6 @@
 .localPreview { width: min(920px, 100%); margin: 0 auto; padding: clamp(16px,3vw,28px); border-radius: 18px; background: #0b0d11; border: 1px solid var(--editorial-line); color: var(--editorial-body); }
 .localPreview > h2 { margin: 0 0 12px; font-size: 1.35rem; }
 .localPreview > p { line-height: 2; }
-.previewChapter { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--editorial-line); }
-.previewChapter h3 { margin: 0 0 16px; color: var(--editorial-ink); }
-.previewChapter p { line-height: 2.25; margin: 0 0 20px; max-width: 80ch; }
 
 /* The Vedic form uses the same /chart shell, select grids and lazy mobile wheels.
    Keep this stylesheet limited to route-specific visibility and feedback. */
@@ -78,4 +75,22 @@
 @media (max-width: 760px) {
   .vedicReader .lockedChapter { border: 0; border-top: 1px solid var(--editorial-line); border-radius: 0; background: transparent; padding: 22px 0; }
   .vedicReader .chapterPreviewList { padding-inline: 4px; }
+}
+
+/* Unlocked manuscript reader: reuse the natal reading rhythm, not locked cards. */
+.fullPreviewTools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.fullPreviewTools small { font-size: .8rem; }
+.fullNarrative { min-width: 0; }
+.fullContents { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: min(920px, 100%); margin: 0 auto; }
+.fullContents h2 { grid-column: 1 / -1; margin: 0 0 8px; font-size: 1.2rem; }
+.fullContents button { display: flex; align-items: center; gap: 12px; min-height: 48px; text-align: start; padding: 10px 12px; border: 1px solid var(--editorial-line); border-radius: 12px; background: #0b0d11; font: inherit; cursor: pointer; }
+.fullContents button span { color: var(--editorial-muted); font-size: .85rem; }
+.fullContents button:hover, .fullContents button:focus-visible { border-color: #aeb8c5; }
+.fullChapter { scroll-margin-top: 110px; border-top: 1px solid var(--editorial-line); }
+.fullChapter:focus-visible { outline: 1px solid #aeb8c5; outline-offset: 4px; }
+.fullParagraphs { max-width: 76ch; }
+.fullParagraphs p { overflow-wrap: anywhere; white-space: pre-line; }
+@media (max-width: 760px) {
+  .fullContents { grid-template-columns: minmax(0, 1fr); padding-inline: 4px; }
+  .fullChapter { padding-inline: 4px; }
 }

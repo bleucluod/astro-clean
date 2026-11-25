@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { VedicD1FullReport } from "./VedicD1FullReport";
 import { VEDIC_D1_PREMIUM_CHAPTERS } from "@/lib/vedic/vedic-d1-reading-contract";
 import { VedicD1NorthChart } from "./VedicD1NorthChart";
 import { useVedicD1GuestSession, type VedicD1LocalPreview } from "./VedicD1GuestSession";
@@ -12,6 +13,17 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
   const { result, setResult } = useVedicD1GuestSession();
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+  const fullPreview = process.env.NODE_ENV === "development" && result?.kind === "timed"
+    ? result.localPreview ?? null : null;
+  const isFullPreview = fullPreview !== null;
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [isFullPreview]);
+
+  function closeLocalPreview() {
+    setResult(current => current?.kind === "timed" ? { ...current, localPreview: null } : current);
+  }
 
   // Full text is an explicit, development-only inspection, never part of the free request.
   async function openLocalPreview() {
@@ -56,13 +68,23 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
         {result?.kind === "timed" ? (
           <>
             <header className={reportStyles.adaptiveHero}>
-              <p className={reportStyles.eyebrow}>راشی D1 · گزارش رایگان</p>
+              <p className={reportStyles.eyebrow}>{fullPreview ? "راشی D1 · گزارش کامل" : "راشی D1 · گزارش رایگان"}</p>
               <h1>چارت تولد ودیک {result.name}</h1>
-              <p>{result.reading.shortReading.textFa}</p>
+              <p>{fullPreview ? "خوانش چهار فصل چارت تولدت" : result.reading.shortReading.textFa}</p>
+              {fullPreview && (
+                <div className={styles.fullPreviewTools}>
+                  <small>نسخهٔ بازبینی محلی — خرید فعال نیست.</small>
+                  <button type="button" className={styles.resultBackLink} onClick={closeLocalPreview}>بازگشت به گزارش رایگان</button>
+                </div>
+              )}
             </header>
             <section className={reportStyles.chartDetails} aria-label="نقشهٔ تولد">
               <VedicD1NorthChart view={result.reading.view} />
             </section>
+          {fullPreview ? (
+            <VedicD1FullReport manuscript={fullPreview} />
+          ) : (
+          <>
           <section className={reportStyles.adaptiveSection + " " + styles.chapterPreviewList} aria-label="پیش‌نمایش چهار فصل">
             <h2>گزارش کامل چارت تو</h2>
             {result.reading.premiumPreview === null && <p role="status">پیش‌نمایش فعلاً در دسترس نیست؛ اطلاعات چارت رایگان در بالا قابل مشاهده است.</p>}
@@ -88,29 +110,16 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
           {process.env.NODE_ENV === "development" && (
             <section className={styles.localPreview} aria-label="بازبینی محلی گزارش کامل">
               <h2>بازبینی توسعه</h2>
-              {result.localPreview ? (
-                <>
-                  <button type="button" className={styles.resultBackLink}
-                    onClick={() => setResult(current => current?.kind === "timed" ? { ...current, localPreview: null } : current)}>
-                    بستن گزارش کامل
-                  </button>
-                  {result.localPreview.chapters.map((chapter,i) => (
-                    <article key={chapter.id} className={styles.previewChapter}>
-                      <h3>فصل {(i+1).toLocaleString("fa-IR")} — {chapter.title}</h3>
-                      {chapter.paragraphsFa.map((paragraph,j) => <p key={j}>{paragraph}</p>)}
-                    </article>
-                  ))}
-                </>
-              ) : (
-                <button type="button" className={styles.resultBackLink} onClick={openLocalPreview} disabled={previewLoading}>
-                  {previewLoading ? "در حال دریافت..." : "نمایش چهار فصل کامل (فقط توسعه)"}
-                </button>
-              )}
+              <button type="button" className={styles.resultBackLink} onClick={openLocalPreview} disabled={previewLoading}>
+                {previewLoading ? "در حال دریافت..." : "نمایش چهار فصل کامل (فقط توسعه)"}
+              </button>
               {previewError && <p role="status">دریافت گزارش کامل ممکن نشد؛ چارت رایگان همچنان معتبر است.</p>}
             </section>
           )}
+          </>
+          )}
           <div className={styles.reportFooter}>
-            <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "متن کامل صرفاً برای بازبینی محلی دریافت شده است؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نیست." : "این نتیجه شامل چارت و پیش‌نمایش رایگان فصل‌هاست."}</p>
+            <p className={styles.resultPrivacy}>{fullPreview ? "متن کامل صرفاً برای بازبینی محلی دریافت شده است؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نیست." : "این نتیجه شامل چارت و پیش‌نمایش رایگان فصل‌هاست."}</p>
             <button type="button" className={styles.resultBackLink} onClick={onEdit}>ویرایش اطلاعات تولد</button>
           </div>
           </>
