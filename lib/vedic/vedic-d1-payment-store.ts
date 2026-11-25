@@ -1,7 +1,7 @@
 import {getAdminDatabase} from '@/lib/admin/admin-database';
 import type {Invoice,PaymentStore} from './vedic-d1-payment-flow';
 function map(r:Record<string,unknown>,createdNow=false):Invoice{
- return {id:String(r.id),factor:String(r.factor_id),amount:Number(r.amount_toman),status:String(r.status),
+ return {id:String(r.id),reportId:String(r.report_id),factor:String(r.factor_id),amount:Number(r.amount_toman),status:String(r.status),
  paymentId:r.provider_payment_id==null?null:String(r.provider_payment_id),transactionId:r.provider_transaction_id==null?null:String(r.provider_transaction_id),createdNow};
 }
 export const vedicPaymentStore:PaymentStore={

@@ -15,7 +15,7 @@ export function VedicD1PayButton({reportId,owner,enabled,pending=false,amount,on
    const data=await response.json();
    const current=await client?.auth.getSession();if(current?.data.session?.user.id!==owner)return;
    if(response.ok&&data.status==="redirect"&&typeof data.redirectUrl==="string"&&/^https:\/\/bitpay\.ir\/payment\/gateway-[1-9][0-9]{0,63}-get$/.test(data.redirectUrl)){window.location.assign(data.redirectUrl);return;}
-   if(response.ok&&data.status==="paid"){setMessage("پرداخت تأیید شد. گزارش را از گزارش‌های من باز کن.");onRefresh?.();return;}
+   if(response.ok&&data.status==="paid"){window.location.assign("/reports/vedic/"+encodeURIComponent(reportId));return;}
    setMessage("وضعیت پرداخت هنوز قطعی نیست. از همین گزارش پیگیری کن و دوباره پرداخت نکن.");onRefresh?.();
   }catch{setMessage("ارتباط برقرار نشد. وضعیت را از گزارش‌های من پیگیری کن.");}
   finally{running.current=false;setBusy(false);}

@@ -3,7 +3,7 @@ import {requestBitPayIrPayment,verifyBitPayIrPayment} from '../shop/bitpay-ir-cl
 import {VEDIC_D1_PRICE_TOMAN} from './vedic-d1-price.ts';
 export const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const decimal=(s:string)=>/^[1-9][0-9]{0,63}$/.test(s);
-export type Invoice={id:string;factor:string;amount:number;status:string;paymentId:string|null;transactionId:string|null;createdNow?:boolean};
+export type Invoice={id:string;reportId:string;factor:string;amount:number;status:string;paymentId:string|null;transactionId:string|null;createdNow?:boolean};
 export type Verify=typeof verifyBitPayIrPayment;
 export type PaymentStore={
  reserve(owner:string,report:string,proofHash:string,amount:number):Promise<Invoice|null>;
@@ -43,12 +43,13 @@ export function parseVedicCallback(q:URLSearchParams){
  if(!UUID.test(id)||!/^[a-f0-9]{64}$/.test(proof)||!decimal(payment)||!decimal(transaction))return null;
  return {id,proofHash:digest(proof),payment,transaction};
 }
-export async function finishVedicPayment(q:URLSearchParams,config:Config,store:PaymentStore,verify:Verify=verifyBitPayIrPayment){
- const c=parseVedicCallback(q);if(!c)return 'invalid' as const;
+export type VedicPaymentReturn = {status:'invalid'|'pending'} | {status:'paid';reportId:string};
+export async function finishVedicPayment(q:URLSearchParams,config:Config,store:PaymentStore,verify:Verify=verifyBitPayIrPayment):Promise<VedicPaymentReturn>{
+ const c=parseVedicCallback(q);if(!c)return {status:'invalid'};
  const i=await store.prepareCallback(c.id,c.proofHash,c.payment,c.transaction);
- if(!i)return 'invalid' as const;
- if(i.status==='verified')return 'paid' as const;
- return store.verifyAndSettle(i.id,verifier(config,verify),c.transaction);
+ if(!i||!UUID.test(i.reportId))return {status:'invalid'};
+ const status=i.status==='verified'?'paid':await store.verifyAndSettle(i.id,verifier(config,verify),c.transaction);
+ return status==='paid'?{status,reportId:i.reportId}:{status:'pending'};
 }
 export async function retryVedicPayment(owner:string,report:string,config:Config,store:PaymentStore,verify:Verify=verifyBitPayIrPayment){
  const i=await store.pending(owner,report);

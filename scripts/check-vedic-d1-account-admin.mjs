@@ -31,3 +31,10 @@ assert.ok(!save.includes('halleus.admini.direct-session')&&!save.includes('/api/
 assert.ok(direct.includes('halleus.admini.direct-session.v1'));
 assert.ok(offer.includes('VEDIC_D1_PRICE_TOMAN.toLocaleString("fa-IR")')&&css.includes('.purchaseOffer button.purchasePrimary')&&css.includes('-webkit-text-fill-color: #f8fafc !important'));
 console.log('VEDIC_CHECKOUT_SESSION_PRESENTATION_SOURCE_PASS');
+
+const detailPagePath='app/reports/vedic/[reportId]/page.tsx';
+const detailPage=read(detailPagePath),library=read('components/vedic/VedicD1AccountLibrary.tsx');
+for(const [path,sourceText] of [[detailPagePath,detailPage],['components/vedic/VedicD1AccountLibrary.tsx',library]])assert.equal(ts.createSourceFile(path,sourceText,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX).parseDiagnostics.length,0,path);
+assert.ok(detailPage.includes('robots:{index:false,follow:false}')&&detailPage.includes('dynamic="force-dynamic"')&&detailPage.includes('directReportId={reportId}')&&detailPage.includes('UUID.test(reportId)'));
+assert.ok(library.includes('directReportId&&!owner')&&library.includes('directReportId?"id="+encodeURIComponent(directReportId)')&&library.includes('Authorization:`Bearer ${s.data.session.access_token}`')&&library.includes('d.report?.id!==directReportId')&&library.includes('selected.purchaseStatus==="paid"&&selected.manuscript?<VedicD1FullReport'));
+console.log('VEDIC_DIRECT_REPORT_OWNER_SOURCE_PASS');

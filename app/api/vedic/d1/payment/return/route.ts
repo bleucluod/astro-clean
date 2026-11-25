@@ -1,13 +1,17 @@
 import {vedicPaymentConfig} from '@/lib/vedic/vedic-d1-payment-config';
-import {finishVedicPayment} from '@/lib/vedic/vedic-d1-payment-flow';
+import {finishVedicPayment,UUID} from '@/lib/vedic/vedic-d1-payment-flow';
 import {vedicPaymentStore} from '@/lib/vedic/vedic-d1-payment-store';
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, nofollow'};
 async function finish(query:URLSearchParams){
  const config=vedicPaymentConfig();if(!config)return new Response(null,{status:503,headers});
- try{await finishVedicPayment(query,config,vedicPaymentStore);}catch{/* No grant on uncertainty. */}
- return new Response(null,{status:303,headers:{...headers,Location:'https://halleus.ir/reports'}});
+ let destination='https://halleus.ir/reports';
+ try{
+  const result=await finishVedicPayment(query,config,vedicPaymentStore);
+  if(result.status==='paid'&&UUID.test(result.reportId))destination='https://halleus.ir/reports/vedic/'+result.reportId;
+ }catch{/* No grant or report-specific redirect on uncertainty. */}
+ return new Response(null,{status:303,headers:{...headers,Location:destination}});
 }
 export async function GET(request:Request){return finish(new URL(request.url).searchParams);}
 export async function POST(request:Request){

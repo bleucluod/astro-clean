@@ -97,7 +97,7 @@ export function VedicD1PrivateSave({name,birth,savedReportId,checkoutEnabled}:{n
     </div>}
     {sessionState==="account"&&owner&&<div>
       {status==="saving"&&<p role="status">در حال اتصال گزارش به حساب…</p>}
-      {status==="saved"&&savedReport&&<><p role="status">گزارش به حساب تو متصل شد.</p>{savedReport.purchaseStatus!=="paid"&&<VedicD1PayButton reportId={savedReport.id} owner={owner} enabled={checkoutEnabled} pending={savedReport.purchaseStatus==="pending"} amount={savedReport.amountToman} />}<p><a href="/reports">بازگشت به گزارش‌های من</a></p></>}
+      {status==="saved"&&savedReport&&<><p role="status">گزارش به حساب تو متصل شد.</p>{savedReport.purchaseStatus==="paid"?<a className={styles.resultBackLink} href={"/reports/vedic/"+encodeURIComponent(savedReport.id)}>مشاهدهٔ گزارش کامل خریداری‌شده</a>:<VedicD1PayButton reportId={savedReport.id} owner={owner} enabled={checkoutEnabled} pending={savedReport.purchaseStatus==="pending"} amount={savedReport.amountToman} />}<p><a href="/reports">بازگشت به گزارش‌های من</a></p></>}
       {status==="error"&&<p role="status">اتصال گزارش به حساب ممکن نشد. <button type="button" onClick={()=>void save()}>تلاش مجدد</button></p>}
     </div>}
   </div>;
