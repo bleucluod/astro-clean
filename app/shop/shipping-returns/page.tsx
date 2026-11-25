@@ -1,7 +1,11 @@
 import { buildSocialPreviewMetadata } from '@/lib/config/seo';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SHOP_HANDOFF_MAX_BUSINESS_DAYS } from '@/lib/shop/shop-merchant-policy';
+import {
+  SHOP_HANDOFF_MAX_BUSINESS_DAYS,
+  SHOP_POST_TRANSIT_MIN_BUSINESS_DAYS,
+  SHOP_POST_TRANSIT_MAX_BUSINESS_DAYS,
+} from '@/lib/shop/shop-merchant-policy';
 
 export const metadata: Metadata = {
   title: 'شرایط ارسال و مرجوعی تابلوهای سفارشی | هالیوس',
@@ -30,9 +34,12 @@ export default function ShopShippingReturnsPage() {
         پس از تأیید پرداخت، تابلو حداکثر تا {SHOP_HANDOFF_MAX_BUSINESS_DAYS.toLocaleString('fa-IR')} روز کاری
         برای ارسال به پست یا تیپاکس تحویل داده می‌شود. این زمان، زمان تحویل بسته به شرکت حمل است،
         نه زمان رسیدن آن به نشانی گیرنده.</p>
-      <p>مدت حمل و رسیدن مرسوله به شهر مقصد به سرویس پست یا تیپاکس و مقصد بستگی دارد و
-        در این مرحله زمان قطعی برای آن اعلام نمی‌کنیم. هزینه پست یا بسته‌بندی تیپاکس در
-        مراحل سفارش مشخص می‌شود؛ هزینه حمل تیپاکس طبق گزینه انتخابی، پس‌کرایه است.</p>
+      <p>برای ارسال با پست پیشتاز، زمان تقریبی حمل پس از تحویل بسته به پست را
+        {' '}{SHOP_POST_TRANSIT_MIN_BUSINESS_DAYS.toLocaleString('fa-IR')} تا {SHOP_POST_TRANSIT_MAX_BUSINESS_DAYS.toLocaleString('fa-IR')} روز کاری در نظر بگیر.
+        این بازه شامل زمان آماده‌سازی تابلو نیست و زمان قطعی تحویل محسوب نمی‌شود؛
+        مقصد، تعطیلات و شرایط شبکهٔ پستی ممکن است باعث تأخیر شوند.
+        زمان حمل تیپاکس نیز به سرویس و مقصد بستگی دارد.
+        هزینه پست یا بسته‌بندی تیپاکس در مراحل سفارش مشخص می‌شود؛ هزینه حمل تیپاکس طبق گزینه انتخابی، پس‌کرایه است.</p>
       <h2 style={{ fontSize: 20, marginTop: 26 }}>انصراف و مرجوعی تابلوهای شخصی‌سازی‌شده</h2>
       <p>برای محصولات دارای نام، تاریخ، پیام یا سایر مشخصات اختصاصی، امکان مشاهده پیش‌نمایش
         پیش از ثبت سفارش فراهم است. به دلیل ساخت اثر بر اساس مشخصات فردی خریدار،

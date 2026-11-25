@@ -33,3 +33,9 @@ This batch must not mutate the database, credentials, payment logic, print origi
 GitHub branch creation + commit/push of this candidate are user-authorized.
 VPS release is owner-operated via `ops/vps/halleus-release.sh` with the exact candidate commit and tag; keep the earlier working release as the rollback target.
 Do not report `ROADMAP_COMPLETE` before release and final verification (including any owner-required Torob registration test).
+
+## Follow-up — 2026-11-26, GSC transitTime
+The earlier decision not to invent transport times remains binding. Checkout offers Post Pishtaz (and separately Tipax freight collect). A documented carrier-based estimate is now available: **1–5 business days after handoff**, separate from the existing 0–3-day handling window; not an observed Halleus delivery distribution or a guaranteed SLA.
+- [Tehran Post director, reported 24–72 hours depending on destination (2025)](https://www.chn.ir/city-housing-construction/28896/).
+- [1405 postal tariff reproduction: Pishtaz D+3 and +2 days for islands](https://irangaah.ir/digital/post/tariff).
+- [Google Merchant listing documentation](https://developers.google.com/search/docs/appearance/structured-data/merchant-listing): separate handlingTime and transitTime. The proposed range combines the reported service range with the island allowance. Destination, holidays and disruptions can extend delivery. Revisit if actual shipment data contradicts the estimate. The same constants feed the public policy page and Offer schema. Tipax has no invented transit estimate. No review/aggregateRating until verified real product reviews exist. No database/payment/price or availability changes.

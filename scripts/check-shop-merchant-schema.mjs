@@ -107,8 +107,10 @@ for (const data of [p01, p02, p02Closed]) {
   assert.equal(offer.hasMerchantReturnPolicy.url, 'https://halleus.ir/shop/shipping-returns');
   assert.equal(offer.shippingDetails.deliveryTime.handlingTime.maxValue, 3);
   assert.equal(offer.shippingDetails.deliveryTime.handlingTime.unitCode, 'DAY');
-  assert.equal(offer.shippingDetails.deliveryTime.transitTime, undefined,
-    'Carrier transit time must not be invented');
+  assert.equal(offer.shippingDetails.deliveryTime.transitTime['@type'], 'QuantitativeValue');
+  assert.equal(offer.shippingDetails.deliveryTime.transitTime.minValue, 1);
+  assert.equal(offer.shippingDetails.deliveryTime.transitTime.maxValue, 5);
+  assert.equal(offer.shippingDetails.deliveryTime.transitTime.unitCode, 'DAY');
 }
 
 // Every month has a separate canonical Product identity and real mockup photos.
@@ -130,6 +132,10 @@ assert.equal(product(nm).url, 'https://halleus.ir/shop/bahman-sign');
 assert.equal(product(nm).image.length, 1);
 assert.ok(product(nm).image[0].endsWith('/02-nora-1370-11-18-dark-wall-bench.webp'));
 assert.equal(product(nm).offers.availability, 'https://schema.org/InStock');
+assert.deepEqual(product(nm).offers.shippingDetails.deliveryTime,
+  product(p01).offers.shippingDetails.deliveryTime);
+assert.ok(!JSON.stringify(nm).includes('"review"'));
+assert.ok(!JSON.stringify(nm).includes('aggregateRating'));
 const nmClosed = schema.buildShopProductStructuredData(
   nmSample, 'https://halleus.ir', false, { 'nm:10x15': nemadPrice }, 'bahman',
 );
@@ -148,9 +154,12 @@ assert.match(internal, /data\.product, siteConfig\.url, purchaseEnabled, prices,
 assert.match(internal, /robots: \{ index: false, follow: false \}/);
 assert.match(canonical, /robots: \{ index: true, follow: true \}/);
 assert.match(internal, /initialPriceToman=\{prices\['nm:10x15'\]\}/);
-assert.match(read('app/shop/shipping-returns/page.tsx'), /SHOP_HANDOFF_MAX_BUSINESS_DAYS/);
+const policyPage = read('app/shop/shipping-returns/page.tsx');
+assert.match(policyPage, /SHOP_HANDOFF_MAX_BUSINESS_DAYS\.toLocaleString/);
+assert.match(policyPage, /SHOP_POST_TRANSIT_MIN_BUSINESS_DAYS\.toLocaleString/);
+assert.match(policyPage, /SHOP_POST_TRANSIT_MAX_BUSINESS_DAYS\.toLocaleString/);
 assert.match(read('components/AppShell.tsx'), /\/shop\/shipping-returns/);
 assert.match(read('components/shop/ShopCheckoutFlow.tsx'), /\/shop\/shipping-returns/);
 assert.match(read('app/sitemap.ts'), /\/shop\/shipping-returns/);
 
-console.log('HALLEUS_SHOP_MERCHANT_SCHEMA=PASS: P01/P02/NM real IRR default prices, 12 canonical Nemad route contracts, custom returns, 3-day handoff, true Post cost, no invented transit/reviews');
+console.log('HALLEUS_SHOP_MERCHANT_SCHEMA=PASS: P01/P02/NM real IRR default prices, 12 canonical Nemad route contracts, custom returns, 3-day handoff, estimated 1–5-day Post transit, true Post cost, no invented reviews');
