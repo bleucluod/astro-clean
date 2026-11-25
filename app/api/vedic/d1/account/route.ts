@@ -1,3 +1,4 @@
+import { getHalleusRuntimeEnv } from '@/lib/config/env';
 import * as Astronomy from 'astronomy-engine';
 import { getSupabaseUserFromAuthorizationHeader } from '@/lib/auth/supabase-server-user';
 import { isVedicD1StorageReady } from '@/lib/vedic/vedic-d1-payment-config';
@@ -32,11 +33,13 @@ const dependencies: VedicD1PrivateDependencies={
 };
 export const GET=(request:Request)=>handleVedicD1Private(request,{
  ...dependencies,
+ canonicalSiteUrl:getHalleusRuntimeEnv().siteUrl,
  guest:()=>readGuestReportSession(request)?.userId??null,
  getGuest:getGuestVedicD1,listGuest:listGuestVedicD1,
 });
 export const POST=(request:Request)=>handleVedicD1Private(request,{
  ...dependencies,
+ canonicalSiteUrl:getHalleusRuntimeEnv().siteUrl,
  async claimGuest(owner){const guest=readGuestReportSession(request);return guest?claimVedicD1GuestReports(owner,guest.userId):0;},
  async save(owner,birth,name){
   const guest=readGuestReportSession(request);

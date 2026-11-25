@@ -1,3 +1,5 @@
+import { isTrustedAdminRequestOrigin } from '@/lib/admin/admin-origin';
+import { getHalleusRuntimeEnv } from '@/lib/config/env';
 import {getSupabaseUserFromAuthorizationHeader} from '@/lib/auth/supabase-server-user';
 import {isVedicD1CheckoutReady,vedicPaymentConfig} from '@/lib/vedic/vedic-d1-payment-config';
 import {startVedicPayment,retryVedicPayment,UUID} from '@/lib/vedic/vedic-d1-payment-flow';
@@ -6,7 +8,7 @@ export const runtime='nodejs';
 export const dynamic='force-dynamic';
 const reply=(status:number,body:unknown)=>Response.json(body,{status,headers:{'Cache-Control':'private, no-store','Referrer-Policy':'no-referrer','X-Robots-Tag':'noindex, nofollow'}});
 export async function POST(request:Request){
- const origin=request.headers.get('origin');if(origin&&origin!==new URL(request.url).origin)return reply(403,{ok:false});
+ if(!isTrustedAdminRequestOrigin(request,getHalleusRuntimeEnv().siteUrl))return reply(403,{ok:false});
  const config=vedicPaymentConfig();if(!config)return reply(503,{ok:false});
  let user;try{user=await getSupabaseUserFromAuthorizationHeader(request.headers.get('authorization'));}catch{return reply(401,{ok:false});}
  if(!user)return reply(401,{ok:false});

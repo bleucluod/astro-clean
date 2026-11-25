@@ -1,3 +1,4 @@
+import { isTrustedAdminRequestOrigin } from '../admin/admin-origin.ts';
 import type { VedicD1InputResult, VedicD1ValidatedBirth } from './vedic-d1-contract.ts';
 import type { VedicD1FreeReading } from './vedic-d1-reading-contract.ts';
 
@@ -8,6 +9,7 @@ export type SavedVedicD1 = {
 };
 export type VedicD1PrivateDependencies = {
   ready: () => boolean;
+  canonicalSiteUrl?: string;
   authenticate: (authorization: string | null) => Promise<{id: string} | null>;
   resolve: (input: unknown) => VedicD1InputResult;
   save: (owner: string, birth: VedicD1ValidatedBirth, name: string) => Promise<SavedVedicD1>;
@@ -62,8 +64,7 @@ function safe(report: SavedVedicD1, includeFull = false) {
 export async function handleVedicD1Private(request: Request, deps: VedicD1PrivateDependencies): Promise<Response> {
   if (!deps.ready()) return failure(503,'STORAGE_DISABLED');
   if (!['GET','POST'].includes(request.method)) return failure(405,'METHOD_NOT_ALLOWED');
-  const origin = request.headers.get('origin');
-  if (origin && origin !== new URL(request.url).origin) return failure(403,'ORIGIN');
+  if (!isTrustedAdminRequestOrigin(request,deps.canonicalSiteUrl ?? request.url)) return failure(403,'ORIGIN');
   const auth = request.headers.get('authorization');
   let owner:string;
   let guest=false;

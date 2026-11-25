@@ -7,6 +7,9 @@ import { dirname, resolve } from 'node:path';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const paths = new Map([
   ['astronomy-engine','scripts/vendor/astronomy-engine-2.1.19.cjs'],
+  ['@/lib/admin/admin-origin','lib/admin/admin-origin.ts'],
+  ['@/lib/config/env','lib/config/env.ts'],
+  ['@/lib/config/halleus','lib/config/halleus.ts'],
   ['@/lib/vedic/vedic-d1-http','lib/vedic/vedic-d1-http.ts'],
   ['@/lib/vedic/vedic-d1-birth-adapter','lib/vedic/vedic-d1-birth-adapter.ts'],
   ['@/lib/vedic/vedic-d1-server-reading','lib/vedic/vedic-d1-server-reading.ts'],
@@ -55,3 +58,11 @@ assert.equal(spoofed.status,400);
 assert.equal((await spoofed.json()).code,'INVALID_REQUEST');
 console.log('PASS Vedic route shim using actual Astronomy Engine: validated free POST 200, 9 bodies, no-store, wrong-city and spoofed-input rejected');
 console.log('NOT RUN: real Next.js compilation, complete public city directory, mobile/browser E2E');
+
+// Simulate production TLS termination: browser sends HTTPS origin but Next sees HTTP.
+const proxyRequest=(origin)=>new Request('http://127.0.0.1:3000/api/vedic/d1',{method:'POST',headers:{'content-type':'application/json',origin},body:JSON.stringify(input)});
+process.env.NEXT_PUBLIC_HALLEUS_SITE_URL='https://halleus.ir';
+const proxyOk=await route.POST(proxyRequest('https://halleus.ir'));
+assert.equal(proxyOk.status,200);
+for(const origin of ['https://evil.example','https://halleus.ir.evil.example','null'])assert.equal((await route.POST(proxyRequest(origin))).status,403);
+console.log('VEDIC_GENERATION_PROXY_ORIGIN_PASS');

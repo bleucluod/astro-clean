@@ -15,8 +15,7 @@ const astronomy=Astronomy as unknown as VedicAstronomyEnginePort;
 
 export async function autoSaveVedicD1(request:Request,birth:VedicD1ValidatedBirth,name:string){
   if(!isVedicD1StorageReady())return {reading:calculateVedicD1GuestReading(birth,astronomy)};
-  const origin=request.headers.get('origin');
-  if(origin&&origin!==new URL(request.url).origin)throw Error('ORIGIN');
+  // The public POST route verifies the canonical origin before any calculation or write.
   const authorization=request.headers.get('authorization');
   const account=authorization?await getSupabaseUserFromAuthorizationHeader(authorization):null;
   if(authorization&&!account)throw Error('AUTH_REQUIRED');

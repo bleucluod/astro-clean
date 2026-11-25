@@ -54,3 +54,11 @@ await check(post({action:'claim_guest',ownerId:b}),400,claimDeps);
 await check(post({action:'claim_guest'},'invalid'),401,claimDeps);
 assert.equal(claims,1);
 console.log('VEDIC_D1_PRIVATE_HTTP_PASS (account, guest isolation and authenticated claim)');
+
+const proxyDeps={...deps,canonicalSiteUrl:'https://halleus.ir'};
+const proxyPost=(origin)=>new Request('http://127.0.0.1:3000/api/vedic/d1/account',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',Authorization:'Bearer a'},body:JSON.stringify(body)});
+await check(proxyPost('https://halleus.ir'),200,proxyDeps);
+const beforeProxyReject=writes;
+for(const origin of ['https://evil.example','https://halleus.ir.evil.example','null'])await check(proxyPost(origin),403,proxyDeps);
+assert.equal(writes,beforeProxyReject);
+console.log('VEDIC_ACCOUNT_PROXY_ORIGIN_PASS');
