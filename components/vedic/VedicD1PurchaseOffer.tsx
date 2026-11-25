@@ -7,8 +7,8 @@ import type { VedicD1BirthRequest } from "@/lib/vedic/vedic-d1-contract";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import styles from "./vedic-d1-guest.module.css";
 
-/** Account save preview; no invoice or payment activation. */
-export function VedicD1PurchaseOffer({ name, birth, storageEnabled, checkoutEnabled }: { name: string; birth: VedicD1BirthRequest; storageEnabled: boolean; checkoutEnabled: boolean }) {
+/** One purchase offer; generation already saved the report. */
+export function VedicD1PurchaseOffer({ name, birth, savedReportId, storageEnabled, checkoutEnabled }: { name: string; birth: VedicD1BirthRequest; savedReportId?: string; storageEnabled: boolean; checkoutEnabled: boolean }) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const development = process.env.NODE_ENV === "development";
 
@@ -38,7 +38,7 @@ export function VedicD1PurchaseOffer({ name, birth, storageEnabled, checkoutEnab
               <li>مشاهدهٔ مبلغ و تأیید خرید</li>
               <li>پرداخت و دسترسی به گزارش کامل از حساب</li>
             </ol>
-            {reviewOpen && <VedicD1PrivateSave name={name} birth={birth} checkoutEnabled={checkoutEnabled} />}
+            {reviewOpen && <VedicD1PrivateSave name={name} birth={birth} savedReportId={savedReportId} checkoutEnabled={checkoutEnabled} />}
             <p>قیمت گزارش: {VEDIC_D1_PRICE_TOMAN.toLocaleString("fa-IR")} تومان</p>
           </div>
         </>

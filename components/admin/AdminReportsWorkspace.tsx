@@ -10,7 +10,6 @@ import type {
   AdminReportInsights,
   AdminReportSummary,
 } from "@/lib/admin/admin-types";
-import { AdminVedicReports } from "./AdminVedicReports";
 import { AccessSalesPanel } from "@/components/admin/AccessSalesPanel";
 import styles from "./admin-console.module.css";
 
@@ -33,7 +32,7 @@ const EMPTY_FILTERS: AdminReportFilters = {
   birthMonth: null,
 };
 
-type ReportsWorkspaceView = "overview" | "operations" | "access" | "vedic";
+type ReportsWorkspaceView = "overview" | "operations" | "access";
 
 type AdminComparisonDetail = {
   version: "stored-comparison-v1";
@@ -59,10 +58,13 @@ function formatDate(value: string | null) {
 }
 
 function formatReportType(value: string) {
+  if (value === "vedic-d1") return "چارت تولد ودیک";
   if (value === "comparison") return "چارت ازدواج و سیناستری";
   if (["natal", "birth-chart", "birth_chart", "unknown"].includes(value)) return "چارت تولد";
   return value;
 }
+
+function vedicPaymentLabel(status:AdminReportSummary["purchaseStatus"]){return status==="paid"?"پرداخت‌شده":status==="pending"?"در انتظار تأیید":"خریداری‌نشده";}
 
 function formatTrendKey(value: string) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return formatAdminDateOnly(value);
@@ -546,6 +548,7 @@ export function AdminReportsWorkspace({
               <div><span>نوع مالک</span><strong>{detail.ownerKind}</strong></div>
               <div><span>پلن حساب</span><strong>{detail.accountPlan ?? "—"}</strong></div>
               <div><span>دسترسی</span><strong>{detail.accessTier}</strong></div>
+              {detail.reportType==="vedic-d1"&&<><div><span>وضعیت خرید</span><strong>{vedicPaymentLabel(detail.purchaseStatus)}</strong></div><div><span>مبلغ / فاکتور</span><strong>{detail.amountToman?.toLocaleString("fa-IR")??"—"} تومان · {detail.factor??"—"}</strong></div></>}
               <div><span>منبع</span><strong>{detail.source}</strong></div>
               <div><span>Publication</span><strong>{detail.publicationState}</strong></div>
               <div><span>رضایت انتشار</span><strong>{detail.publicationConsentState}</strong></div>
@@ -610,14 +613,14 @@ export function AdminReportsWorkspace({
                   مشاهدهٔ محتوای خصوصی رابطه
                 </button>
               ) : null}
-              {detail.deletionState === "active" ? (
+              {detail.reportType !== "vedic-d1" && detail.deletionState === "active" ? (
                 <>
                   <button type="button" onClick={() => void readContact(detail)}>مشاهدهٔ ثبت‌شدهٔ اطلاعات تماس</button>
                   <button type="button" onClick={() => void mutate(detail, "update_title")}>ویرایش عنوان</button>
                   <button type="button" onClick={() => void mutate(detail, "restrict_visibility")}>محدودسازی</button>
                 </>
               ) : null}
-              {canDelete && detail.deletionState === "active" ? (
+              {canDelete && detail.reportType !== "vedic-d1" && detail.deletionState === "active" ? (
                 <button className={styles.dangerButton} type="button" onClick={() => void mutate(detail, "soft_delete")}>
                   حذف گزارش
                 </button>
@@ -644,7 +647,6 @@ export function AdminReportsWorkspace({
             >
               عملیات
             </button>
-            <button type="button" data-active={view === "vedic"} onClick={() => switchView("vedic")}>گزارش‌های ودیک</button>
             {canManageAccess ? (
               <button
                 type="button"
@@ -656,9 +658,7 @@ export function AdminReportsWorkspace({
             ) : null}
           </nav>
 
-          {view === "vedic" ? (
-            <AdminVedicReports key={accessToken} accessToken={accessToken} />
-          ) : view === "access" && canManageAccess ? (
+          {view === "access" && canManageAccess ? (
             <AccessSalesPanel accessToken={token} />
           ) : view === "overview" ? (
             <div className={styles.reportDailyOverview}>
@@ -695,13 +695,14 @@ export function AdminReportsWorkspace({
                           <span>{report.ownerDisplayName || report.ownerUserId || "مهمان"}</span>
                           <span>{report.ownerKind}</span>
                           <span>{report.accessTier}</span>
+                          {report.reportType==="vedic-d1"&&<span>{vedicPaymentLabel(report.purchaseStatus)}</span>}
                           <span>{report.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : report.visibility}</span>
                           {report.birthCity ? <span>تولد: {formatBirthPlace(report)}</span> : null}
                           {report.currentResidenceCity ? <span>سکونت: {formatResidencePlace(report)}</span> : null}
                         </div>
                         <div className={styles.reportRecentActions}>
                           <Link href={`/admini/reports/${report.id}`}>جزئیات</Link>
-                          {canDelete && report.deletionState === "active" ? (
+                          {canDelete && report.reportType !== "vedic-d1" && report.deletionState === "active" ? (
                             <button
                               className={styles.dangerButton}
                               type="button"
@@ -861,11 +862,11 @@ export function AdminReportsWorkspace({
                         <tbody>
                           {reports.map((report) => (
                             <tr key={report.id}>
-                              <td><strong>{report.subjectName ?? "—"}</strong><small>{report.reportType} · {report.title}</small></td>
+                              <td><strong>{report.subjectName ?? "—"}</strong><small>{formatReportType(report.reportType)} · {report.title}</small></td>
                               <td>{formatBirthLine(report)}</td>
                               <td>{formatBirthPlace(report)}</td>
                               <td>{(report.ownerDisplayName ?? report.ownerUserId) || "—"}<small>{report.ownerKind} · {report.accountPlan ?? "—"}</small></td>
-                              <td><span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : report.visibility}</span><small>{report.accessTier}</small></td>
+                              <td><span className={styles.statusPill} data-tone={reportTone(report.visibility)}>{report.deletionState === "owner_deleted" ? "حذف‌شده توسط کاربر" : report.visibility}</span><small>{report.accessTier}{report.reportType==="vedic-d1"?" · "+vedicPaymentLabel(report.purchaseStatus):""}</small></td>
                               <td>{formatBytes(report.storageBytes)}<small>JSON {formatBytes(report.reportJsonBytes)}</small></td>
                               <td>{formatDate(report.createdAt)}{report.deletedAt ? <small>حذف کاربر: {formatDate(report.deletedAt)}</small> : null}</td>
                               <td><Link href={`/admini/reports/${report.id}`}>جزئیات</Link></td>

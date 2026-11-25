@@ -125,6 +125,7 @@ export function normalizeAdminReportRow(raw: unknown): AdminReportSummary {
     updatedAt: asString(row.updated_at),
     deletedAt: cleanNullable(row.deleted_at),
     deletionState: row.deleted_at ? "owner_deleted" : "active",
+    ...(reportType==="vedic-d1"?{purchaseStatus:(row.purchase_status==="paid"?"paid":row.purchase_status==="pending"?"pending":"locked") as AdminReportSummary["purchaseStatus"],amountToman:row.amount_toman==null?null:asNumber(row.amount_toman),factor:cleanNullable(row.factor_id)}:{}),
   };
 }
 
@@ -214,7 +215,33 @@ async function loadCanonicalAdminReports() {
       `Reports Intelligence currently supports up to ${REPORT_INTELLIGENCE_SCAN_LIMIT.toLocaleString("en-US")} counted reports without introducing BI infrastructure.`,
     );
   }
-  return rows.map(normalizeAdminReportRow);
+  // Project Vedic metadata into the same cohort before filtering, sorting and pagination.
+  // No private manuscript or free reading is selected or returned.
+  const [schema]=await sql`select to_regclass('halleus_private.vedic_d1_reports') is not null
+    and to_regclass('halleus_private.vedic_d1_payments') is not null as installed`;
+  const vedicRows=schema?.installed?await sql`
+    select r.id, coalesce(r.owner_id,r.guest_owner_id)::text as user_id,
+      'چارت تولد ودیک' as title, r.display_name as subject_name,
+      case when r.owner_id is null then 'guest' else 'account' end as publication_owner_kind,
+      'vedic-d1' as metadata_report_type,
+      case when p.status='verified' then 'premium' else 'free' end as access_tier,
+      'private' as visibility, 'unpublished' as publication_state,
+      'withheld' as identity_consent_state, 'withheld' as publication_consent_state,
+      false as share_enabled, 'vedic' as source,
+      r.calculation_version as engine_version,r.writer_version as report_version,
+      r.created_at::text as created_at,r.created_at::text as updated_at,
+      pg_column_size(r)::int as storage_bytes,
+      (pg_column_size(r.free_reading)+pg_column_size(r.private_manuscript))::int as report_json_bytes,
+      case when p.status='verified' then 'paid' when p.id is not null then 'pending' else 'locked' end as purchase_status,
+      p.amount_toman,p.factor_id,count(*) over()::int as full_count
+    from halleus_private.vedic_d1_reports r
+    left join halleus_private.vedic_d1_payments p on p.report_id=r.id
+    order by r.created_at desc,r.id limit ${REPORT_INTELLIGENCE_SCAN_LIMIT+1}
+  `:[];
+  if(fullCount+asNumber(asRecord(vedicRows[0]).full_count)>REPORT_INTELLIGENCE_SCAN_LIMIT)
+    throw new AdminAccessError(413,"Reports Intelligence cohort limit exceeded.");
+  return [...rows.map(normalizeAdminReportRow),...vedicRows.map(normalizeAdminReportRow)]
+    .sort((left,right)=>Date.parse(right.createdAt)-Date.parse(left.createdAt)||left.id.localeCompare(right.id));
 }function normalizeFilterText(value: string | null) {
   return value?.trim().toLocaleLowerCase("fa") ?? "";
 }

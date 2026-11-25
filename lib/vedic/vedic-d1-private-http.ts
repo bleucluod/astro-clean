@@ -13,6 +13,10 @@ export type VedicD1PrivateDependencies = {
   save: (owner: string, birth: VedicD1ValidatedBirth, name: string) => Promise<SavedVedicD1>;
   get: (owner: string, id: string) => Promise<SavedVedicD1 | null>;
   list: (owner: string, offset: number) => Promise<SavedVedicD1[]>;
+  claimGuest?:(owner:string)=>Promise<number>;
+  guest?:()=>string|null;
+  getGuest?:(guest:string,id:string)=>Promise<SavedVedicD1|null>;
+  listGuest?:(guest:string,offset:number)=>Promise<SavedVedicD1[]>;
 };
 const headers = {'Cache-Control':'private, no-store, max-age=0','Pragma':'no-cache',
   'Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Robots-Tag':'noindex, nofollow'};
@@ -61,13 +65,20 @@ export async function handleVedicD1Private(request: Request, deps: VedicD1Privat
   const origin = request.headers.get('origin');
   if (origin && origin !== new URL(request.url).origin) return failure(403,'ORIGIN');
   const auth = request.headers.get('authorization');
-  if (!auth || !/^Bearer\s+\S+$/i.test(auth)) return failure(401,'AUTH_REQUIRED');
-  let owner: string;
+  let owner:string;
+  let guest=false;
   try {
-    const user = await deps.authenticate(auth);
-    if (!user || !UUID.test(user.id)) return failure(401,'AUTH_REQUIRED');
-    owner = user.id;
-  } catch { return failure(401,'AUTH_REQUIRED'); }
+    if(!auth&&request.method==='GET'&&deps.guest&&deps.getGuest&&deps.listGuest){
+      const id=deps.guest();
+      if(!id||!UUID.test(id))return failure(401,'AUTH_REQUIRED');
+      owner=id;guest=true;
+    }else{
+      if(!auth||!/^Bearer\s+\S+$/i.test(auth))return failure(401,'AUTH_REQUIRED');
+      const user=await deps.authenticate(auth);
+      if(!user||!UUID.test(user.id))return failure(401,'AUTH_REQUIRED');
+      owner=user.id;
+    }
+  }catch{return failure(401,'AUTH_REQUIRED');}
   try {
     if (request.method === 'GET') {
       const params = new URL(request.url).searchParams;
@@ -77,12 +88,12 @@ export async function handleVedicD1Private(request: Request, deps: VedicD1Privat
       const id = params.get('id');
       if (id !== null) {
         if (!UUID.test(id)) return failure(400,'INVALID_REQUEST');
-        const report = await deps.get(owner,id);
-        return report ? reply(200,{ok:true,report:safe(report,true)}) : failure(404,'NOT_FOUND');
+        const report = guest?await deps.getGuest!(owner,id):await deps.get(owner,id);
+        return report ? reply(200,{ok:true,report:safe(report,!guest)}) : failure(404,'NOT_FOUND');
       }
       const page = params.get('page') ?? '1';
       if (!/^[1-9]\d{0,3}$/.test(page)) return failure(400,'INVALID_REQUEST');
-      const reports = await deps.list(owner,(Number(page)-1)*20);
+      const reports = guest?await deps.listGuest!(owner,(Number(page)-1)*20):await deps.list(owner,(Number(page)-1)*20);
       return reply(200,{ok:true,reports:reports.slice(0,20).map(report=>safe(report)),hasMore:reports.length>20});
     }
     if (!/^application\/json(?:\s*;\s*charset\s*=\s*"?utf-8"?)?\s*$/i.test(request.headers.get('content-type') ?? ''))
@@ -90,6 +101,10 @@ export async function handleVedicD1Private(request: Request, deps: VedicD1Privat
     let body: unknown;
     try { body = await readBody(request); }
     catch (e) { return e instanceof Error && e.message==='SIZE' ? failure(413,'TOO_LARGE') : failure(400,'INVALID_JSON'); }
+    if(body&&typeof body==='object'&&!Array.isArray(body)&&Object.keys(body).length===1&&(body as Record<string,unknown>).action==='claim_guest'&&deps.claimGuest){
+      const claimed=await deps.claimGuest(owner);
+      return reply(200,{ok:true,claimed});
+    }
     if (!body || typeof body !== 'object' || Array.isArray(body) ||
         Object.keys(body).some(key=>!allowed.has(key))) return failure(400,'INVALID_REQUEST');
     const {displayName,consent,...birthInput} = body as Record<string,unknown>;

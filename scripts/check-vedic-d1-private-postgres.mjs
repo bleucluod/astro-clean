@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import postgres from 'postgres';
+import { registerHooks } from 'node:module';
 const url=process.env.HALLEUS_VEDIC_TEST_DATABASE_URL;
 if(!url||process.env.HALLEUS_VEDIC_TEST_DISPOSABLE!=='yes')
   throw Error('EXTERNAL_BLOCK: explicitly provision a disposable PostgreSQL test database');
@@ -11,6 +12,7 @@ if(!['postgres:','postgresql:'].includes(parsed.protocol)||
   throw Error('SAFETY_FATAL: test database name must start halleus_vedic_test_');
 const migration=readFileSync(new URL('../database/migrations/0045_private_vedic_d1_reports.sql',import.meta.url),'utf8');
 const paymentMigration=readFileSync(new URL('../database/migrations/0046_private_vedic_d1_payments.sql',import.meta.url),'utf8');
+const guestMigration=readFileSync(new URL('../database/migrations/0047_private_vedic_d1_guest_ownership.sql',import.meta.url),'utf8');
 assert.match(migration,/\bbegin;\s*create table/i);
 assert.match(migration,/commit;\s*$/i);
 const sql=postgres(url,{max:1,connect_timeout:5,prepare:false});
@@ -68,6 +70,49 @@ try {
         has_table_privilege('authenticated','halleus_private.vedic_d1_payments','UPDATE') as auth_write,
         (select relrowsecurity from pg_class where oid='halleus_private.vedic_d1_payments'::regclass) as rls`;
       assert.deepEqual([payAcl[0].anon_read,payAcl[0].auth_write,payAcl[0].rls],[false,false,true]);
+      // Test actual store against the same disposable fixture and rollback transaction.
+      await tx.unsafe(guestMigration.replace(/\bbegin;/i,'').replace(/commit;\s*$/i,''));
+      const adapter=(...args)=>tx(...args);
+      adapter.begin=fn=>tx.savepoint(fn);
+      globalThis.__vedicFixtureSql=adapter;
+      const hook=registerHooks({resolve(specifier,context,next){
+        if(specifier==='@/lib/admin/admin-database')return {url:'data:text/javascript,export function getAdminDatabase(){return globalThis.__vedicFixtureSql}',shortCircuit:true};
+        return next(specifier,context);
+      }});
+      try {
+        const {storeVedicD1,claimVedicD1GuestReports,getGuestVedicD1,listGuestVedicD1,getPrivateVedicD1}=await import('../lib/vedic/vedic-d1-private-store.ts');
+        const {vedicPaymentStore}=await import('../lib/vedic/vedic-d1-payment-store.ts');
+        const ga='44444444-4444-4444-8444-444444444444',gb='55555555-5555-4555-8555-555555555555';
+        const birth={birthDateGregorian:'2000-01-01',birthTime:'12:00',city:{id:'fixture'},utcIso:'2000-01-01T08:30:00Z'};
+        const reading={kind:'free-d1',view:{},premiumPreview:null};
+        const manuscript={kind:'private-d1-draft',calculationVersion:'calc',writerRulesVersion:'writer',chapters:[{id:'test',title:'fixture',paragraphsFa:['PRIVATE_TEXT']}]};
+        const guestA=await storeVedicD1(ga,birth,'Fixture',reading,manuscript,'guest');
+        const guestB=await storeVedicD1(gb,birth,'Fixture',reading,manuscript,'guest');
+        assert.notEqual(guestA.id,guestB.id);
+        assert.equal((await storeVedicD1(ga,birth,'Fixture',reading,manuscript,'guest')).id,guestA.id);
+        assert.equal((await listGuestVedicD1(ga,0)).length,1);
+        assert.equal(await getGuestVedicD1(gb,guestA.id),null);
+        assert.equal((await getGuestVedicD1(ga,guestA.id)).manuscript,undefined);
+        assert.equal(await getPrivateVedicD1(a,guestA.id),null);
+        assert.equal(await vedicPaymentStore.reserve(ga,guestA.id,'e'.repeat(64),300000),null);
+        await assert.rejects(tx.savepoint(sp=>sp`update halleus_private.vedic_d1_reports set guest_owner_id=null where id=${guestA.id}::uuid`),e=>e.code==='23514');
+        await assert.rejects(tx.savepoint(sp=>sp`update halleus_private.vedic_d1_reports set owner_id=${a}::uuid where id=${guestA.id}::uuid`),e=>e.code==='23514');
+        assert.equal(await claimVedicD1GuestReports(a,ga),1);
+        assert.equal(await getGuestVedicD1(ga,guestA.id),null);
+        assert.equal((await getPrivateVedicD1(a,guestA.id)).id,guestA.id);
+        assert.equal(await getPrivateVedicD1(b,guestA.id),null);
+        assert.equal((await storeVedicD1(a,birth,'Fixture',reading,manuscript)).id,guestA.id);
+        const invoice=await vedicPaymentStore.reserve(a,guestA.id,'e'.repeat(64),300000);
+        assert.ok(invoice?.createdNow);
+        await tx`update halleus_private.vedic_d1_payments set status='verified',provider_payment_id='188',provider_transaction_id='199',verified_at=now() where id=${invoice.id}::uuid`;
+        assert.equal(await claimVedicD1GuestReports(a,gb),1);
+        assert.equal(await getGuestVedicD1(gb,guestB.id),null);
+        assert.equal((await getPrivateVedicD1(a,guestA.id)).payment.status,'paid');
+        assert.equal((await getPrivateVedicD1(a,guestA.id)).manuscript.chapters[0].paragraphsFa[0],'PRIVATE_TEXT');
+        assert.equal(await claimVedicD1GuestReports(a,ga),0);
+        assert.equal((await tx`select id from halleus_private.vedic_d1_payments where report_id=${guestA.id}::uuid`)[0].id,invoice.id);
+        console.log('VEDIC_AUTO_STORAGE_POSTGRES_PASS (actual store, claim, duplicate and preserved invoice)');
+      } finally {hook.deregister();delete globalThis.__vedicFixtureSql;}
       throw rollback;
     });
   } catch(e){if(e!==rollback)throw e;}

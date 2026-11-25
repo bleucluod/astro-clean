@@ -22,6 +22,7 @@ export type VedicD1LocalPreview = {
 export type VedicD1GuestResult = {
   kind: "timed";
   localPreview?: VedicD1LocalPreview | null;
+  savedReportId?: string;
   name: string;
   reading: VedicD1FreeReading;
   draft: VedicD1GuestDraft;
@@ -40,7 +41,7 @@ type ContextValue = {
 
 const GuestSessionContext = createContext<ContextValue | null>(null);
 
-/** In-memory only. No query parameters, browser storage, cookie or server-side persistence. */
+/** In-memory UI state; successful named reports are saved privately by the server. */
 export function VedicD1GuestSessionProvider({ children }: { children: ReactNode }) {
   const [result, setResult] = useState<VedicD1GuestResult | null>(null);
   return (

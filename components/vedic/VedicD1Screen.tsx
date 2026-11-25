@@ -38,7 +38,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
       </header>
       <section className={chartStyles.workspace + " " + styles.vedicWorkspace} aria-label="فرم چارت تولد ودیک">
         <div className={chartStyles.formPanel}>
-          <VedicD1GuestForm onComplete={openReport} />
+          <VedicD1GuestForm onComplete={openReport} storageEnabled={storageEnabled} />
           {storageEnabled && <div className={"chart-account-option " + styles.entryAccount}>
             <label className="chart-account-option-toggle">
               <input type="checkbox" checked={showAccountPanel} onChange={event => setShowAccountPanel(event.target.checked)} />

@@ -76,8 +76,8 @@ assert.ok(!form.includes('birthTime: "12:00"')&&!form.includes('UNKNOWN_BIRTH_TI
   'No guessed time for untimed D1');
 assert.ok(form.indexOf('if (unknownTime)') < form.indexOf('const response = await fetch(API_PATH'),
   'Unknown time must avoid a forged public calculation');
-assert.ok(!form.includes('/api/vedic/d1/local-preview') && !form.includes('displayName:'),
-  'Free form must never fetch the full manuscript or send the name');
+assert.ok(!form.includes('/api/vedic/d1/local-preview') && form.includes('storageEnabled?{displayName:name.trim()}')&&form.includes('getSupabaseBrowserAccessState'),
+  'Named reports save privately through the free generation request; no full manuscript');
 assert.ok(result.includes('process.env.NODE_ENV !== "development"') &&
   result.includes('onClick={openLocalPreview}') && result.includes('displayName: name.trim()'),
   'Only an explicit development inspection may request full text');
@@ -95,18 +95,18 @@ assert.ok(full.includes('manuscript.chapters.map') && full.includes('chapter.par
   'Full reader presents only the provided manuscript, never obtains entitlement or regenerates text');
 assert.ok(css.includes('.fullContents') && css.includes('.fullChapter') && css.includes('.fullParagraphs'));
 assert.ok(result.includes('onClick={goToPurchase}') && result.includes('getElementById("vedic-purchase-title")') &&
-  result.includes('<VedicD1PurchaseOffer name={result.name} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,'));
+  result.includes('<VedicD1PurchaseOffer name={result.name} savedReportId={result.savedReportId} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,'));
 assert.ok(offer.includes('process.env.NODE_ENV === "development"') &&
   offer.includes('hidden={!reviewOpen}') && offer.includes('aria-expanded={reviewOpen}') &&
   offer.includes('development || storageEnabled') && offer.includes('disabled>خرید به‌زودی فعال می‌شود'));
 for (const banned of ['fetch(', 'localStorage', 'sessionStorage', 'router.push(', 'premium-writer', 'local-preview']) {
   assert.ok(!offer.includes(banned), 'Offer may not initiate payment or data operations: '+banned);
 }
-assert.ok(offer.includes('<VedicD1PrivateSave name={name} birth={birth} checkoutEnabled={checkoutEnabled} />') &&
+assert.ok(offer.includes('<VedicD1PrivateSave name={name} birth={birth} savedReportId={savedReportId} checkoutEnabled={checkoutEnabled} />') &&
   privateSave.includes('consent:true') && privateSave.includes('reconcileReports={false}') &&
   privateSave.includes('/api/vedic/d1/account') && !privateSave.includes('localStorage') &&
   !privateSave.includes('sessionStorage') && !privateSave.includes('router.push('),
-  'Private save requires account, explicit consent and in-page flow');
+  'Purchase reopens the saved report with an authenticated owner and idempotent fallback');
 assert.ok(css.includes('.purchaseOffer') && css.includes('.purchasePrimary:disabled'));
 assert.ok(select.includes('chart-native-select')&&select.includes('chart-select-trigger')&&
   select.includes('chart-select-options')&&select.includes('role="listbox"'),
@@ -137,7 +137,7 @@ assert.ok(!form.includes('journeyStyles.progressHeading') &&
 assert.ok(page.includes('robots: { index: false, follow: false }'));
 assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen storageEnabled={isVedicD1StorageReady()} checkoutEnabled={isVedicD1CheckoutReady()} /></VedicD1GuestSessionProvider>'));
 assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;'));
-assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} />'));
+assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} storageEnabled={storageEnabled} />'));
 assert.ok(legacyPage.includes('redirect("/vedic")')&&legacyResult.includes('redirect("/vedic")'));
 assert.ok(!form.includes('router.push(')&&!result.includes('/chart/vedic'));
 assert.ok(!screen.includes('localStorage')&&!screen.includes('sessionStorage')&&!screen.includes('router.push('));

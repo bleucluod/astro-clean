@@ -24,6 +24,8 @@ import {
 } from "@/lib/comparison/comparison-account-persistence";
 import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence-user";
 import { getAdminDatabase } from "@/lib/admin/admin-database";
+import {isVedicD1StorageReady} from "@/lib/vedic/vedic-d1-payment-config";
+import {claimVedicD1GuestReports} from "@/lib/vedic/vedic-d1-private-store";
 import { readReportPage } from "@/lib/reports/report-access-contract";
 import {
   enableOwnedReportSharing,
@@ -549,9 +551,9 @@ export async function POST(request: Request) {
         return errorResponse(409, "Current guest report could not be verified for claim.");
       }
 
-      const claimed = guest
-        ? await claimGuestRows(accountActor.userId, guest.userId)
-        : 0;
+      const claimedVedic = guest && isVedicD1StorageReady()
+        ? await claimVedicD1GuestReports(accountActor.userId,guest.userId) : 0;
+      const claimed = (guest ? await claimGuestRows(accountActor.userId, guest.userId) : 0) + claimedVedic;
 
       const currentReportRecord = currentReportId
         ? await getOwnedReport(accountActor.userId, currentReportId)

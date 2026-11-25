@@ -14,5 +14,6 @@ export function POST(request: Request): Promise<Response> {
     request,
     parseHalleusVedicD1Birth,
     birth => calculateVedicD1GuestReading(birth, Astronomy as unknown as VedicAstronomyEnginePort),
+    async (birth,name)=>(await import('@/lib/vedic/vedic-d1-auto-save')).autoSaveVedicD1(request,birth,name),
   );
 }

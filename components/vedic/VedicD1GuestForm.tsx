@@ -141,7 +141,7 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
     !("chapters" in r) && !("chart" in r) && !("utcIso" in r) && !("ownerId" in r);
 }
 
-export function VedicD1GuestForm({ onComplete }: { onComplete: () => void }) {
+export function VedicD1GuestForm({ onComplete, storageEnabled }: { onComplete: () => void; storageEnabled: boolean }) {
   const { result, setResult } = useVedicD1GuestSession();
   const hydrated = useSyncExternalStore(subscribeHydration, hydratedClient, hydratedServer);
   const [name, setName] = useState(result?.draft.name ?? "");
@@ -302,13 +302,16 @@ export function VedicD1GuestForm({ onComplete }: { onComplete: () => void }) {
         calendar, birthDate, birthTime, cityId,
         ...(occurrence ? { occurrence } : {}),
       };
+      const auth=storageEnabled?await (await import("@/lib/auth/supabase-browser-client")).getSupabaseBrowserAccessState():{kind:"guest" as const};
+      if(auth.kind==="unavailable")throw Error("AUTH_SESSION_UNAVAILABLE");
+      if (!aliveRef.current || requestRef.current !== controller) return;
       const response = await fetch(API_PATH, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(auth.kind==="account"?{Authorization:`Bearer ${auth.accessToken}`}:{}) },
         cache: "no-store",
         credentials: "same-origin",
         signal: controller.signal,
-        body: JSON.stringify(birthPayload),
+        body: JSON.stringify({...birthPayload,...(storageEnabled?{displayName:name.trim()}:{})}),
       });
       if (!aliveRef.current || requestRef.current !== controller) return;
       const payload: unknown = await response.json().catch(() => null);
@@ -325,8 +328,11 @@ export function VedicD1GuestForm({ onComplete }: { onComplete: () => void }) {
         return;
       }
       if (!aliveRef.current || requestRef.current !== controller) return;
+      if(storageEnabled&&typeof data.reportId!=="string"){
+        setFeedback({kind:"unavailable",message:"گزارش ذخیره نشد؛ دوباره تلاش کن."});return;
+      }
       setResult({ kind: "timed", name: name.trim(), reading: data.reading,
-        localPreview: null, draft });
+        savedReportId:typeof data.reportId==="string"?data.reportId:undefined, localPreview: null, draft });
       onComplete();
     } catch {
       if (!controller.signal.aborted && aliveRef.current) {
@@ -529,6 +535,7 @@ export function VedicD1GuestForm({ onComplete }: { onComplete: () => void }) {
                   checked={occurrence === "later"} onChange={() => { invalidate(); setOccurrence("later"); }} />
                   بار دوم</label>
               </fieldset>}
+              {storageEnabled&&!unknownTime&&<p className={styles.afterword}>با ساخت چارت، گزارش به‌صورت خصوصی در حساب یا نشست همین مرورگر ذخیره می‌شود. <a href="/privacy">حریم خصوصی</a></p>}
               <div className="chart-form-actions">
                 <button className="button chart-submit-button" type="submit"
                   disabled={!hydrated || submitting}>

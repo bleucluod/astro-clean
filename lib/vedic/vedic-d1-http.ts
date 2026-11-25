@@ -89,16 +89,20 @@ export async function handleVedicD1Post(
   request: Request,
   resolveBirth: VedicD1BirthResolver,
   calculateFree?: VedicD1FreeCalculator,
+  saveNamed?: (birth:VedicD1ValidatedBirth,name:string)=>Promise<{reading:VedicD1FreeReading;cookie?:string;reportId?:string}>,
 ): Promise<Response> {
   const parsed = await readLimitedJson(request);
   if (!parsed.ok) return reply(parsed.status, parsed.code, parsed.message);
   if (!parsed.body || typeof parsed.body !== 'object' || Array.isArray(parsed.body) ||
-      Object.keys(parsed.body).some(key => !ALLOWED_FIELDS.has(key))) {
+      Object.keys(parsed.body).some(key => !ALLOWED_FIELDS.has(key) && !(key==='displayName'&&saveNamed))) {
     return reply(400, 'INVALID_REQUEST', 'فقط اطلاعات ضروری تولد را ارسال کن.');
   }
+  const {displayName,...birthInput}=parsed.body as Record<string,unknown>;
+  if(displayName!==undefined&&(typeof displayName!=='string'||!displayName.trim()||displayName.trim().length>60))
+    return reply(400,'INVALID_REQUEST','نام معتبر وارد کن.');
   let validated: VedicD1InputResult;
   try {
-    validated = resolveBirth(parsed.body);
+    validated = resolveBirth(birthInput);
   } catch {
     // Do not echo internal errors or input data from date/city resolution.
     return reply(503, 'CALCULATION_NOT_READY', 'محاسبهٔ چارت ودیک فعلاً در دسترس نیست.');
@@ -110,7 +114,8 @@ export async function handleVedicD1Post(
     return reply(503, 'CALCULATION_NOT_READY', 'محاسبهٔ دقیق چارت ودیک هنوز فعال نشده است.');
   }
   try {
-    const reading = await calculateFree(validated.value);
+    const saved=typeof displayName==='string'&&saveNamed?await saveNamed(validated.value,displayName.trim()):null;
+    const reading = saved?.reading ?? await calculateFree(validated.value);
     if (!reading || reading.kind !== 'free-d1' ||
         reading.responseVersion !== VEDIC_D1_READING_VERSION ||
         reading.premiumStatus !== 'not-available' ||
@@ -132,7 +137,11 @@ export async function handleVedicD1Post(
         : null,
       premiumStatus: 'not-available',
     };
-    return Response.json({ ok: true, reading: safeReading }, { status: 200, headers: PRIVATE_HEADERS });
+    const reportId=saved?.reportId;
+    if(reportId!==undefined&&!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(reportId))throw Error('INVALID_REPORT_ID');
+    const response=Response.json({ ok: true, reading: safeReading,...(reportId?{reportId}:{}) }, { status: 200, headers: PRIVATE_HEADERS });
+    if(saved?.cookie)response.headers.append('Set-Cookie',saved.cookie);
+    return response;
   } catch {
     // Input/owner/provider details and internal errors never enter the payload.
     return reply(503, 'CALCULATION_NOT_READY', 'محاسبهٔ چارت ودیک فعلاً در دسترس نیست.');

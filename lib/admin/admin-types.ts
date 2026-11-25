@@ -117,6 +117,9 @@ export type AdminReportSummary = {
   updatedAt: string;
   deletedAt: string | null;
   deletionState: "active" | "owner_deleted";
+  purchaseStatus?: "paid" | "pending" | "locked";
+  amountToman?: number | null;
+  factor?: string | null;
 };
 
 export type AdminReportFilters = {

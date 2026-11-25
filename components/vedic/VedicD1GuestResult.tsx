@@ -113,7 +113,7 @@ export function VedicD1GuestResult({ onEdit, storageEnabled, checkoutEnabled }: 
               </article>
             ))}
           </section>
-          <VedicD1PurchaseOffer name={result.name} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,
+          <VedicD1PurchaseOffer name={result.name} savedReportId={result.savedReportId} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,
             birthDate:result.draft.birthDate,birthTime:result.draft.birthTime,cityId:result.draft.cityId,
             ...(result.draft.occurrence ? {occurrence:result.draft.occurrence} : {})}} />
           {process.env.NODE_ENV === "development" && (
@@ -142,11 +142,11 @@ export function VedicD1GuestResult({ onEdit, storageEnabled, checkoutEnabled }: 
       ) : (
         <section className={styles.emptyResult} role="status">
           <h2>گزارشی برای نمایش پیدا نشد</h2>
-          <p>این نسخهٔ آزمایشی گزارش را ذخیره نمی‌کند. اگر آدرس را مستقیم باز کرده‌ای یا صفحه را Refresh کرده‌ای، دوباره اطلاعات تولد را در فرم وارد و چارت را محاسبه کن.</p>
+          <p>اگر صفحه را دوباره باز کرده‌ای، گزارش‌های ذخیره‌شده را از بخش گزارش‌های من پیدا کن یا چارت تازه بساز.</p>
           <button type="button" className={styles.resultBackLink} onClick={onEdit}>بازگشت به فرم ودیک</button>
         </section>
       )}
-      <p className={styles.afterword}>گزارش مهمان فعلاً فقط در حافظهٔ همین صفحهٔ مرورگر نگه داشته می‌شود و لینک عمومی یا ذخیرهٔ دائمی ندارد.</p>
+      {storageEnabled&&result?.kind==="timed"&&<p className={styles.afterword}>این گزارش خصوصی است و از <a href="/reports">گزارش‌های من</a> قابل دسترسی است.</p>}
       </div>
     </section>
   );
