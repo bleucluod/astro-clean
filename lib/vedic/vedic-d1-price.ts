@@ -1,0 +1,1 @@
+export const VEDIC_D1_PRICE_TOMAN = 300_000;

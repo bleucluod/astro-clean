@@ -8,7 +8,7 @@ import chartStyles from "@/app/chart/chart-shell.module.css";
 import styles from "./vedic-d1-guest.module.css";
 
 /** Keep both screens on /vedic. Only ephemeral React state holds birth data. */
-export function VedicD1Screen() {
+export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{storageEnabled?:boolean;checkoutEnabled?:boolean}) {
   const { result, setResult } = useVedicD1GuestSession();
   const [showReport, setShowReport] = useState(false);
 
@@ -22,7 +22,7 @@ export function VedicD1Screen() {
     window.scrollTo({ top: 0, behavior: "auto" });
   }
 
-  if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} />;
+  if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;
 
   return (
     <div className={chartStyles.page + " " + styles.vedicPage} dir="rtl">

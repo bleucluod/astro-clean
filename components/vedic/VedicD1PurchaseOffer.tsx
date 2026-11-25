@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { VedicD1PrivateSave } from "./VedicD1PrivateSave";
+import { VEDIC_D1_PRICE_TOMAN } from "@/lib/vedic/vedic-d1-price";
+import type { VedicD1BirthRequest } from "@/lib/vedic/vedic-d1-contract";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import styles from "./vedic-d1-guest.module.css";
 
-/** UI review only. No checkout, account creation, pricing or entitlement mutation. */
-export function VedicD1PurchaseOffer({ name }: { name: string }) {
+/** Account save preview; no invoice or payment activation. */
+export function VedicD1PurchaseOffer({ name, birth, storageEnabled, checkoutEnabled }: { name: string; birth: VedicD1BirthRequest; storageEnabled: boolean; checkoutEnabled: boolean }) {
   const [reviewOpen, setReviewOpen] = useState(false);
   const development = process.env.NODE_ENV === "development";
 
@@ -19,14 +22,14 @@ export function VedicD1PurchaseOffer({ name }: { name: string }) {
         <span>بر اساس همین چارت تولد</span>
         <span>یک خرید، بدون اشتراک ماهانه</span>
       </div>
-      {development ? (
+      {development || storageEnabled ? (
         <>
           <button type="button" className={styles.purchasePrimary}
             aria-expanded={reviewOpen} aria-controls="vedic-purchase-review"
             onClick={() => setReviewOpen(value => !value)}>
             {reviewOpen ? "بستن پیش‌نمایش خرید" : "دریافت گزارش کامل من"}
           </button>
-          <small>پیش‌نمایش طراحی؛ هنوز امکان خرید واقعی وجود ندارد.</small>
+          {!checkoutEnabled && <small>هنوز امکان خرید واقعی وجود ندارد.</small>}
           <div id="vedic-purchase-review" hidden={!reviewOpen} className={styles.purchaseReview}>
             <h3>دریافت گزارش کامل</h3>
             <p>گزارش همین چارت، شامل هر چهار فصل.</p>
@@ -35,8 +38,8 @@ export function VedicD1PurchaseOffer({ name }: { name: string }) {
               <li>مشاهدهٔ مبلغ و تأیید خرید</li>
               <li>پرداخت و دسترسی به گزارش کامل از حساب</li>
             </ol>
-            <p>قیمت هنوز تعیین نشده و مراحل حساب و پرداخت متصل نیستند.</p>
-            <button type="button" className={styles.purchasePrimary} disabled>ادامه و پرداخت</button>
+            {reviewOpen && <VedicD1PrivateSave name={name} birth={birth} checkoutEnabled={checkoutEnabled} />}
+            <p>قیمت گزارش: {VEDIC_D1_PRICE_TOMAN.toLocaleString("fa-IR")} تومان</p>
           </div>
         </>
       ) : (

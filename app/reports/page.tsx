@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ReportsList } from "@/components/ReportsList";
+import { VedicD1AccountLibrary } from "@/components/vedic/VedicD1AccountLibrary";
+import {isVedicD1StorageReady,isVedicD1CheckoutReady} from "@/lib/vedic/vedic-d1-payment-config";
+export const dynamic="force-dynamic";
 
 import styles from "./reports-page.module.css";
 
@@ -42,6 +45,7 @@ export default function ReportsPage() {
       </section>
 
       <ReportsList reportSource="account" />
+      {isVedicD1StorageReady()&&<VedicD1AccountLibrary checkoutEnabled={isVedicD1CheckoutReady()}/> }
 
       <aside className={styles.privacyNote}>
         <div>

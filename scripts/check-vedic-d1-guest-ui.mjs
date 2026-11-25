@@ -9,6 +9,7 @@ const read=path=>readFileSync(resolve(root,path),'utf8');
 const form=read('components/vedic/VedicD1GuestForm.tsx');
 const full=read('components/vedic/VedicD1FullReport.tsx');
 const offer=read('components/vedic/VedicD1PurchaseOffer.tsx');
+const privateSave=read('components/vedic/VedicD1PrivateSave.tsx');
 const select=read('components/vedic/VedicChartSelect.tsx');
 const session=read('components/vedic/VedicD1GuestSession.tsx');
 const result=read('components/vedic/VedicD1GuestResult.tsx');
@@ -31,6 +32,7 @@ for(const [path,content] of [
  ['components/vedic/VedicD1GuestResult.tsx',result],
  ['components/vedic/VedicD1FullReport.tsx',full],
  ['components/vedic/VedicD1PurchaseOffer.tsx',offer],
+ ['components/vedic/VedicD1PrivateSave.tsx',privateSave],
  ['app/vedic/page.tsx',page],
  ['components/vedic/VedicD1Screen.tsx',screen],
 ]){
@@ -93,13 +95,18 @@ assert.ok(full.includes('manuscript.chapters.map') && full.includes('chapter.par
   'Full reader presents only the provided manuscript, never obtains entitlement or regenerates text');
 assert.ok(css.includes('.fullContents') && css.includes('.fullChapter') && css.includes('.fullParagraphs'));
 assert.ok(result.includes('onClick={goToPurchase}') && result.includes('getElementById("vedic-purchase-title")') &&
-  result.includes('<VedicD1PurchaseOffer name={result.name} />'));
+  result.includes('<VedicD1PurchaseOffer name={result.name} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,'));
 assert.ok(offer.includes('process.env.NODE_ENV === "development"') &&
   offer.includes('hidden={!reviewOpen}') && offer.includes('aria-expanded={reviewOpen}') &&
-  offer.includes('disabled>ادامه و پرداخت') && offer.includes('disabled>خرید به‌زودی فعال می‌شود'));
+  offer.includes('development || storageEnabled') && offer.includes('disabled>خرید به‌زودی فعال می‌شود'));
 for (const banned of ['fetch(', 'localStorage', 'sessionStorage', 'router.push(', 'premium-writer', 'local-preview']) {
   assert.ok(!offer.includes(banned), 'Offer may not initiate payment or data operations: '+banned);
 }
+assert.ok(offer.includes('<VedicD1PrivateSave name={name} birth={birth} checkoutEnabled={checkoutEnabled} />') &&
+  privateSave.includes('consent:true') && privateSave.includes('reconcileReports={false}') &&
+  privateSave.includes('/api/vedic/d1/account') && !privateSave.includes('localStorage') &&
+  !privateSave.includes('sessionStorage') && !privateSave.includes('router.push('),
+  'Private save requires account, explicit consent and in-page flow');
 assert.ok(css.includes('.purchaseOffer') && css.includes('.purchasePrimary:disabled'));
 assert.ok(select.includes('chart-native-select')&&select.includes('chart-select-trigger')&&
   select.includes('chart-select-options')&&select.includes('role="listbox"'),
@@ -128,8 +135,8 @@ assert.ok(!form.includes('journeyStyles.progressHeading') &&
   !form.includes('آسمان تو در حال شکل‌گرفتنه'),
   'Mobile stepper must not carry a second verbal introduction');
 assert.ok(page.includes('robots: { index: false, follow: false }'));
-assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen /></VedicD1GuestSessionProvider>'));
-assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} />;'));
+assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen storageEnabled={isVedicD1StorageReady()} checkoutEnabled={isVedicD1CheckoutReady()} /></VedicD1GuestSessionProvider>'));
+assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;'));
 assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} />'));
 assert.ok(legacyPage.includes('redirect("/vedic")')&&legacyResult.includes('redirect("/vedic")'));
 assert.ok(!form.includes('router.push(')&&!result.includes('/chart/vedic'));

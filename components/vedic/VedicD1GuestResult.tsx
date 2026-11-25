@@ -10,7 +10,7 @@ import reportStyles from "@/components/report/human-first-report.module.css";
 import styles from "./vedic-d1-guest.module.css";
 
 /** A separate report surface; only the certified free API response can populate it. */
-export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
+export function VedicD1GuestResult({ onEdit, storageEnabled, checkoutEnabled }: { onEdit: () => void; storageEnabled: boolean; checkoutEnabled: boolean }) {
   const { result, setResult } = useVedicD1GuestSession();
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(false);
@@ -113,7 +113,9 @@ export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
               </article>
             ))}
           </section>
-          <VedicD1PurchaseOffer name={result.name} />
+          <VedicD1PurchaseOffer name={result.name} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} birth={{calendar:result.draft.calendar,
+            birthDate:result.draft.birthDate,birthTime:result.draft.birthTime,cityId:result.draft.cityId,
+            ...(result.draft.occurrence ? {occurrence:result.draft.occurrence} : {})}} />
           {process.env.NODE_ENV === "development" && (
             <section className={styles.localPreview} aria-label="بازبینی محلی گزارش کامل">
               <h2>بازبینی توسعه</h2>

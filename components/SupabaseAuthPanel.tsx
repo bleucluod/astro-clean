@@ -18,6 +18,7 @@ type AuthMode = "sign-in" | "sign-up";
 type SupabaseAuthPanelProps = Readonly<{
   compact?: boolean;
   initialMode?: AuthMode;
+  reconcileReports?: boolean;
 }>;
 
 function formatUserLabel(session: AuthSession | null) {
@@ -46,7 +47,7 @@ function buildIranPhoneNumber(value: string) {
   return localDigits ? `+98${localDigits}` : "";
 }
 
-export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in" }: SupabaseAuthPanelProps) {
+export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in", reconcileReports = true }: SupabaseAuthPanelProps) {
   const config = useMemo(() => getSupabaseBrowserLoginConfig(), []);
   const accountSaveConfig = useMemo(() => getAccountReportSaveClientConfig(), []);
   const accountReadConfig = useMemo(() => getAccountReportReadClientConfig(), []);
@@ -100,7 +101,7 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in" }: 
 
       setSession(mapSupabaseSessionToHalleusSession(data.session));
       setIsReady(true);
-      if (data.session?.access_token) {
+      if (reconcileReports && data.session?.access_token) {
         void reconcileServerCanonicalReports(data.session.access_token).catch(
           () => undefined,
         );
@@ -111,7 +112,7 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in" }: 
 
     const { data } = authClient.auth.onAuthStateChange((_event, nextSession) => {
       setSession(mapSupabaseSessionToHalleusSession(nextSession));
-      if (nextSession?.access_token) {
+      if (reconcileReports && nextSession?.access_token) {
         void reconcileServerCanonicalReports(nextSession.access_token).catch(
           () => undefined,
         );
@@ -122,7 +123,7 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in" }: 
       mounted = false;
       data.subscription.unsubscribe();
     };
-  }, []);
+  }, [reconcileReports]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
