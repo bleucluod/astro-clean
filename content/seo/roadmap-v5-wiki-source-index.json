@@ -1,0 +1,319 @@
+{
+  "sourceMain": "3819c41180f06150a08090072d83c465ca3ae339",
+  "roadmapBlob": "1756dfca6f29f5e594ff13ea70729ec06d89afdc",
+  "sourceRecords": {
+    "free-vedic-birth-chart": {
+      "id": "W027",
+      "path": "content/r3-batch02/wiki/W027.json",
+      "sha": "14a083976330b6034e502585fbb7818fa3cb861f",
+      "baselineVersion": 5
+    },
+    "what-is-vedic-astrology": {
+      "id": "W025",
+      "path": "content/r3-batch02/wiki/W025.json",
+      "sha": "29c8427b3daa979360602885e7d8c176ef314c37",
+      "baselineVersion": 11
+    },
+    "what-is-sidereal-astrology": {
+      "id": "W026",
+      "path": "content/r3-batch02/wiki/W026.json",
+      "sha": "78ef0b2023fff7887b5b305f4e12ea0bb9b127ab",
+      "baselineVersion": 8
+    },
+    "navamsa-birth-chart": {
+      "id": "W028",
+      "path": "content/r3-batch03/wiki/W028.json",
+      "sha": "409e0d9163914ae7c5a4b16b92fe4cff426381aa",
+      "baselineVersion": 1
+    },
+    "rahu-in-birth-chart": {
+      "id": "W053",
+      "path": "content/r3-batch03/wiki/W053.json",
+      "sha": "9cbf39a8573a8ddeda5e61556fa9b8b792333597",
+      "baselineVersion": 1
+    },
+    "what-is-tropical-astrology": {
+      "id": "W024",
+      "path": "content/r3-batch02/wiki/W024.json",
+      "sha": "f154e65aead75f550c7725507968011a9ad73fa1",
+      "baselineVersion": 10
+    },
+    "house-systems-in-astrology": {
+      "id": "W032",
+      "path": "content/r3-batch03/wiki/W032.json",
+      "sha": "4b9be981b9d266443c36b89f83b93d688f8acd94",
+      "baselineVersion": 3
+    },
+    "lunar-nodes-in-natal-chart": {
+      "id": "W067",
+      "path": "content/r3-batch04/wiki/W067.json",
+      "sha": "9e65e6085dc337a3e0c8d10299433056bae7ac25",
+      "baselineVersion": 7
+    },
+    "what-is-rising-sign": {
+      "id": "W093",
+      "path": "content/r3-batch04/wiki/W093.json",
+      "sha": "8f745623b13ee2c474df1dde47e155c9c61ef428",
+      "baselineVersion": 9
+    },
+    "what-is-moon-sign": {
+      "id": "W049",
+      "path": "content/r3-batch03/wiki/W049.json",
+      "sha": "0664bed82cef17f298dd66fd17d845abba6c85e2",
+      "baselineVersion": 11
+    },
+    "constellations-vs-zodiac-signs": {
+      "id": "W030",
+      "path": "content/r3-batch03/wiki/W030.json",
+      "sha": "b1ea8fe6bacff907cd7d7a38ad57dfe9a03c19cd",
+      "baselineVersion": 2
+    },
+    "online-free-astrology": {
+      "id": "W011",
+      "path": "content/r3-batch01/wiki/W011.json",
+      "sha": "42be046b00232667044e730cf7521814021aa007",
+      "baselineVersion": 3
+    },
+    "birth-moon-phase-in-natal-chart": {
+      "id": "W167",
+      "path": "content/r3-batch06/wiki/W167.json",
+      "sha": "d85aba7014d37f9eac689fd289c4baf75ead902d",
+      "baselineVersion": null
+    },
+    "real-new-moon-photos": {
+      "id": "W165",
+      "path": "content/r3-batch07/wiki/W165.json",
+      "sha": "e2313eae157a86713202d62b6f52b46883838d77",
+      "baselineVersion": 1
+    },
+    "full-moon-calendar-1405": {
+      "id": "W161",
+      "path": "content/r3-batch07/wiki/W161.json",
+      "sha": "4be916e258671e274b9d77c88d97aadcad689108",
+      "baselineVersion": 4
+    },
+    "new-moon-vs-full-moon-astrology": {
+      "id": "W165",
+      "path": "content/r3-batch05/wiki/W165.json",
+      "sha": "d1a638385fdf3315e4b58000600ec300a896a593",
+      "baselineVersion": null
+    },
+    "why-birth-city-matters": {
+      "id": "W022",
+      "path": "content/r3-batch02/wiki/W022.json",
+      "sha": "4015e6c3512279be7b1535543648dbe8b93c9aae",
+      "baselineVersion": 8
+    },
+    "real-full-moon-photos": {
+      "id": "W164",
+      "path": "content/r3-batch07/wiki/W164.json",
+      "sha": "dfa79f5b36136c3509562ee1c806602291583e3f",
+      "baselineVersion": 2
+    },
+    "farvardin-born-traits": {
+      "id": "W174",
+      "path": "content/r3-batch06/wiki/W174.json",
+      "sha": "5afdd621474799d13ef65a114d2e898741d3bd47",
+      "baselineVersion": null
+    },
+    "persian-birth-months-astrology-guide": {
+      "id": "W173",
+      "path": "content/r3-batch06/wiki/W173.json",
+      "sha": "147e3572513060947758b8a1b1197ade94fbb244",
+      "baselineVersion": null
+    },
+    "birth-chart-symbols": {
+      "id": "W036",
+      "path": "content/r3-batch03/wiki/W036.json",
+      "sha": "55bba84db76d254542869e6a1181bf9d08962ea5",
+      "baselineVersion": 1
+    },
+    "birth-month-flowers": {
+      "id": "W268",
+      "path": "content/r3-batch07/wiki/W268.json",
+      "sha": "425a219563c778f99293dfb6fc35255ebf0446fd",
+      "baselineVersion": 3
+    },
+    "mordad-woman-traits": {
+      "id": "W188",
+      "path": "content/r3-batch07/wiki/W188.json",
+      "sha": "7dc570824afb6d42ef46b6177cc35981be271278",
+      "baselineVersion": 6
+    },
+    "shahrivar-born-traits": {
+      "id": "W189",
+      "path": "content/r3-batch07/wiki/W189.json",
+      "sha": "2a28b17d3b1d009723a98ba8af103508c1c2aabb",
+      "baselineVersion": 6
+    },
+    "shahrivar-birth-flower": {
+      "id": "W269",
+      "path": "content/r3-batch07/wiki/W269.json",
+      "sha": "4f7128867edf43ec7c59408552fd3dd8bfce82d8",
+      "baselineVersion": 1
+    },
+    "shahrivar-woman-traits": {
+      "id": "W191",
+      "path": "content/r3-batch07/wiki/W191.json",
+      "sha": "9c6d2cd3dc56009b5a890fe546b0851cecb4b744",
+      "baselineVersion": 6
+    },
+    "mehr-born-traits": {
+      "id": "W192",
+      "path": "content/r3-batch07/wiki/W192.json",
+      "sha": "42fa47f9fa65e0f7d36a9dfce20fc53725e4c657",
+      "baselineVersion": 6
+    },
+    "mehr-woman-traits": {
+      "id": "W194",
+      "path": "content/r3-batch07/wiki/W194.json",
+      "sha": "9cb55407b499c138c643b30b5b29309df11cc6c4",
+      "baselineVersion": 8
+    },
+    "aban-born-traits": {
+      "id": "W195",
+      "path": "content/r3-batch07/wiki/W195.json",
+      "sha": "cc659276269f9ae37ec4c951b045dd123c9204e8",
+      "baselineVersion": 4
+    },
+    "aban-woman-traits": {
+      "id": "W197",
+      "path": "content/r3-batch07/wiki/W197.json",
+      "sha": "e365e264c8d323e500ee727084de2a3fdf5aeeee",
+      "baselineVersion": 6
+    },
+    "azar-born-traits": {
+      "id": "W198",
+      "path": "content/r3-batch07/wiki/W198.json",
+      "sha": "34406fbfc3960268b973a74188f3ea438f6b2811",
+      "baselineVersion": 2
+    },
+    "farvardin-woman-traits": {
+      "id": "W176",
+      "path": "content/r3-batch06/wiki/W176.json",
+      "sha": "9d0f15d99fabdc61d8ba8385618117438258f081",
+      "baselineVersion": 4
+    },
+    "ordibehesht-born-traits": {
+      "id": "W177",
+      "path": "content/r3-batch06/wiki/W177.json",
+      "sha": "d211178430ff5cb3eb5abe185fea05c234964af9",
+      "baselineVersion": 6
+    },
+    "ordibehesht-man-traits": {
+      "id": "W178",
+      "path": "content/r3-batch06/wiki/W178.json",
+      "sha": "0816890496de5cf3d78114da90c2c43cbed4f600",
+      "baselineVersion": 7
+    },
+    "khordad-born-traits": {
+      "id": "W180",
+      "path": "content/r3-batch06/wiki/W180.json",
+      "sha": "154495218391bd0bb87bdd7d67ffacd198a355b5",
+      "baselineVersion": 6
+    },
+    "khordad-woman-traits": {
+      "id": "W182",
+      "path": "content/r3-batch06/wiki/W182.json",
+      "sha": "f4ce50d7f250446c155da30d85b05625fabef4b5",
+      "baselineVersion": 3
+    },
+    "tir-born-traits": {
+      "id": "W183",
+      "path": "content/r3-batch06/wiki/W183.json",
+      "sha": "e36ef9bfcf79ced860beebbb8ec4e3cc00c3dcb7",
+      "baselineVersion": 4
+    },
+    "tir-man-traits": {
+      "id": "W184",
+      "path": "content/r3-batch06/wiki/W184.json",
+      "sha": "446e68fff5e43ae0780c27589e5ef0eec560bc9d",
+      "baselineVersion": 2
+    },
+    "mordad-born-traits": {
+      "id": "W186",
+      "path": "content/r3-batch06/wiki/W186.json",
+      "sha": "784cfc3c91b5d87c90a623eb6b2524602ec09a8f",
+      "baselineVersion": 5
+    },
+    "mordad-man-traits": {
+      "id": "W187",
+      "path": "content/r3-batch06/wiki/W187.json",
+      "sha": "90ca0ab97b897ee291d2e66a2de4018ae55cf9d4",
+      "baselineVersion": 4
+    },
+    "best-free-persian-birth-chart-site": {
+      "id": null,
+      "path": "content/r3-approved-20261022/wiki/best-free-persian-birth-chart-site.json",
+      "sha": "fde2d80bd97b3aba7caf50cab030b362012640ff",
+      "baselineVersion": null
+    },
+    "birth-chart-basics": {
+      "id": null,
+      "path": "content/r3-approved-20261022/wiki/birth-chart-basics.json",
+      "sha": "6afe11aada88d9674222f9d38a5df8c1cef6cb1d",
+      "baselineVersion": null
+    },
+    "mehr-man-traits": {
+      "id": "W193",
+      "path": "content/r3-batch06/wiki/W193.json",
+      "sha": "648a7fed3a190cb6c6a218c19d588b64ea9603a8",
+      "baselineVersion": 5
+    },
+    "azar-woman-traits": {
+      "id": "W200",
+      "path": "content/r3-batch06/wiki/W200.json",
+      "sha": "df0f26f6ed6bf694f2327bf527b43d69f6dbf313",
+      "baselineVersion": 2
+    },
+    "dey-born-traits": {
+      "id": "W201",
+      "path": "content/r3-batch06/wiki/W201.json",
+      "sha": "ff721a403f3061f02145fe5111d80fa1df1b1a80",
+      "baselineVersion": 5
+    },
+    "dey-man-traits": {
+      "id": "W202",
+      "path": "content/r3-batch06/wiki/W202.json",
+      "sha": "7631a914104fc7be689aeaad520da769c101c09c",
+      "baselineVersion": 3
+    },
+    "dey-woman-traits": {
+      "id": "W203",
+      "path": "content/r3-batch06/wiki/W203.json",
+      "sha": "54f8d753d488fbdc6f21088b4e8bbf99cee06b6b",
+      "baselineVersion": 4
+    },
+    "bahman-born-traits": {
+      "id": "W204",
+      "path": "content/r3-batch06/wiki/W204.json",
+      "sha": "74465c1b0a96a54a03689943389dc59d15d500a2",
+      "baselineVersion": 2
+    },
+    "bahman-woman-traits": {
+      "id": "W206",
+      "path": "content/r3-batch06/wiki/W206.json",
+      "sha": "43e8ff7d76cdd2fbfeb75ef3028333eda3b87648",
+      "baselineVersion": 3
+    },
+    "esfand-born-traits": {
+      "id": "W207",
+      "path": "content/r3-batch06/wiki/W207.json",
+      "sha": "19593c77bf125b307f5bad2ae5bfd5cee7b9575c",
+      "baselineVersion": 4
+    },
+    "esfand-man-traits": {
+      "id": "W208",
+      "path": "content/r3-batch06/wiki/W208.json",
+      "sha": "51696b2a466331a148fe6078e162bbf0be877ac9",
+      "baselineVersion": 4
+    },
+    "esfand-woman-traits": {
+      "id": "W209",
+      "path": "content/r3-batch06/wiki/W209.json",
+      "sha": "9e566cb7848226dd9a82da0569956e786a3a2b4e",
+      "baselineVersion": 4
+    }
+  },
+  "missing": []
+}

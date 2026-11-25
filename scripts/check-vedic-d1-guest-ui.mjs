@@ -14,6 +14,7 @@ const select=read('components/vedic/VedicChartSelect.tsx');
 const session=read('components/vedic/VedicD1GuestSession.tsx');
 const result=read('components/vedic/VedicD1GuestResult.tsx');
 const page=read('app/vedic/page.tsx');
+const seo=read('lib/config/seo.ts');
 const screen=read('components/vedic/VedicD1Screen.tsx');
 const legacyPage=read('app/chart/vedic/page.tsx');
 const legacyResult=read('app/chart/vedic/result/page.tsx');
@@ -134,7 +135,16 @@ assert.ok(screen.includes('<h1 className={chartStyles.heroTitle}>چارت تول
 assert.ok(!form.includes('journeyStyles.progressHeading') &&
   !form.includes('آسمان تو در حال شکل‌گرفتنه'),
   'Mobile stepper must not carry a second verbal introduction');
-assert.ok(page.includes('robots: { index: false, follow: false }'));
+assert.ok(page.includes('buildPublicPageMetadata({') && page.includes('canonical: "/vedic"') &&
+  seo.includes('robots: { index: true, follow: true }') &&
+  seo.includes('{ path: "/vedic", priority: 0.9, changeFrequency: "weekly" }'),
+  'Only the public Vedic entry is indexable and self-canonical');
+const formStart = screen.indexOf('<VedicD1GuestForm ');
+const editorialStart = screen.indexOf('<section className={chartStyles.heroEditorial}');
+const formSectionEnd = screen.indexOf('</section>', formStart);
+assert.ok(formStart >= 0 && formSectionEnd > formStart && editorialStart > formSectionEnd &&
+  screen.indexOf('<h2>', editorialStart) > editorialStart && !screen.slice(0, formSectionEnd).includes('<h2>'),
+  'SEO editorial starts after the complete input and account controls');
 assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen storageEnabled={isVedicD1StorageReady()} checkoutEnabled={isVedicD1CheckoutReady()} /></VedicD1GuestSessionProvider>'));
 assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;'));
 assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} storageEnabled={storageEnabled} />'));

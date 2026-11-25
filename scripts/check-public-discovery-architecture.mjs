@@ -489,9 +489,13 @@ function checkNavigation() {
   const primaryHrefs = primaryLinks.map((link) => link.href);
   const expectedFooterLinks = [
     { href: "/chart", label: "ساخت چارت تولد" },
-    { href: "/compare", label: "تحلیل رابطه" },
+    { href: "/vedic", label: "چارت تولد ودیک" },
+    { href: "/compare", label: "چارت ازدواج" },
     { href: "/sky", label: "آسمان امروز" },
     { href: "/wiki", label: "ویکی آسترولوژی" },
+    { href: "/shop", label: "فروشگاه هالیوس" },
+    { href: "/shop/track", label: "پیگیری سفارش" },
+    { href: "/shop/shipping-returns", label: "ارسال و مرجوعی سفارش" },
     { href: "/privacy", label: "حریم خصوصی" },
   ];
 
@@ -507,7 +511,20 @@ function checkNavigation() {
   }
 
   if (JSON.stringify(footerLinks) !== JSON.stringify(expectedFooterLinks)) {
-    failures.push("Footer quick access must contain exactly the five approved public links in product order.");
+    failures.push("Footer quick access must contain exactly the nine Roadmap v5 links in approved order.");
+  }
+  const shell = read("components/AppShell.tsx");
+  const css = read("components/app-shell.module.css");
+  const nav = read("components/NavLinks.tsx");
+  const header = read("components/SiteHeader.tsx");
+  requireText("Footer columns", shell, "footerLinks.slice(0, 5), footerLinks.slice(5)");
+  requireText("Footer columns", css, "grid-template-columns: repeat(2, minmax(0, 1fr))");
+  requireText("Mobile navigation", header, "<NavLinks hamburger />");
+  requireText("Desktop navigation", header, "<NavLinks />");
+  requireText("Mobile Vedic navigation", nav, 'item.href === "/compare"');
+  requireText("Mobile Vedic navigation", nav, '{ href: "/vedic", label: "چارت تولد ودیک" }');
+  if (primaryHrefs.includes("/vedic")) {
+    failures.push("Vedic navigation belongs in the hamburger, not the shared desktop primary list.");
   }
 }
 

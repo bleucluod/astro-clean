@@ -9559,3 +9559,14 @@ body:has(.report-product-page) {
     print-color-adjust: exact !important;
   }
 }
+
+/* Reviewed contextual editorial links; independent of product cards and chrome. */
+a.halleus-contextual-product-link {
+  color: #b5e0ff;
+  -webkit-text-fill-color: #b5e0ff;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  overflow-wrap: anywhere;
+}
+a.halleus-contextual-product-link:hover,
+a.halleus-contextual-product-link:focus-visible { color: #e1f2ff; -webkit-text-fill-color: #e1f2ff; }

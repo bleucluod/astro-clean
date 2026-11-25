@@ -18,9 +18,14 @@ function resolveNavItems(pathname: string) {
 }
 
 
-export function NavLinks() {
+export function NavLinks({ hamburger = false }: { hamburger?: boolean }) {
   const pathname = usePathname();
-  const activeNavItems = resolveNavItems(pathname);
+  const baseItems = resolveNavItems(pathname);
+  const activeNavItems = hamburger
+    ? baseItems.flatMap((item) => item.href === "/compare"
+      ? [{ href: "/vedic", label: "چارت تولد ودیک" }, item]
+      : [item])
+    : baseItems;
 
   return (
     <div className="nav-link-track">

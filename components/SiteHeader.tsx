@@ -475,7 +475,7 @@ export function SiteHeader() {
               setIsMobileMenuOpen(false);
             }
           }}>
-          <NavLinks />
+          <NavLinks hamburger />
           {!isShopRoute && <IntentPrefetchLink href="/profile" className={styles.mobileMenuAccount}>
             حساب من
           </IntentPrefetchLink>}

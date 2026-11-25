@@ -1,5 +1,6 @@
 import type { ShopCopySection, ShopProduct } from './product-detail-data';
 import styles from './birth-sky-live-product.module.css';
+import { ContextualProductText } from './ContextualProductText';
 
 function CopySection({ section, index }: { section: ShopCopySection; index: number }) {
   return <section className={styles.editorialSection} aria-label={section.title}>
@@ -8,14 +9,14 @@ function CopySection({ section, index }: { section: ShopCopySection; index: numb
       <h2>{section.title}</h2>
     </div>
     <div className={styles.editorialBody}>
-      {section.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+      {section.paragraphs.map((paragraph, i) => <p key={i}><ContextualProductText text={paragraph} /></p>)}
       {section.subheading ? <>
         <h3>{section.subheading.title}</h3>
-        {section.subheading.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+        {section.subheading.paragraphs.map((paragraph, i) => <p key={i}><ContextualProductText text={paragraph} /></p>)}
       </> : null}
       {section.subheadings?.map((heading) => <div key={heading.title}>
         <h3>{heading.title}</h3>
-        {heading.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
+        {heading.paragraphs.map((paragraph, i) => <p key={i}><ContextualProductText text={paragraph} /></p>)}
       </div>)}
     </div>
   </section>;

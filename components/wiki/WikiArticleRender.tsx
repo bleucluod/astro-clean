@@ -14,7 +14,13 @@ export type WikiInternalLinkTargets = Record<
   { slug: string; label: string }
 >;
 
-const CORE_WIKI_ROUTES = new Set(["/", "/chart", "/compare", "/sky", "/wiki"]);
+const CORE_WIKI_ROUTES = new Set([
+  "/", "/chart", "/compare", "/sky", "/wiki", "/vedic",
+  "/shop/moon-phase-print", "/shop/birth-sky-map",
+  "/shop/farvardin-sign", "/shop/ordibehesht-sign", "/shop/khordad-sign", "/shop/tir-sign",
+  "/shop/mordad-sign", "/shop/shahrivar-sign", "/shop/mehr-sign", "/shop/aban-sign",
+  "/shop/azar-sign", "/shop/dey-sign", "/shop/bahman-sign", "/shop/esfand-sign",
+]);
 
 export function WikiInlineText({
   text,

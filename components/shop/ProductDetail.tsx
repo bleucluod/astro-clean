@@ -15,6 +15,7 @@ import { addShopCartItem, readShopCart, type ShopPersonalization } from './shop-
 import { validateShopMoment } from '@/lib/shop/shop-personalization';
 import { filterHalleusCities, getHalleusCityDisplayName } from '@/lib/locations/cities';
 import styles from './product-detail.module.css';
+import { ContextualProductText } from './ContextualProductText';
 import { useShopGallerySwipe } from './use-shop-gallery-swipe';
 import { useShopLivePrices, liveShopPrice } from './use-shop-live-prices';
 
@@ -38,7 +39,7 @@ function ApprovedProductCopy({ sections }: { sections: ShopCopySection[] }) {
         {sections.map((section) => (
           <div key={section.title} className={styles.editorialSubsection}>
             <h2>{section.title}</h2>
-            {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            {section.paragraphs.map((paragraph) => <p key={paragraph}><ContextualProductText text={paragraph} /></p>)}
             {section.subheading ? (
               <div className={styles.editorialSubsectionInner}>
                 <h3>{section.subheading.title}</h3>

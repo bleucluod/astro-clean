@@ -1,11 +1,12 @@
 import { BIRTH_SKY_CLOSING, BIRTH_SKY_FAQ, BIRTH_SKY_SECTIONS } from './birth-sky-content';
 import styles from './birth-sky-live-product.module.css';
+import { ContextualProductText } from './ContextualProductText';
 
 function RichCopy({ text }: { text: string }) {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return <>{parts.map((part, i) => part.startsWith('**') && part.endsWith('**')
     ? <strong key={i}>{part.slice(2, -2)}</strong>
-    : <span key={i}>{part}</span>)}</>;
+    : <span key={i}><ContextualProductText text={part} /></span>)}</>;
 }
 
 export function BirthSkyEditorial() {

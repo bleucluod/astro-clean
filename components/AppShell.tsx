@@ -19,10 +19,11 @@ type AppShellProps = {
 
 const footerLinks = [
   { href: "/chart", label: "ساخت چارت تولد" },
+  { href: "/vedic", label: "چارت تولد ودیک" },
   { href: "/compare", label: "چارت ازدواج" },
   { href: "/sky", label: "آسمان امروز" },
   { href: "/wiki", label: "ویکی آسترولوژی" },
-  { href: "/shop", label: "فروشگاه" },
+  { href: "/shop", label: "فروشگاه هالیوس" },
   { href: "/shop/track", label: "پیگیری سفارش" },
   { href: "/shop/shipping-returns", label: "ارسال و مرجوعی سفارش" },
   { href: "/privacy", label: "حریم خصوصی" },
@@ -187,15 +188,19 @@ export function AppShell({ children }: AppShellProps) {
 
           <div className={styles.footerNavBlock} aria-label="مسیرهای اصلی">
             <span className={styles.footerNavTitle}>دسترسی سریع</span>
-            <div className={`footer-links ${styles.footerLinks}`}>
-              {footerLinks.map((link) => (
-                <IntentPrefetchLink
-                  className={`footer-link ${styles.footerLink}`}
-                  href={link.href}
-                  key={link.href}
-                >
-                  {link.label}
-                </IntentPrefetchLink>
+            <div className={`footer-links ${styles.footerLinks}`} dir="rtl">
+              {[footerLinks.slice(0, 5), footerLinks.slice(5)].map((column) => (
+                <div className={styles.footerLinkColumn} key={column[0].href}>
+                  {column.map((link) => (
+                    <IntentPrefetchLink
+                      className={`footer-link ${styles.footerLink}`}
+                      href={link.href}
+                      key={link.href}
+                    >
+                      {link.label}
+                    </IntentPrefetchLink>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
