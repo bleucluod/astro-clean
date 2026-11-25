@@ -10,6 +10,7 @@ import type {
   AdminReportInsights,
   AdminReportSummary,
 } from "@/lib/admin/admin-types";
+import { AdminVedicReports } from "./AdminVedicReports";
 import { AccessSalesPanel } from "@/components/admin/AccessSalesPanel";
 import styles from "./admin-console.module.css";
 
@@ -32,7 +33,7 @@ const EMPTY_FILTERS: AdminReportFilters = {
   birthMonth: null,
 };
 
-type ReportsWorkspaceView = "overview" | "operations" | "access";
+type ReportsWorkspaceView = "overview" | "operations" | "access" | "vedic";
 
 type AdminComparisonDetail = {
   version: "stored-comparison-v1";
@@ -643,6 +644,7 @@ export function AdminReportsWorkspace({
             >
               عملیات
             </button>
+            <button type="button" data-active={view === "vedic"} onClick={() => switchView("vedic")}>گزارش‌های ودیک</button>
             {canManageAccess ? (
               <button
                 type="button"
@@ -654,7 +656,9 @@ export function AdminReportsWorkspace({
             ) : null}
           </nav>
 
-          {view === "access" && canManageAccess ? (
+          {view === "vedic" ? (
+            <AdminVedicReports key={accessToken} accessToken={accessToken} />
+          ) : view === "access" && canManageAccess ? (
             <AccessSalesPanel accessToken={token} />
           ) : view === "overview" ? (
             <div className={styles.reportDailyOverview}>

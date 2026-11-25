@@ -74,6 +74,7 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in", re
 
   useEffect(() => {
     let mounted = true;
+    let eventSeen = false;
     const client = getSupabaseBrowserAuthClient();
 
     if (!client) {
@@ -91,15 +92,9 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in", re
     async function loadSession() {
       const { data, error } = await authClient.auth.getSession();
 
-      if (!mounted) {
-        return;
-      }
-
-      if (error) {
-        setMessage(error.message);
-      }
-
-      setSession(mapSupabaseSessionToHalleusSession(data.session));
+      if (!mounted || eventSeen) return;
+      if (error) setMessage("بررسی نشست حساب ممکن نشد. دوباره تلاش کن.");
+      setSession(error ? null : mapSupabaseSessionToHalleusSession(data.session));
       setIsReady(true);
       if (reconcileReports && data.session?.access_token) {
         void reconcileServerCanonicalReports(data.session.access_token).catch(
@@ -108,15 +103,22 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in", re
       }
     }
 
-    void loadSession();
-
     const { data } = authClient.auth.onAuthStateChange((_event, nextSession) => {
+      if (!mounted) return;
+      eventSeen = true;
       setSession(mapSupabaseSessionToHalleusSession(nextSession));
+      setIsReady(true);
       if (reconcileReports && nextSession?.access_token) {
         void reconcileServerCanonicalReports(nextSession.access_token).catch(
           () => undefined,
         );
       }
+    });
+
+    void loadSession().catch(() => {
+      if (!mounted || eventSeen) return;
+      setMessage("بررسی نشست حساب ممکن نشد. دوباره تلاش کن.");
+      setIsReady(true);
     });
 
     return () => {
@@ -193,6 +195,8 @@ export function SupabaseAuthPanel({ compact = false, initialMode = "sign-in", re
             : "ثبت‌نام ثبت شد. اگر لازم بود، چند لحظه بعد دوباره ورود را امتحان کن."
           : "وارد شدی. حالا می‌توانی گزارش تازه بسازی و راحت‌تر به آن برگردی.",
       );
+    } catch {
+      setMessage("ارتباط با سرویس ورود برقرار نشد. دوباره تلاش کن.");
     } finally {
       setIsBusy(false);
     }

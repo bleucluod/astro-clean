@@ -6,14 +6,13 @@ import { useEffect, useState } from "react";
 import { AccountProfileEditor } from "@/components/AccountProfileEditor";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { TelegramJoinRewardCard } from "@/components/TelegramJoinRewardCard";
-import { getAccountRepository } from "@/lib/account/account-repository";
+import { getSupabaseBrowserAuthClient } from "@/lib/auth/supabase-browser-client";
+import { mapSupabaseSessionToHalleusSession } from "@/lib/auth/supabase-session-mapper";
 import { listAccountReportSummaries } from "@/lib/storage/account-report-read-client";
 import { listReportSummaries } from "@/lib/storage/report-query-service";
 import type { AuthSession } from "@/types/account";
 
 import styles from "./profile-page.module.css";
-
-const accountRepository = getAccountRepository();
 
 function formatProfileName(session: AuthSession | null) {
   return session?.user.displayName?.trim() || "حساب هالیوس";
@@ -25,33 +24,51 @@ export default function ProfilePage() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    let isActive = true;
+    let active = true;
+    let revision = 0;
+    let eventSeen = false;
+    let timer: number | undefined;
+    const client = getSupabaseBrowserAuthClient();
 
-    async function loadProfile() {
-      const nextSession = await accountRepository.getCurrentSession();
-      const localReports = await listReportSummaries();
-      let nextTotal = localReports.length;
-
-      if (nextSession) {
-        const accountReports = await listAccountReportSummaries(1);
-        if (accountReports.status === "account-read-ready") {
-          nextTotal = accountReports.total;
-        }
-      }
-
-      if (!isActive) {
-        return;
-      }
-
-      setSession(nextSession);
-      setReportTotal(nextTotal);
+    function update(nextSession: AuthSession | null) {
+      if (!active) return;
+      const run = ++revision;
+      if (timer !== undefined) window.clearTimeout(timer);
+      setSession(nextSession?.isAuthenticated ? nextSession : null);
+      setReportTotal(0);
       setIsReady(true);
+      // Run asynchronous report requests outside the Supabase auth callback.
+      timer = window.setTimeout(() => {
+        void (async () => {
+          const localReports = await listReportSummaries();
+          let total = localReports.length;
+          if (nextSession?.isAuthenticated) {
+            const accountReports = await listAccountReportSummaries(1);
+            if (accountReports.status === "account-read-ready") total = accountReports.total;
+          }
+          if (active && revision === run) setReportTotal(total);
+        })().catch(() => {});
+      }, 0);
     }
 
-    void loadProfile();
+    if (!client) {
+      queueMicrotask(() => update(null));
+      return () => { active = false; if (timer !== undefined) window.clearTimeout(timer); };
+    }
+
+    const { data } = client.auth.onAuthStateChange((_event, next) => {
+      eventSeen = true;
+      update(mapSupabaseSessionToHalleusSession(next));
+    });
+    void client.auth.getSession().then(({ data, error }) => {
+      if (!eventSeen) update(error ? null : mapSupabaseSessionToHalleusSession(data.session));
+    }).catch(() => { if (!eventSeen) update(null); });
 
     return () => {
-      isActive = false;
+      active = false;
+      revision++;
+      if (timer !== undefined) window.clearTimeout(timer);
+      data.subscription.unsubscribe();
     };
   }, []);
 
@@ -67,7 +84,7 @@ export default function ProfilePage() {
     );
   }
 
-  const signedIn = Boolean(session);
+  const signedIn = session?.isAuthenticated === true;
 
   return (
     <div className={styles.page} data-halleus-profile="account-home-v2">

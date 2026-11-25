@@ -109,3 +109,12 @@
 .purchaseReview:not([hidden]) { display: grid; gap: 10px; border-top: 1px solid var(--editorial-line); padding-top: 16px; }
 .purchaseReview ol { margin: 0; padding-inline-start: 22px; }
 .purchaseOffer :is(button, h2):focus-visible, .lockAction:focus-visible { outline: 2px solid #aeb8c5; outline-offset: 3px; }
+
+/* Reuse natal report auth surface, but keep the Vedic embed inline. */
+.entryAccount { margin: 0 22px 20px; }
+.accountSurface { width: 100% !important; max-height: none !important; overflow: visible !important; padding: 12px !important; margin: 8px 0; border-radius: 14px !important; box-shadow: none !important; color: #d8dee7; background: #0b0d11 !important; }
+.accountSurface :global(.success-message) { background: #141b24 !important; border: 1px solid #344657 !important; color: #dceeff !important; padding: 10px 12px; }
+.accountSurface :global(.auth-mode-tabs button.is-active), .accountSurface :global(button[type="submit"]) { background: #dceeff !important; color: #152535 !important; border-color: #dceeff !important; box-shadow: none !important; }
+.accountSurface :global(button[type="submit"]:disabled) { opacity: .65; }
+.accountSurface :global(input:-webkit-autofill) { -webkit-text-fill-color: #f4f6f8 !important; box-shadow: 0 0 0 1000px #0f1217 inset !important; }
+@media (max-width: 760px) { .entryAccount { margin-inline: 14px; } }

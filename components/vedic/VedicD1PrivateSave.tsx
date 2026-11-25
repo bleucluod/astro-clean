@@ -4,6 +4,7 @@ import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { getSupabaseBrowserAuthClient } from "@/lib/auth/supabase-browser-client";
 import type { VedicD1BirthRequest } from "@/lib/vedic/vedic-d1-contract";
 import styles from "./vedic-d1-guest.module.css";
+import reportStyles from "@/components/report/human-first-report.module.css";
 import {VedicD1PayButton} from "./VedicD1PayButton";
 
 export function VedicD1PrivateSave({name,birth,checkoutEnabled}:{name:string;birth:VedicD1BirthRequest;checkoutEnabled:boolean}) {
@@ -53,7 +54,9 @@ export function VedicD1PrivateSave({name,birth,checkoutEnabled}:{name:string;bir
     }catch{if(attempt.current===run&&ownerRef.current===target)setStatus("error");}
   }
   return <div>
-    <SupabaseAuthPanel compact reconcileReports={false} />
+    <div className={reportStyles.reportAccountAuthDialog + " " + styles.accountSurface}>
+      <SupabaseAuthPanel compact reconcileReports={false} />
+    </div>
     {owner&&<div>
       <label><input type="checkbox" checked={consent} disabled={status==="saving"||status==="saved"}
         onChange={event=>setConsent(event.target.checked)} /> موافقم چارت و متن گزارش همین تولد به صورت خصوصی در حسابم ذخیره شود.</label>

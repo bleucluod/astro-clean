@@ -46,7 +46,9 @@ for (const marker of [
 }
 
 for (const marker of [
-  "getAccountRepository",
+  "getSupabaseBrowserAuthClient",
+  "session?.isAuthenticated === true",
+  "client.auth.onAuthStateChange",
   "listAccountReportSummaries",
   "listReportSummaries",
   "SupabaseAuthPanel",
