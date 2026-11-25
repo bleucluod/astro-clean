@@ -9,17 +9,18 @@ import {VedicD1PayButton} from "./VedicD1PayButton";
 
 export function VedicD1PrivateSave({name,birth,savedReportId,checkoutEnabled}:{name:string;birth:VedicD1BirthRequest;savedReportId?:string;checkoutEnabled:boolean}) {
   const [owner,setOwner]=useState<string|null>(null);
+  const [sessionState,setSessionState]=useState<"checking"|"guest"|"account"|"unavailable">("checking");
+  const [sessionRetry,setSessionRetry]=useState(0);
   const [status,setStatus]=useState<"idle"|"saving"|"saved"|"error">("idle");
   const [savedReport,setSavedReport]=useState<{id:string;purchaseStatus:"locked"|"pending"|"paid";amountToman:number|null}|null>(null);
   const ownerRef=useRef<string|null>(null);
   const attempt=useRef(0);
   useEffect(()=>{
     const client=getSupabaseBrowserAuthClient();
-    if(!client) return;
     let active=true;
     let eventSeen=false;
     function update(next:string|null){
-      if(!active) return;
+      if(!active)return;
       if(ownerRef.current!==next){
         ownerRef.current=next;
         attempt.current++;
@@ -27,13 +28,34 @@ export function VedicD1PrivateSave({name,birth,savedReportId,checkoutEnabled}:{n
         setSavedReport(null);
         setStatus("idle");
       }
+      setSessionState(next?"account":"guest");
     }
-    const {data}=client.auth.onAuthStateChange((_event,session)=>{
-      eventSeen=true;update(session?.user.id??null);
+    function unavailable(){
+      if(!active)return;
+      attempt.current++;
+      ownerRef.current=null;
+      setOwner(null);
+      setSavedReport(null);
+      setStatus("idle");
+      setSessionState("unavailable");
+    }
+    if(!client){
+      queueMicrotask(unavailable);
+      return()=>{active=false;attempt.current++;};
+    }
+    const {data}=client.auth.onAuthStateChange((event,session)=>{
+      // A null INITIAL_SESSION is not proof of a successful session lookup.
+      if(event==="INITIAL_SESSION"&&!session)return;
+      eventSeen=true;
+      update(session?.user.id??null);
     });
-    void client.auth.getSession().then(({data})=>{if(!eventSeen)update(data.session?.user.id??null);}).catch(()=>{});
-    return ()=>{active=false;attempt.current++;data.subscription.unsubscribe();};
-  },[]);
+    void client.auth.getSession().then(({data,error})=>{
+      if(eventSeen||!active)return;
+      if(error)unavailable();
+      else update(data.session?.user.id??null);
+    }).catch(()=>{if(!eventSeen)unavailable();});
+    return()=>{active=false;attempt.current++;data.subscription.unsubscribe();};
+  },[sessionRetry]);
   const save=useCallback(async()=>{
     if(!owner||status==="saving"||status==="saved") return;
     const target=owner,run=++attempt.current;
@@ -42,7 +64,7 @@ export function VedicD1PrivateSave({name,birth,savedReportId,checkoutEnabled}:{n
       const client=getSupabaseBrowserAuthClient();
       const session=await client?.auth.getSession();
       const token=session?.data.session?.access_token;
-      if(!token||session?.data.session?.user.id!==target)throw new Error("AUTH");
+      if(session?.error||!token||session?.data.session?.user.id!==target)throw new Error("AUTH");
       const headers={"Content-Type":"application/json",Authorization:`Bearer ${token}`};
       let response:Response|null=null;
       if(savedReportId){
@@ -61,16 +83,19 @@ export function VedicD1PrivateSave({name,birth,savedReportId,checkoutEnabled}:{n
     }catch{if(attempt.current===run&&ownerRef.current===target)setStatus("error");}
   },[owner,status,birth,name,savedReportId]);
   useEffect(()=>{
-    if(owner&&status==="idle"){
+    if(sessionState==="account"&&owner&&status==="idle"){
       const timer=window.setTimeout(()=>void save(),0);
       return()=>window.clearTimeout(timer);
     }
-  },[owner,status,save]);
+  },[sessionState,owner,status,save]);
   return <div>
-    <div className={reportStyles.reportAccountAuthDialog + " " + styles.accountSurface}>
+    {sessionState==="checking"&&<p role="status">در حال بررسی حساب کاربری…</p>}
+    {sessionState==="unavailable"&&<div role="status"><p>بررسی نشست حساب ممکن نشد.</p><button className={styles.resultBackLink} type="button" onClick={()=>{setSessionState("checking");setSessionRetry(n=>n+1);}}>تلاش مجدد</button></div>}
+    {sessionState==="guest"&&<div className={reportStyles.reportAccountAuthDialog + " " + styles.accountSurface}>
+      <p className={styles.accountHint}>برای خرید، وارد حساب کاربری هالیوس شو یا یک حساب بساز.</p>
       <SupabaseAuthPanel compact reconcileReports={false} />
-    </div>
-    {owner&&<div>
+    </div>}
+    {sessionState==="account"&&owner&&<div>
       {status==="saving"&&<p role="status">در حال اتصال گزارش به حساب…</p>}
       {status==="saved"&&savedReport&&<><p role="status">گزارش به حساب تو متصل شد.</p>{savedReport.purchaseStatus!=="paid"&&<VedicD1PayButton reportId={savedReport.id} owner={owner} enabled={checkoutEnabled} pending={savedReport.purchaseStatus==="pending"} amount={savedReport.amountToman} />}<p><a href="/reports">بازگشت به گزارش‌های من</a></p></>}
       {status==="error"&&<p role="status">اتصال گزارش به حساب ممکن نشد. <button type="button" onClick={()=>void save()}>تلاش مجدد</button></p>}

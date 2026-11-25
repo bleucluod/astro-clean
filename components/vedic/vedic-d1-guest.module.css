@@ -104,8 +104,10 @@
 .purchaseOffer small { font-size: .78rem; }
 .purchaseBenefits { display: flex; flex-wrap: wrap; gap: 8px; }
 .purchaseBenefits span { padding: 7px 10px; border-radius: 9px; border: 1px solid var(--editorial-line); font-size: .8rem; color: var(--editorial-body); }
-.vedicReader .purchasePrimary { min-height: 48px; width: 100%; padding: 10px 14px; border: 1px solid transparent; border-radius: 12px; background: #e8ecf0; color: #11141a !important; font: inherit; font-weight: 800; cursor: pointer; }
-.vedicReader .purchasePrimary:disabled { opacity: .52; cursor: not-allowed; }
+.purchaseOffer button.purchasePrimary, .vedicReader .purchaseOffer button.purchasePrimary { min-height: 48px; width: 100%; padding: 10px 14px; border: 1px solid #47647f !important; border-radius: 12px; background: #294964 !important; color: #f8fafc !important; -webkit-text-fill-color: #f8fafc !important; font: inherit; font-weight: 800; cursor: pointer; }
+.purchaseOffer button.purchasePrimary:hover:not(:disabled), .purchaseOffer button.purchasePrimary:focus-visible, .vedicReader .purchaseOffer button.purchasePrimary:hover:not(:disabled), .vedicReader .purchaseOffer button.purchasePrimary:focus-visible { background: #365b79 !important; color: #f8fafc !important; -webkit-text-fill-color: #f8fafc !important; }
+.purchaseOffer button.purchasePrimary:disabled { opacity: .65; cursor: not-allowed; }
+.accountSurface .accountHint { color: #cbd5e1 !important; font-size: .82rem; line-height: 1.9; }
 .purchaseReview:not([hidden]) { display: grid; gap: 10px; border-top: 1px solid var(--editorial-line); padding-top: 16px; }
 .purchaseReview ol { margin: 0; padding-inline-start: 22px; }
 .purchaseOffer :is(button, h2):focus-visible, .lockAction:focus-visible { outline: 2px solid #aeb8c5; outline-offset: 3px; }
@@ -114,7 +116,7 @@
 .entryAccount { margin: 0 22px 20px; }
 .accountSurface { width: 100% !important; max-height: none !important; overflow: visible !important; padding: 12px !important; margin: 8px 0; border-radius: 14px !important; box-shadow: none !important; color: #d8dee7; background: #0b0d11 !important; }
 .accountSurface :global(.success-message) { background: #141b24 !important; border: 1px solid #344657 !important; color: #dceeff !important; padding: 10px 12px; }
-.accountSurface :global(.auth-mode-tabs button.is-active), .accountSurface :global(button[type="submit"]) { background: #dceeff !important; color: #152535 !important; border-color: #dceeff !important; box-shadow: none !important; }
+.accountSurface :global(.auth-mode-tabs button.is-active), .accountSurface :global(button[type="submit"]) { background: #294964 !important; color: #f8fafc !important; -webkit-text-fill-color: #f8fafc !important; border-color: #47647f !important; box-shadow: none !important; }
 .accountSurface :global(button[type="submit"]:disabled) { opacity: .65; }
 .accountSurface :global(input:-webkit-autofill) { -webkit-text-fill-color: #f4f6f8 !important; box-shadow: 0 0 0 1000px #0f1217 inset !important; }
 @media (max-width: 760px) { .entryAccount { margin-inline: 14px; } }

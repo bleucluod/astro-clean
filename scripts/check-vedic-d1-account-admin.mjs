@@ -23,3 +23,11 @@ for(const forbidden of ['select *','provider_transaction_id','proof_hash','r.pri
 assert.ok(save.includes('action:"claim_guest"')&&save.includes('savedReportId')&&!save.includes('setConsent'));
 assert.ok(save.includes('consent:true'));
 console.log('VEDIC_ACCOUNT_ADMIN_SOURCE_PASS (static syntax and privacy boundary; browser/auth integration not run)');
+
+const offer=read('components/vedic/VedicD1PurchaseOffer.tsx'),css=read('components/vedic/vedic-d1-guest.module.css'),direct=read('components/admin/AdminDirectGate.tsx');
+assert.ok(save.includes('sessionState==="guest"&&<div')&&save.includes('sessionState==="account"&&owner&&<div')&&save.includes('sessionState==="checking"')&&save.includes('sessionState==="unavailable"'));
+assert.ok(save.includes('if(error)unavailable()')&&save.includes('if(event==="INITIAL_SESSION"&&!session)return')&&save.includes('setSessionRetry(n=>n+1)'));
+assert.ok(!save.includes('halleus.admini.direct-session')&&!save.includes('/api/admin/'));
+assert.ok(direct.includes('halleus.admini.direct-session.v1'));
+assert.ok(offer.includes('VEDIC_D1_PRICE_TOMAN.toLocaleString("fa-IR")')&&css.includes('.purchaseOffer button.purchasePrimary')&&css.includes('-webkit-text-fill-color: #f8fafc !important'));
+console.log('VEDIC_CHECKOUT_SESSION_PRESENTATION_SOURCE_PASS');

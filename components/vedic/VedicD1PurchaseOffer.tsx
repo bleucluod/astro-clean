@@ -27,14 +27,14 @@ export function VedicD1PurchaseOffer({ name, birth, savedReportId, storageEnable
           <button type="button" className={styles.purchasePrimary}
             aria-expanded={reviewOpen} aria-controls="vedic-purchase-review"
             onClick={() => setReviewOpen(value => !value)}>
-            {reviewOpen ? "بستن پیش‌نمایش خرید" : "دریافت گزارش کامل من"}
+            {reviewOpen ? "بستن جزئیات خرید" : `خرید گزارش کامل — ${VEDIC_D1_PRICE_TOMAN.toLocaleString("fa-IR")} تومان`}
           </button>
           {!checkoutEnabled && <small>هنوز امکان خرید واقعی وجود ندارد.</small>}
           <div id="vedic-purchase-review" hidden={!reviewOpen} className={styles.purchaseReview}>
             <h3>دریافت گزارش کامل</h3>
             <p>گزارش همین چارت، شامل هر چهار فصل.</p>
             <ol>
-              <li>ورود یا ساخت حساب برای نگهداری خصوصی گزارش</li>
+              <li>اتصال گزارش به حساب کاربری (اگر وارد نشده‌ای، ابتدا وارد شو)</li>
               <li>مشاهدهٔ مبلغ و تأیید خرید</li>
               <li>پرداخت و دسترسی به گزارش کامل از حساب</li>
             </ol>
