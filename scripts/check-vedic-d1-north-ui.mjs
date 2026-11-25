@@ -70,3 +70,12 @@ assert.ok(css.includes('.summaryItem:last-child { grid-column: 1 / -1; }'), 'Mob
 assert.ok(css.includes('.table { width: 100%; min-width: 520px;'), 'Table must remain horizontally scrollable');
 console.log('PASS North Indian UI static guard: TSX syntax, complete table, unmirrored 12 houses, mobile full-chart fitting, table scroll and verified free-reading props');
 console.log('NOT RUN: actual React DOM render, screenshot, screen-reader or Next.js production build');
+
+const library=read('components/vedic/VedicD1AccountLibrary.tsx');
+assert.equal((component.match(/textAnchor="middle" direction="rtl" unicodeBidi="isolate"/g)||[]).length,4,'All four Persian SVG label types must have their own RTL text run');
+assert.ok(component.includes('xmlLang="fa"')&&css.includes('direction: ltr')&&css.includes('direction: rtl;')&&css.includes('unicode-bidi: isolate;')&&css.includes('letter-spacing: normal;')&&css.includes('text-anchor: middle;'));
+assert.ok(component.includes('{fa(additional)} دیگر')&&!component.includes('+{fa(additional)} دیگر'),'Avoid ambiguous mixed-direction plus prefix');
+assert.ok(library.includes('?<Fragment key={selected.id}>')&&library.includes('{reportContent&&<div>{reportContent}</div>}'),'Direct paid reader must preserve the free reader sibling layout; library keeps its wrapper');
+assert.ok(library.includes('<VedicD1NorthChart view={selected.reading.view}/>')&&library.includes('selected.purchaseStatus==="paid"&&selected.manuscript?<VedicD1FullReport'));
+assert.equal(ts.createSourceFile('VedicD1AccountLibrary.tsx',library,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX).parseDiagnostics.length,0,'Account reader TSX parse error');
+console.log('VEDIC_NORTH_RTL_PAID_READER_SOURCE_PASS');

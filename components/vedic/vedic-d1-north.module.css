@@ -27,7 +27,20 @@
 .lines { fill: none; stroke: #717b87; stroke-width: 1.6; stroke-linejoin: round; }
 .planetSpot { fill: rgba(244,242,237,.12); fill-opacity: .65; }
 .lagnaSpot { fill: rgba(244,242,237,.18); fill-opacity: .62; }
-.houseText, .signText, .bodyText, .countText { paint-order: stroke; stroke: #0b0d11; stroke-width: 1px; stroke-linejoin: round; }
+.svg :is(.houseText, .signText, .bodyText, .countText) {
+  /* Keep the fixed LTR geometry, but shape Persian text in its own RTL run. */
+  direction: rtl;
+  unicode-bidi: isolate;
+  text-anchor: middle;
+  writing-mode: horizontal-tb;
+  font-family: var(--font-persian, var(--font-vazirmatn, "Vazirmatn")), "Noto Sans Arabic", Tahoma, sans-serif;
+  letter-spacing: normal;
+  word-spacing: normal;
+  paint-order: stroke;
+  stroke: #0b0d11;
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
 .houseText { font-size: 12px; font-weight: 760; fill: #aaa7a0; }
 .signText { font-size: 16px; font-weight: 840; fill: #f4f2ed; }
 .bodyText { font-size: 14px; font-weight: 800; fill: #d6dde6; }

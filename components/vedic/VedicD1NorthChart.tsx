@@ -53,7 +53,7 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
             <span className={styles.figureChip}>راشی · D1</span>
           </div>
           <div className={styles.svgScroll} role="region" tabIndex={0} aria-label="نمودار ودیک، قابل پیمایش افقی">
-            <svg className={styles.svg} viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+            <svg className={styles.svg} xmlLang="fa" viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
               <defs>
                 <linearGradient id="vedic-d1-chart-paper" x1="0" y1="0" x2="1" y2="1">
                   <stop offset="0%" stopColor="#0b0d11" />
@@ -69,10 +69,10 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
                 return (
                   <g key={house.houseNumber}>
                     {first && <ellipse cx={house.x} cy={house.y + 13} rx={house.houseNumber === 1 ? 44 : 38} ry="17" className={house.houseNumber === 1 ? styles.lagnaSpot : styles.planetSpot} />}
-                    <text x={house.x} y={house.y - 21} className={styles.houseText} textAnchor="middle">خانه {fa(house.houseNumber)}</text>
-                    <text x={house.x} y={house.y - 1} className={styles.signText} textAnchor="middle">{VEDIC_D1_DISPLAY_SIGNS_FA[house.signIndex]}</text>
-                    <text x={house.x} y={house.y + 18} className={styles.bodyText} textAnchor="middle">{first?.labelFa ?? '·'}</text>
-                    {additional > 0 && <text x={house.x} y={house.y + 35} className={styles.countText} textAnchor="middle">+{fa(additional)} دیگر</text>}
+                    <text x={house.x} y={house.y - 21} className={styles.houseText} textAnchor="middle" direction="rtl" unicodeBidi="isolate">خانه {fa(house.houseNumber)}</text>
+                    <text x={house.x} y={house.y - 1} className={styles.signText} textAnchor="middle" direction="rtl" unicodeBidi="isolate">{VEDIC_D1_DISPLAY_SIGNS_FA[house.signIndex]}</text>
+                    <text x={house.x} y={house.y + 18} className={styles.bodyText} textAnchor="middle" direction="rtl" unicodeBidi="isolate">{first?.labelFa ?? '·'}</text>
+                    {additional > 0 && <text x={house.x} y={house.y + 35} className={styles.countText} textAnchor="middle" direction="rtl" unicodeBidi="isolate">{fa(additional)} دیگر</text>}
                   </g>
                 );
               })}

@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef,useState} from "react";
+import {Fragment,useEffect,useRef,useState} from "react";
 import {getSupabaseBrowserAuthClient} from "@/lib/auth/supabase-browser-client";
 import {VedicD1PayButton} from "./VedicD1PayButton";
 import {SupabaseAuthPanel} from "@/components/SupabaseAuthPanel";
@@ -61,7 +61,7 @@ export function VedicD1AccountLibrary({checkoutEnabled,directReportId}:{checkout
   if(sessionError)return <section className={styles.purchaseOffer}><p role="status">بررسی نشست حساب ممکن نشد.</p><button className={styles.resultBackLink} type="button" onClick={()=>{setReady(false);setSessionRetry(n=>n+1);}}>تلاش مجدد</button><a href="/reports">گزارش‌های من</a></section>;
   if(!owner)return <section className={styles.purchaseOffer}><h1>گزارش چارت تولد ودیک</h1><p>برای دیدن این گزارش وارد حسابی شو که گزارش را با آن خریدی.</p><div className={reportStyles.reportAccountAuthDialog+" "+styles.accountSurface}><SupabaseAuthPanel compact reconcileReports={false}/></div><a href="/reports">گزارش‌های من</a></section>;
  }else if(!ready||(!owner&&!items.length&&!error))return null;
- const reportContent=selected&&(!directReportId||selected.id===directReportId)?<div key={selected.id}>
+ const reportContent=selected&&(!directReportId||selected.id===directReportId)?<Fragment key={selected.id}>
    {!directReportId&&<button type="button" onClick={()=>{detailRun.current++;setSelected(null);}}>بستن گزارش</button>}
    {directReportId?<header className={reportStyles.adaptiveHero}><p className={reportStyles.eyebrow}>راشی D1 · {selected.purchaseStatus==="paid"&&selected.manuscript?"گزارش کامل":"گزارش ودیک"}</p><h1>چارت تولد ودیک {selected.name}</h1><p>{selected.reading.shortReading.textFa}</p></header>:<h3>{selected.name}</h3>}
    <section className={reportStyles.chartDetails} aria-label="نقشهٔ تولد"><VedicD1NorthChart view={selected.reading.view}/></section>
@@ -71,7 +71,7 @@ export function VedicD1AccountLibrary({checkoutEnabled,directReportId}:{checkout
     {!owner&&<p>برای خرید گزارش کامل، <a href="/profile">وارد حساب هالیوس شو</a>.</p>}
     {selected.purchaseStatus==="pending"&&<p>اگر پرداخت انجام شده ولی تأیید نشده، از پشتیبانی با شمارهٔ فاکتور {selected.factor} پیگیری کن.</p>}
    </>}
-  </div>:null;
+  </Fragment>:null;
  const errorMessage=error&&<p role="status">دریافت گزارش ممکن نشد. <button type="button" onClick={()=>{setError(false);setRevision(x=>x+1);}}>تلاش مجدد</button></p>;
  if(directReportId)return <>
   {errorMessage}
@@ -85,6 +85,6 @@ export function VedicD1AccountLibrary({checkoutEnabled,directReportId}:{checkout
   {errorMessage}
   {items.map(item=><div key={item.id}>{item.purchaseStatus==="paid"?<a className={styles.resultBackLink} href={"/reports/vedic/"+encodeURIComponent(item.id)}>{item.name} — خریداری‌شده</a>:<button type="button" className={styles.resultBackLink} onClick={()=>void open(item.id)}>{item.name} — {item.purchaseStatus==="pending"?"در انتظار تأیید":"رایگان"}</button>}</div>)}
   {page>1&&<button type="button" onClick={()=>setPage(x=>x-1)}>قبلی</button>}{more&&<button type="button" onClick={()=>setPage(x=>x+1)}>بعدی</button>}
-  {reportContent}
+  {reportContent&&<div>{reportContent}</div>}
  </section>;
 }
