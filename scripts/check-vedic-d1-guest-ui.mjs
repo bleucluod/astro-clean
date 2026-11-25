@@ -10,7 +10,10 @@ const form=read('components/vedic/VedicD1GuestForm.tsx');
 const select=read('components/vedic/VedicChartSelect.tsx');
 const session=read('components/vedic/VedicD1GuestSession.tsx');
 const result=read('components/vedic/VedicD1GuestResult.tsx');
-const page=read('app/chart/vedic/page.tsx');
+const page=read('app/vedic/page.tsx');
+const screen=read('components/vedic/VedicD1Screen.tsx');
+const legacyPage=read('app/chart/vedic/page.tsx');
+const legacyResult=read('app/chart/vedic/result/page.tsx');
 const css=read('components/vedic/vedic-d1-guest.module.css');
 const shared=read('app/chart/chart-shell.module.css');
 const journey=read('components/chart-form-journey.module.css');
@@ -24,7 +27,8 @@ for(const [path,content] of [
  ['components/vedic/VedicChartSelect.tsx',select],
  ['components/vedic/VedicD1GuestSession.tsx',session],
  ['components/vedic/VedicD1GuestResult.tsx',result],
- ['app/chart/vedic/page.tsx',page],
+ ['app/vedic/page.tsx',page],
+ ['components/vedic/VedicD1Screen.tsx',screen],
 ]){
  const parsed=ts.createSourceFile(path,content,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
  assert.equal(parsed.parseDiagnostics.length,0,
@@ -48,7 +52,7 @@ for(const marker of [
  'setResult({ kind: "untimed"', 'setResult({ kind: "timed"',
  'if (unknownTime)', 'validGregorian', 'parseJalaliDateInput',
  'setNeedsOccurrence(true)', 'setOccurrence("earlier")',
- 'setOccurrence("later")', 'router.push("/chart/vedic/result")',
+ 'setOccurrence("later")', 'onComplete();',
  'useSyncExternalStore', 'aria-live="polite"',
 ]){
  assert.ok(form.includes(marker),'Missing required form behavior: '+marker);
@@ -88,18 +92,25 @@ assert.ok(shared.includes('.formPanel :global(.chart-select-trigger)')&&
   'Reuse latest /chart form styling without copying it');
 assert.ok(journey.includes('.journeyRoot')&&journey.includes('.journeyProgress'),
   'Use latest /chart journey styles');
-assert.ok(!page.includes('previewNotice')&&!page.includes('chartStyles.education'),
+assert.ok(!screen.includes('previewNotice')&&!screen.includes('chartStyles.education'),
   'Remove verbose auxiliary content from input screen');
 for (const redundant of ['styles.breadcrumb', 'chartStyles.heroKicker',
   'chartStyles.heroLead', 'chartStyles.formPanelHeading', 'chartStyles.panelStep']) {
-  assert.ok(!page.includes(redundant), 'Vedic entry must not repeat page intro: ' + redundant);
+  assert.ok(!screen.includes(redundant), 'Vedic entry must not repeat page intro: ' + redundant);
 }
-assert.ok(page.includes('<h1 className={chartStyles.heroTitle}>چارت تولد ودیک</h1>'),
+assert.ok(screen.includes('<h1 className={chartStyles.heroTitle}>چارت تولد ودیک</h1>'),
   'Preserve one clear visible page title');
 assert.ok(!form.includes('journeyStyles.progressHeading') &&
   !form.includes('آسمان تو در حال شکل‌گرفتنه'),
   'Mobile stepper must not carry a second verbal introduction');
 assert.ok(page.includes('robots: { index: false, follow: false }'));
+assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen /></VedicD1GuestSessionProvider>'));
+assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} />;'));
+assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} />'));
+assert.ok(legacyPage.includes('redirect("/vedic")')&&legacyResult.includes('redirect("/vedic")'));
+assert.ok(!form.includes('router.push(')&&!result.includes('/chart/vedic'));
+assert.ok(!screen.includes('localStorage')&&!screen.includes('sessionStorage')&&!screen.includes('router.push('));
+assert.ok(result.includes('report-detail-reader-page report-product-page')&&result.includes('reportStyles.reader')&&result.includes('reportStyles.ambientLogo'));
 assert.ok(session.includes('kind: "untimed"')&&session.includes('kind: "timed"')&&
   session.includes('unknownTime: boolean')&&session.includes('reading: null'),
   'Two distinct report states prevent an invented chart');

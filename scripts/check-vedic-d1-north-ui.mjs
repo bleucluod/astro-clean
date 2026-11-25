@@ -10,10 +10,12 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const read=p=>readFileSync(resolve(root,p),'utf8');
 const component=read('components/vedic/VedicD1NorthChart.tsx');
 const css=read('components/vedic/vedic-d1-north.module.css');
-const page=read('app/chart/vedic/page.tsx');
+const page=read('app/vedic/page.tsx');
 const form=read('components/vedic/VedicD1GuestForm.tsx');
 const result=read('components/vedic/VedicD1GuestResult.tsx');
-const resultPage=read('app/chart/vedic/result/page.tsx');
+const screen=read('components/vedic/VedicD1Screen.tsx');
+const layout=read('lib/vedic/vedic-d1-north-layout.ts');
+const free=read('lib/vedic/vedic-d1-free-reading.ts');
 const source=ts.createSourceFile('VedicD1NorthChart.tsx',component,ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);
 assert.equal(source.parseDiagnostics.length,0,'TSX parse error');
 for (const phrase of [
@@ -42,18 +44,21 @@ for(const unsafe of ['use client','localStorage','sessionStorage','fetch(','wind
   'generateReportContract','sampleChart','mockChart','synthetic-fixture','createPortal']) {
   assert.ok(!component.includes(unsafe),'Unapproved UI runtime behavior: '+unsafe);
 }
-assert.ok(!page.includes('VedicD1NorthChart'),'UI must remain unreachable pending certification');
-assert.ok(!form.includes('<VedicD1NorthChart'), 'Form should navigate to the separate report');
+assert.ok(screen.includes('<VedicD1GuestResult onEdit={editBirth} />'),'UI must use the verified result screen');
+assert.ok(!form.includes('<VedicD1NorthChart'), 'Form must hand off to result state without rendering chart');
 assert.ok(result.includes('<VedicD1NorthChart view={result.reading.view} />'), 'Result must render ONLY verified server-supplied free view');
-for (const phrase of ['styles.reportWelcome', 'styles.reportKicker', 'styles.reportFooter', 'styles.resultHero']) {
+for (const phrase of ['reportStyles.adaptiveHero', 'reportStyles.reader', 'reportStyles.ambientLogo', 'styles.reportFooter']) {
   assert.ok(result.includes(phrase), 'Missing report visual hierarchy: ' + phrase);
 }
-for (const phrase of ['styles.lagnaHighlight', 'house.signNameFa', 'styles.planetSpot', 'styles.lagnaSpot', 'styles.figureHeading', 'styles.tableHeading']) {
+for (const phrase of ['styles.lagnaHighlight', 'VEDIC_D1_DISPLAY_SIGNS_FA[house.signIndex]', 'styles.planetSpot', 'styles.lagnaSpot', 'styles.figureHeading', 'styles.tableHeading']) {
   assert.ok(component.includes(phrase), 'Missing North Indian visual refinement: ' + phrase);
 }
 assert.ok(component.includes('d={VEDIC_D1_NORTH_GRID_PATH}'), 'The original North Indian diamond geometry must remain unchanged');
-assert.ok(resultPage.includes('robots: { index: false, follow: false }'), 'Guest results must remain noindex');
+assert.ok(page.includes('robots: { index: false, follow: false }'), 'Guest results must remain noindex');
 assert.ok(form.includes('isVedicD1FreeReading'), 'Guest must reject non-free/unexpected response');
+assert.ok(component.includes('VEDIC_D1_DISPLAY_SIGNS_FA[row.signIndex]')&&component.includes('VEDIC_D1_DISPLAY_SIGNS_FA[moon.signIndex]'));
+assert.ok(free.includes('VEDIC_D1_DISPLAY_SIGNS_FA[view.houses[0].signIndex]')&&free.includes('VEDIC_D1_DISPLAY_SIGNS_FA[moon.signIndex]'));
+for (const name of ['اریس','تارس','جمنای','کنسر','لیو','ویرگو','لیبرا','اسکورپیو','سجیتریس','کپریکورن','آکواریوس','پایسیز']) assert.ok(layout.includes("'"+name+"'"));
 for(const phrase of ['@media (max-width: 640px)','min-width: 440px','overflow-x: auto',
   'min-width: 520px','focus-visible','direction: ltr','grid-template-columns: repeat(2, minmax(0, 1fr))']) {
   assert.ok(css.includes(phrase),'Missing responsive requirement: '+phrase);

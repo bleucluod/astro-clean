@@ -1,15 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { VEDIC_D1_PREMIUM_CHAPTERS } from "@/lib/vedic/vedic-d1-reading-contract";
 import { VedicD1NorthChart } from "./VedicD1NorthChart";
 import { useVedicD1GuestSession, type VedicD1LocalPreview } from "./VedicD1GuestSession";
-import chartStyles from "@/app/chart/chart-shell.module.css";
+import reportStyles from "@/components/report/human-first-report.module.css";
 import styles from "./vedic-d1-guest.module.css";
 
 /** A separate report surface; only the certified free API response can populate it. */
-export function VedicD1GuestResult() {
+export function VedicD1GuestResult({ onEdit }: { onEdit: () => void }) {
   const { result, setResult } = useVedicD1GuestSession();
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(false);
@@ -51,35 +50,27 @@ export function VedicD1GuestResult() {
   }
 
   return (
-    <main className={chartStyles.page + " " + styles.vedicPage} dir="rtl">
-      <nav className={styles.breadcrumb} aria-label="مسیر صفحه">
-        <Link href="/chart/vedic">چارت تولد ودیک</Link>
-        <span aria-hidden="true">/</span>
-        <span aria-current="page">گزارش رایگان</span>
-      </nav>
-      <header className={chartStyles.hero + " " + styles.vedicHero + " " + styles.resultHero}>
-        <div className={chartStyles.heroCopy}>
-          <span className={chartStyles.heroKicker}>راشی D1 · گزارش رایگان</span>
-          <h1 className={chartStyles.heroTitle}>گزارش چارت تولد ودیک</h1>
-          <p className={chartStyles.heroLead}>نمودار شمال هند، جایگاه سیاره‌ها و خوانش کوتاه فارسیِ چارت محاسبه‌شده.</p>
-        </div>
-      </header>
-      {result?.kind === "timed" ? (
-        <section className={styles.freeResult + " " + styles.reportResult} aria-label="نتیجهٔ رایگان چارت ودیک">
-          <div className={styles.reportWelcome}>
-            <span className={styles.reportKicker}>گزارش شخصی تو</span>
-            <h2 className={styles.resultGreeting}>{result.name}، این نقشهٔ آسمان توست</h2>
-            <p className={styles.freeReading}>{result.reading.shortReading.textFa}</p>
-          </div>
-          <VedicD1NorthChart view={result.reading.view} />
-          <section className={styles.chapterPreviewList} aria-label="پیش‌نمایش چهار فصل">
+    <section className="report-detail-reader-page report-product-page" data-report-source="vedic-guest" dir="rtl">
+      <div className={reportStyles.reader + " " + styles.vedicReader}>
+        <div aria-hidden="true" className={reportStyles.ambientLogo} data-report-ambient-logo="parallax" />
+        {result?.kind === "timed" ? (
+          <>
+            <header className={reportStyles.adaptiveHero}>
+              <p className={reportStyles.eyebrow}>راشی D1 · گزارش رایگان</p>
+              <h1>چارت تولد ودیک {result.name}</h1>
+              <p>{result.reading.shortReading.textFa}</p>
+            </header>
+            <section className={reportStyles.chartDetails} aria-label="نقشهٔ تولد">
+              <VedicD1NorthChart view={result.reading.view} />
+            </section>
+          <section className={reportStyles.adaptiveSection + " " + styles.chapterPreviewList} aria-label="پیش‌نمایش چهار فصل">
             <h2>گزارش کامل چارت تو</h2>
             {result.reading.premiumPreview === null && <p role="status">پیش‌نمایش فعلاً در دسترس نیست؛ اطلاعات چارت رایگان در بالا قابل مشاهده است.</p>}
             {VEDIC_D1_PREMIUM_CHAPTERS.map((chapter, i) => (
               <article key={chapter.id} className={styles.lockedChapter}>
                 <h3>فصل {(i+1).toLocaleString("fa-IR")} — {chapter.title}</h3>
                 {result.reading.premiumPreview?.[i]?.excerptFa && (
-                  <p className={styles.chapterExcerpt}>{result.reading.premiumPreview[i].excerptFa}</p>
+                  <div className={reportStyles.chapterParagraphs}><p className={styles.chapterExcerpt}>{result.reading.premiumPreview[i].excerptFa}</p></div>
                 )}
                 <div className={styles.chapterLock} aria-hidden="true">
                   <div className={styles.lockLines}><span /><span /><span /><span /></div>
@@ -120,24 +111,25 @@ export function VedicD1GuestResult() {
           )}
           <div className={styles.reportFooter}>
             <p className={styles.resultPrivacy}>{process.env.NODE_ENV === "development" && result.localPreview ? "متن کامل صرفاً برای بازبینی محلی دریافت شده است؛ خرید یا ذخیرهٔ خصوصی هنوز فعال نیست." : "این نتیجه شامل چارت و پیش‌نمایش رایگان فصل‌هاست."}</p>
-            <Link className={styles.resultBackLink} href="/chart/vedic">ویرایش اطلاعات تولد</Link>
+            <button type="button" className={styles.resultBackLink} onClick={onEdit}>ویرایش اطلاعات تولد</button>
           </div>
-        </section>
-      ) : result?.kind === "untimed" ? (
+          </>
+        ) : result?.kind === "untimed" ? (
         <section className={styles.emptyResult} aria-label="نتیجهٔ ساعت نامشخص">
           <h2>{result.name}، ساعت تولدت مشخص نیست</h2>
           <p>بدون ساعت تولد، لاگنا و خانه‌های چارت D1 قابل تعیین نیستند.
             به همین دلیل چارت دوازده‌خانه و فصل‌های شخصی را با ساعت فرضی نمی‌سازیم.</p>
-          <Link className={styles.resultBackLink} href="/chart/vedic">ثبت ساعت تولد</Link>
+          <button type="button" className={styles.resultBackLink} onClick={onEdit}>ثبت ساعت تولد</button>
         </section>
       ) : (
         <section className={styles.emptyResult} role="status">
           <h2>گزارشی برای نمایش پیدا نشد</h2>
           <p>این نسخهٔ آزمایشی گزارش را ذخیره نمی‌کند. اگر آدرس را مستقیم باز کرده‌ای یا صفحه را Refresh کرده‌ای، دوباره اطلاعات تولد را در فرم وارد و چارت را محاسبه کن.</p>
-          <Link className={styles.resultBackLink} href="/chart/vedic">بازگشت به فرم ودیک</Link>
+          <button type="button" className={styles.resultBackLink} onClick={onEdit}>بازگشت به فرم ودیک</button>
         </section>
       )}
       <p className={styles.afterword}>گزارش مهمان فعلاً فقط در حافظهٔ همین صفحهٔ مرورگر نگه داشته می‌شود و لینک عمومی یا ذخیرهٔ دائمی ندارد.</p>
-    </main>
+      </div>
+    </section>
   );
 }

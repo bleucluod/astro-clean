@@ -21,6 +21,11 @@ export const VEDIC_D1_SIGNS_FA = [
   'حمل', 'ثور', 'جوزا', 'سرطان', 'اسد', 'سنبله',
   'میزان', 'عقرب', 'قوس', 'جدی', 'دلو', 'حوت',
 ] as const;
+/** Public-facing zodiac spelling; keep legacy labels stable for writer rules. */
+export const VEDIC_D1_DISPLAY_SIGNS_FA = [
+  'اریس', 'تارس', 'جمنای', 'کنسر', 'لیو', 'ویرگو',
+  'لیبرا', 'اسکورپیو', 'سجیتریس', 'کپریکورن', 'آکواریوس', 'پایسیز',
+] as const;
 export const VEDIC_D1_BODIES_FA: Readonly<Record<VedicD1PlacementId, string>> = {
   sun: 'خورشید', moon: 'ماه', mars: 'مریخ', mercury: 'عطارد',
   jupiter: 'مشتری', venus: 'زهره', saturn: 'زحل',

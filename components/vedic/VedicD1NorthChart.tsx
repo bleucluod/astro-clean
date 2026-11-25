@@ -3,7 +3,7 @@
  * The SVG is decorative; the complete 9-body table is the accessible source.
  */
 import type { VedicD1NorthView } from '@/lib/vedic/vedic-d1-north-layout';
-import { VEDIC_D1_NORTH_GRID_PATH } from '@/lib/vedic/vedic-d1-north-layout';
+import { VEDIC_D1_NORTH_GRID_PATH, VEDIC_D1_DISPLAY_SIGNS_FA } from '@/lib/vedic/vedic-d1-north-layout';
 import styles from './vedic-d1-north.module.css';
 
 const formatter = new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 2, useGrouping: false });
@@ -28,13 +28,13 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
       <div className={styles.summary} aria-label="خلاصهٔ چارت ودیک">
         <div className={styles.summaryItem}>
           <span className={styles.summaryIndex} aria-hidden="true">۰۱</span>
-          <span>طالع (لاگنا)</span>
-          <strong>{view.canDrawHouses ? view.houses[0].signNameFa : 'نزدیک مرز نشان'}</strong>
+          <span>رایزینگ (لاگنا)</span>
+          <strong>{view.canDrawHouses ? VEDIC_D1_DISPLAY_SIGNS_FA[view.houses[0].signIndex] : 'نزدیک مرز نشان'}</strong>
         </div>
         <div className={styles.summaryItem}>
           <span className={styles.summaryIndex} aria-hidden="true">۰۲</span>
           <span>نشان ماه</span>
-          <strong>{moon.signNameFa ?? 'نزدیک مرز نشان'}</strong>
+          <strong>{moon.signIndex === null ? 'نزدیک مرز نشان' : VEDIC_D1_DISPLAY_SIGNS_FA[moon.signIndex]}</strong>
         </div>
         <div className={styles.summaryItem}>
           <span className={styles.summaryIndex} aria-hidden="true">۰۳</span>
@@ -56,8 +56,8 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
             <svg className={styles.svg} viewBox="0 0 480 480" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
               <defs>
                 <linearGradient id="vedic-d1-chart-paper" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#F8FAFC" />
-                  <stop offset="100%" stopColor="#EBF4FC" />
+                  <stop offset="0%" stopColor="#0b0d11" />
+                  <stop offset="100%" stopColor="#11141a" />
                 </linearGradient>
               </defs>
               <rect x="1" y="1" width="478" height="478" rx="8" className={styles.frame} />
@@ -70,7 +70,7 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
                   <g key={house.houseNumber}>
                     {first && <ellipse cx={house.x} cy={house.y + 13} rx={house.houseNumber === 1 ? 44 : 38} ry="17" className={house.houseNumber === 1 ? styles.lagnaSpot : styles.planetSpot} />}
                     <text x={house.x} y={house.y - 21} className={styles.houseText} textAnchor="middle">خانه {fa(house.houseNumber)}</text>
-                    <text x={house.x} y={house.y - 1} className={styles.signText} textAnchor="middle">{house.signNameFa}</text>
+                    <text x={house.x} y={house.y - 1} className={styles.signText} textAnchor="middle">{VEDIC_D1_DISPLAY_SIGNS_FA[house.signIndex]}</text>
                     <text x={house.x} y={house.y + 18} className={styles.bodyText} textAnchor="middle">{first?.labelFa ?? '·'}</text>
                     {additional > 0 && <text x={house.x} y={house.y + 35} className={styles.countText} textAnchor="middle">+{fa(additional)} دیگر</text>}
                   </g>
@@ -111,14 +111,14 @@ export function VedicD1NorthChart({ view }: { view: VedicD1NorthView }) {
           <tbody>
             {view.rows.map(row => <tr key={row.id}>
               <th scope="row">{row.labelFa}</th>
-              <td>{row.signNameFa === null ? 'مرزی؛ نامطمئن' : `${row.signNameFa} (${fa(row.signIndex! + 1)})`}</td>
+              <td>{row.signIndex === null ? 'مرزی؛ نامطمئن' : `${VEDIC_D1_DISPLAY_SIGNS_FA[row.signIndex]} (${fa(row.signIndex + 1)})`}</td>
               <td><bdi>{degrees(row.degreeInSign)}</bdi></td>
               <td>{row.houseNumber === null ? 'مرزی؛ نامطمئن' : fa(row.houseNumber)}</td>
             </tr>)}
           </tbody>
         </table>
       </div>
-      <p className={styles.legend}>راهو بر اساس گرهٔ میانگین و کیتو در نقطهٔ مقابل آن محاسبه می‌شود. این نمودار فقط خروجیِ یک موتور عددیِ تأییدشده را باید نمایش دهد.</p>
+      <p className={styles.legend}>راهو بر اساس گرهٔ میانگین و کیتو در نقطهٔ مقابل آن محاسبه می‌شود. </p>
     </section>
   );
 }

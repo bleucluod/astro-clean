@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
 import {
   useEffect, useMemo, useRef, useState, useSyncExternalStore,
   type FormEvent, type ChangeEvent, type KeyboardEvent,
@@ -142,8 +141,7 @@ function isVedicD1FreeReading(value: unknown): value is VedicD1FreeReading {
     !("chapters" in r) && !("chart" in r) && !("utcIso" in r) && !("ownerId" in r);
 }
 
-export function VedicD1GuestForm() {
-  const router = useRouter();
+export function VedicD1GuestForm({ onComplete }: { onComplete: () => void }) {
   const { result, setResult } = useVedicD1GuestSession();
   const hydrated = useSyncExternalStore(subscribeHydration, hydratedClient, hydratedServer);
   const [name, setName] = useState(result?.draft.name ?? "");
@@ -290,7 +288,7 @@ export function VedicD1GuestForm() {
       }
       if (!valid) { setFeedback({ kind: "error", message: "تاریخ تولد معتبر نیست." }); setEditing("date"); return; }
       setResult({ kind: "untimed", name: name.trim(), reading: null, localPreview: null, draft });
-      router.push("/chart/vedic/result");
+      onComplete();
       return;
     }
 
@@ -329,7 +327,7 @@ export function VedicD1GuestForm() {
       if (!aliveRef.current || requestRef.current !== controller) return;
       setResult({ kind: "timed", name: name.trim(), reading: data.reading,
         localPreview: null, draft });
-      router.push("/chart/vedic/result");
+      onComplete();
     } catch {
       if (!controller.signal.aborted && aliveRef.current) {
         setFeedback({ kind: "unavailable", message: "محاسبه فعلاً در دسترس نیست." });

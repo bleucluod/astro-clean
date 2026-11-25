@@ -2,12 +2,7 @@
    Only the Vedic-specific layout, feedback and result surface live here. */
 .vedicPage { min-width: 0; }
 .vedicPage *, .vedicPage *::before, .vedicPage *::after { box-sizing: border-box; }
-.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; color: #c7cfda; font-size: .8rem; }
-.breadcrumb a { color: #dceeff; text-underline-offset: 3px; }
 .vedicHero { grid-template-columns: minmax(0, 1fr) !important; min-height: 0 !important; padding: clamp(26px, 4vw, 42px) !important; }
-.resultHero { min-height: 0 !important; background: radial-gradient(circle at 10% 40%, rgba(188, 204, 220, .14), transparent 34%), linear-gradient(135deg, #080d13, #151d27) !important; }
-.resultHero::before { content: ""; position: absolute; left: -78px; top: -122px; width: 300px; height: 300px; border: 1px solid rgba(217,234,253,.13); border-radius: 50%; pointer-events: none; }
-.resultHero::after { opacity: .18; }
 .vedicWorkspace { grid-template-areas: "form" !important; grid-template-columns: minmax(0, 1fr) !important; }
 .vedicWorkspace > * { min-width: 0; }
 .formRoot { min-width: 0; color: #ffffff; }
@@ -27,23 +22,12 @@
 .emptyResult p { margin: 0; font-size: .88rem; line-height: 1.95; color: #c7cfda; }
 .resultBackLink { display: inline-flex; align-items: center; justify-content: center; width: fit-content; min-height: 44px; padding: 9px 16px; border: 1px solid rgba(220,238,255,.3); border-radius: 12px; color: #ffffff; background: #202c39; text-decoration: none; font-weight: 740; }
 .resultBackLink:focus-visible { outline: 2px solid #dceeff; outline-offset: 3px; }
-.freeResult { display: grid; min-width: 0; gap: clamp(19px, 3vw, 30px); margin: 18px 22px 22px; padding: clamp(14px, 3vw, 24px); border: 1px solid #BCCCDC; border-radius: 22px; background: #F8FAFC; color: #243447; }
-.reportResult { margin: 0; padding: clamp(14px, 3vw, 34px); border-radius: 24px; box-shadow: 0 18px 48px rgba(9, 18, 30, .1); }
-.reportWelcome { position: relative; display: grid; gap: 9px; min-width: 0; overflow: hidden; padding: clamp(18px, 3vw, 30px); border: 1px solid #D9EAFD; border-radius: 20px; background: linear-gradient(120deg, #D9EAFD, #F8FAFC 74%); }
-.reportWelcome::after { content: ""; position: absolute; left: -44px; top: -75px; width: 230px; height: 230px; border: 1px solid rgba(82,101,122,.14); border-radius: 50%; pointer-events: none; }
-.reportWelcome > * { position: relative; z-index: 1; }
-.reportKicker { width: fit-content; padding: 5px 11px; border: 1px solid #BCCCDC; border-radius: 99px; background: rgba(255,255,255,.66); color: #3A4A5C; font-size: .73rem; font-weight: 780; }
-.resultGreeting { margin: 0; color: #243447; font-size: clamp(1.1rem, 2.5vw, 1.5rem); font-weight: 860; line-height: 1.8; }
-.freeReading { max-width: 73ch; margin: 0; color: #2F4052; font-size: clamp(.86rem, 1.3vw, .96rem); line-height: 2.1; }
-.reportFooter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 13px; padding: 16px 0 0; border-top: 1px solid #D9EAFD; }
-.resultPrivacy { margin: 0; color: #52657a; font-size: .8rem; line-height: 1.8; }
+.reportFooter { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 13px; padding: 16px 0 0; border-top: 1px solid var(--editorial-line); }
+.resultPrivacy { margin: 0; color: var(--editorial-muted); font-size: .8rem; line-height: 1.8; }
 .afterword { margin: 0 22px 20px; color: #c7cfda; font-size: .77rem; line-height: 1.8; }
 @media (max-width: 640px) {
   .vedicHero { padding: 22px !important; }
   .vedicWorkspace { grid-template-columns: minmax(0, 1fr) !important; }
-  .freeResult { margin: 12px; padding: 12px; }
-  .reportResult { margin: 0; padding: 12px; border-radius: 17px; }
-  .reportWelcome { padding: 16px; border-radius: 15px; }
   .reportFooter { align-items: stretch; }
   .reportFooter .resultBackLink { width: 100%; }
   .afterword { margin-inline: 14px; }
@@ -53,11 +37,11 @@
 }
 
 /* Development-only manuscript preview, not rendered in production. */
-.localPreview { margin-top: 28px; padding: clamp(16px,3vw,28px); border-radius: 18px; background: #f8fafc; border: 1px solid #bcccdc; color: #243447; }
+.localPreview { width: min(920px, 100%); margin: 0 auto; padding: clamp(16px,3vw,28px); border-radius: 18px; background: #0b0d11; border: 1px solid var(--editorial-line); color: var(--editorial-body); }
 .localPreview > h2 { margin: 0 0 12px; font-size: 1.35rem; }
 .localPreview > p { line-height: 2; }
-.previewChapter { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid #bcccdc; }
-.previewChapter h3 { margin: 0 0 16px; color: #243447; }
+.previewChapter { margin: 28px 0 0; padding-top: 20px; border-top: 1px solid var(--editorial-line); }
+.previewChapter h3 { margin: 0 0 16px; color: var(--editorial-ink); }
 .previewChapter p { line-height: 2.25; margin: 0 0 20px; max-width: 80ch; }
 
 /* The Vedic form uses the same /chart shell, select grids and lazy mobile wheels.
@@ -74,15 +58,24 @@
 
 /* Chapter lock is a decorative placeholder: it contains no hidden manuscript text. */
 .chapterPreviewList { display: grid; gap: 16px; min-width: 0; }
-.chapterPreviewList > h2 { margin: 0; font-size: 1.25rem; color: #243447; }
-.lockedChapter { display: grid; gap: 10px; min-width: 0; padding: clamp(14px, 3vw, 24px); border: 1px solid #BCCCDC; border-radius: 16px; background: #fff; }
-.lockedChapter h3 { margin: 0; color: #243447; font-size: 1.05rem; line-height: 1.85; }
-.chapterExcerpt { margin: 0; color: #2F4052; line-height: 2.15; white-space: pre-line; overflow-wrap: anywhere; }
-.chapterLock { position: relative; display: grid; place-items: center; min-height: 90px; color: #365D85; isolation: isolate; }
+.chapterPreviewList > h2 { margin: 0; font-size: 1.25rem; color: var(--editorial-ink); }
+.lockedChapter { display: grid; gap: 12px; min-width: 0; padding: clamp(18px, 3vw, 28px); border: 1px solid var(--editorial-line); border-radius: 18px; background: #0b0d11; }
+.lockedChapter h3 { margin: 0; color: var(--editorial-ink); font-size: 1.05rem; line-height: 1.85; }
+.chapterExcerpt { margin: 0; color: var(--editorial-body); line-height: 2.15; white-space: pre-line; overflow-wrap: anywhere; }
+.chapterLock { position: relative; display: grid; place-items: center; min-height: 90px; color: #d6dde6; isolation: isolate; }
 .lockLines { position: absolute; inset: 3px 0; display: grid; align-content: space-around; gap: 8px; padding: 4px 0; mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); }
-.lockLines span { display: block; height: 7px; width: 95%; border-radius: 10px; background: #BCCCDC; }
+.lockLines span { display: block; height: 7px; width: 95%; border-radius: 10px; background: rgb(216 221 229 / 22%); }
 .lockLines span:nth-child(2) { width: 83%; }
 .lockLines span:nth-child(3) { width: 92%; }
 .lockLines span:nth-child(4) { width: 65%; }
-.chapterLock svg { z-index: 1; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #F8FAFC; border: 1px solid #D9EAFD; }
-.lockCaption { margin: 0; color: #52657A; font-size: .84rem; line-height: 1.8; text-align: center; }
+.chapterLock svg { z-index: 1; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #11141a; border: 1px solid var(--editorial-line); }
+.lockCaption { margin: 0; color: var(--editorial-muted); font-size: .84rem; line-height: 1.8; text-align: center; }
+
+/* Inherit the production natal reader's theme, geometry and ambient emblem. */
+.vedicReader .reportFooter, .vedicReader .afterword { width: min(920px, 100%); margin-inline: auto; }
+.vedicReader .resultBackLink { cursor: pointer; font: inherit; font-weight: 740; }
+.vedicReader .resultBackLink:disabled { opacity: .55; cursor: wait; }
+@media (max-width: 760px) {
+  .vedicReader .lockedChapter { border: 0; border-top: 1px solid var(--editorial-line); border-radius: 0; background: transparent; padding: 22px 0; }
+  .vedicReader .chapterPreviewList { padding-inline: 4px; }
+}
