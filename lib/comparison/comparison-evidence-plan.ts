@@ -7,7 +7,7 @@ import type {
 } from "@/types/synastry-engine";
 
 /** Review policy v1. It does not change the customer-facing writer or access. */
-export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v1";
+export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v2";
 const PERSONAL = new Set(["sun", "moon", "mercury", "venus", "mars"]);
 const CONTEXT = new Set([...PERSONAL, "jupiter", "saturn"]);
 const ANGLES = new Set(["asc", "dsc", "mc", "ic"]);
@@ -178,11 +178,16 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
       (report.quality.angleContactsAvailable || ![contact.pointA, contact.pointB].some(point => point.kind === "angle")));
   });
   const used = new Set<string>();
-  function choose(chapter: EvidenceChapterId, support: boolean) {
+  function choose(chapter: EvidenceChapterId, support: boolean, main?: SynastryInterChartAspect) {
     return contacts.map(contact => ({ contact, score: rank(chapter, contact) }))
       .filter((item): item is { contact: SynastryInterChartAspect; score: number } =>
         item.score !== null && !used.has(axisKey(item.contact)) &&
-        (!support || (item.contact.orb <= 3.5 && item.contact.relevanceScore >= 60)))
+        (!support || (item.contact.orb <= 3.5 && item.contact.relevanceScore >= 60 &&
+          // When commitment is anchored in Saturn, keep its corroboration distinct
+          // from Pluto/Mars/Venus escalation and attraction narratives.
+          (chapter !== "boundaries-commitment" || !main ||
+            ![main.pointA.id, main.pointB.id].includes("saturn") ||
+            [item.contact.pointA.id, item.contact.pointB.id].includes("saturn")))))
       .sort((a, b) => b.score - a.score || a.contact.orb - b.contact.orb ||
         a.contact.canonicalKey.localeCompare(b.contact.canonicalKey))[0]?.contact ?? null;
   }
@@ -199,7 +204,7 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
     const main = primary.get(chapter) ?? null;
     const limited = main && chapter === "boundaries-commitment" &&
       ![main.pointA.id, main.pointB.id].some(id => PERSONAL.has(id) || ANGLES.has(id));
-    const support = main && !limited ? choose(chapter, true) : null;
+    const support = main && !limited ? choose(chapter, true, main) : null;
     if (support) used.add(axisKey(support));
     const primaryWitness = main ? witness(main) : null;
     const context = main ? [main.pointA, main.pointB].map(point => {
