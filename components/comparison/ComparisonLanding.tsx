@@ -237,7 +237,7 @@ export async function ComparisonLanding() {
           هر چارت ابتدا با اطلاعات تولد همان فرد محاسبه می‌شود. پس از انتخاب دو چارت، هالیوس فاصلهٔ زاویه‌ای میان سیاره‌ها و نقاط معتبر هر دو نفر را بررسی می‌کند. برای هر تماس مشخص است کدام نقطه به کدام نفر تعلق دارد.
         </p>
           <p>
-            در <strong>تفسیر سیناستری</strong> معنای یک زاویه به سیاره‌های درگیر وابسته است. مثلاً ارتباط ماه و عطارد همان موضوعی را مطرح نمی‌کند که ارتباط مریخ و زحل.
+            در <strong>تفسیر سیناستری</strong> معنای یک زاویه به سیاره‌های درگیر وابسته است. دو زاویهٔ هم‌اندازه میان سیاره‌های متفاوت لزوماً معنای یکسانی ندارند.
           </p>
         </div>
         <div className={styles.methodCard}>
@@ -261,7 +261,7 @@ export async function ComparisonLanding() {
         <div className={styles.trustGrid}>
           <article>
             <strong>نقاط نزدیک‌کننده</strong>
-            <p>چه چیزی را ارزش دارد در رابطه حفظ کرد؟</p>
+            <p>چه چیزی در رابطه ارزش حفظ‌کردن دارد؟</p>
           </article>
           <article>
             <strong>تفاوت‌های تکرارشونده</strong>
@@ -318,7 +318,7 @@ export async function ComparisonLanding() {
         </div>
         <div className={styles.methodCard}>
           <strong>نام‌ها برای تشخیص صاحب چارت به کار می‌روند.</strong>
-          <p>حتی برای دو فرد هم‌نام، هر چارت جداگانه بررسی می‌شود.</p>
+          <p>در انتخاب چارت، تاریخ و شهر تولد را هم بررسی کن.</p>
         </div>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟" />
       </section>
