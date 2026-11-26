@@ -373,7 +373,7 @@ function buildNarrativeChapters(
         id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
         ownerContactId: primary?.id ?? null,
         crossReferencePatternId: null, crossReferencePatternTitle: null,
-        block: buildAttractionChapter(primary, support, labels, report.relationshipContext),
+        block: buildAttractionChapter(primary, support, labels, report.relationshipContext, attractionPlan),
       };
     }
     const crossReference = contact
@@ -768,6 +768,7 @@ function buildAttractionChapter(
   support: SynastryInterChartAspect | undefined,
   labels: { a: string; b: string },
   relationship: RealSynastryReport["relationshipContext"],
+  plan: ReturnType<typeof buildComparisonEvidencePlan>["chapterPlans"][number] | undefined,
 ): HumanFirstDirectionalNarrativeBlock {
   type Side = "a" | "b";
   const names = labels.a === labels.b
@@ -847,7 +848,9 @@ function buildAttractionChapter(
       example = romantic
         ? `فرض کنید ${sun} برای اولین بار قطعه‌ای را که تمرین کرده اجرا می‌کند. ${venus} به ذوق او در اجرا توجه می‌کند، حتی اگر آن قطعه دقیقاً مطابق سلیقهٔ خودش نباشد.`
         : `در ${activity}، توجه ${venus} ممکن است به شیوهٔ کار ${sun} جلب شود، حتی اگر انتخاب خودش متفاوت باشد. پسندیدن توانایی یک نفر لزوماً به معنای پسندیدن همهٔ انتخاب‌های او نیست.`;
-      strength = `وقتی ${venus} به ذوق ${sun} توجه نشان می‌دهد، فرصت دارد سلیقهٔ خودش را هم وارد تجربه کند. مثلاً پیشنهاد دهد قطعهٔ بعدی را خودش انتخاب کند؛ این بار علاقهٔ هر دو در شکل‌گرفتن تجربه سهم دارد.`;
+      strength = romantic
+        ? `تحسین ${venus} فقط واکنش به نتیجه نیست. اگر ${sun} سرگرم تمرین است، حتی دیدن فرایند تمرین می‌تواند برای او جذاب باشد؛ اما ذوق ${venus} هم باید فرصت بروز پیدا کند.`
+        : `توجه ${venus} به شیوهٔ کار ${sun} زمینه‌ای برای مشارکت است. در ${activity}، بخشی از انتخاب یا اجرا را به سلیقهٔ خودش پیش ببرد تا همراهی به پیروی یک‌طرفه تبدیل نشود.`;
       challenge = romantic
         ? `تحسین وقتی به وظیفه تبدیل شود بخشی از جذابیت خود را از دست می‌دهد. اگر ${venus} این بار ترجیح می‌دهد سرگرم کار خودش باشد، ${sun} لازم نیست برای بازگرداندن توجه او نمایشی تازه ترتیب بدهد. فرصت ابراز شوق برای هر دو باقی بماند.`
         : `قدردانی از توانایی ${sun} نباید ${venus} را به تماشاگر دائمی تبدیل کند. در ${activity}، برای علاقه و مشارکت هر دو نفر جا بگذارید؛ هر دو باید بتوانند گاهی مسیر خودشان را دنبال کنند.`;
@@ -868,6 +871,25 @@ function buildAttractionChapter(
       step = `در پایان یک تجربهٔ خوشایند، لازم نیست فوراً آن را تکرار یا طولانی کنید. هر کدام مشخص کنید دوست دارید کدام بخش در فرصت بعدی دوباره اتفاق بیفتد و کدام بخش بهتر است همان یک بار بماند.`;
       roles[primary.pointA.chartSide] = "در ساختن فضای خوشایند مشترک سهم دارد.";
       roles[primary.pointB.chartSide] = "در انتخاب تجربه‌ای که برای هر دو دلپذیر است سهم دارد.";
+    } else if (venus && uranus && ["square", "opposition"].includes(primary.aspectId)) {
+      title = "تازگی با ریتم متفاوت";
+      lead = `${describe(primary)} در تعبیر نجومی به تفاوت در استقبال از تغییر اشاره دارد. ${uranus} ممکن است وسط ${setting} پیشنهاد دیگری مطرح کند، در حالی که ${venus} هنوز از انتخاب قبلی لذت می‌برد. تازه بودن برای هر دو الزاماً در همان لحظه خوشایند نیست.`;
+      example = `در ${activity}، ابتدا انتخابی را که هنوز برای ${venus} جذاب است کامل کنید؛ سپس پیشنهاد تازهٔ ${uranus} را جداگانه بسنجید.`;
+      strength = "تجربهٔ آشنا و گزینهٔ تازه می‌توانند هر دو بخشی از وقت مشترک باشند.";
+      challenge = "رد کردن یک پیشنهاد تازه به معنای رد کردن خودِ پیشنهاددهنده نیست.";
+      step = `برای یک تجربهٔ مشترک، ${uranus} فقط یک تغییر پیشنهاد کند و ${venus} انتخاب کند آیا همین بار آن را امتحان کند یا نه.`;
+      assign(primary, "uranus", "گزینهٔ تازه‌ای پیش می‌کشد.");
+      assign(primary, "venus", "خوشایندی تغییر را از سلیقهٔ خودش می‌سنجد.");
+    } else if (venus && owner(primary, "mars") && smooth) {
+      const mars = owner(primary, "mars");
+      title = "از پسندیدن تا همراه شدن";
+      lead = `${describe(primary)} در تعبیر نجومی به پیوند میان پسندیدن و پیش‌قدم شدن اشاره دارد. در ${setting}، ${venus} چیزی را که دوست دارد انتخاب می‌کند و ${mars} راهی برای تجربه کردن آن پیشنهاد می‌دهد.`;
+      example = `در ${activity}، ${venus} بخش دلخواهش را نشان می‌دهد و ${mars} برای شروع همان بخش آماده می‌شود.`;
+      strength = "انتخاب و ابتکار وقتی مکمل یکدیگرند که هر دو از تجربه لذت ببرند.";
+      challenge = `آمادگی ${mars} برای شروع، به‌تنهایی آمادگی ${venus} را مشخص نمی‌کند.`;
+      step = `پیش از شروع، ${mars} بپرسد آیا ${venus} همین حالا مایل به امتحان کردن آن است یا ترجیح می‌دهد بعداً سراغش بروند.`;
+      assign(primary, "venus", "ترجیح خود را وارد تجربه می‌کند.");
+      assign(primary, "mars", "برای شروع تجربه پیش‌قدم می‌شود.");
     } else {
       title = "سرنخی برای شناخت تجربهٔ مشترک";
       lead = `${describe(primary)} شاهد تخصیص‌یافتهٔ این فصل است. برای تعیین شکل دقیق کشش یا نزدیکی در این ترکیب هنوز تفسیر اختصاصی کافی نداریم.`;
@@ -881,12 +903,38 @@ function buildAttractionChapter(
       const mars = owner(support, "mars");
       const secondaryVenus = owner(support, "venus");
       if (secondarySun && mars) {
-        strength += ` شاهد پشتیبان، ${describe(support)}، به میل برای مشارکت فعال در شوق دیگری اشاره دارد. ${secondarySun} جرقهٔ علاقه را می‌زند و ${mars} برای شریک شدن در آن پیش‌قدم می‌شود؛ ${venus && uranus ? "مثلاً خودش پیشنهاد تازه را عملی می‌کند" : "مثلاً در تمرین قطعهٔ بعدی نقش همراه را بر عهده می‌گیرد"}. اینجا همراهی فقط تماشا کردن نیست.`;
+        const scene = venus && uranus
+          ? (romantic ? `اگر ${secondarySun} در یک بازارچه غرفه‌ای را کشف کند، ${mars} خودش پیشنهاد می‌دهد با هم چیزی را امتحان کنند.` : `در ${activity}، ${mars} داوطلب امتحان کردن پیشنهاد تازهٔ ${secondarySun} می‌شود.`)
+          : (romantic ? `مثلاً ${mars} به جای تماشای سرگرمی ${secondarySun}، برای یک بار همراهش تمرین می‌کند و به آن رنگ خودش را می‌دهد.` : `در ${activity}، ${mars} سهمی مستقل در اجرا می‌گیرد، نه اینکه فقط نتیجه را تحسین کند.`);
+        strength += ` ${describe(support)} نیز در تعبیر نجومی بُعد عملی این رغبت را نشان می‌دهد. ${scene}`;
         addEvidence(support, "شاهد پشتیبان کشش و صمیمیت");
       } else if (secondarySun && secondaryVenus) {
-        strength += ` شاهد پشتیبان، ${describe(support)}، لایهٔ دیگری اضافه می‌کند: برای ${secondaryVenus} فقط شباهت انتخاب‌ها مهم نیست؛ شیوه‌ای که ${secondarySun} به انتخاب خودش رنگ شخصی می‌دهد هم جاذبه دارد. حتی وقتی دو سلیقه کاملاً منطبق نیستند، این تفاوت هم می‌تواند بخشی از لذت همراهی باشد.`;
+        strength += ` اما لازم نیست همیشه انتخاب یکسانی داشته باشند. ${describe(support)} در تعبیر نجومی به پسندیدن شیوهٔ شخصی دیگری هم اشاره دارد. ${secondarySun} شاید برای یک تجربه جزئی متفاوت برگزیند و ${secondaryVenus} از دیدن آن زاویهٔ تازه لذت ببرد.`;
         addEvidence(support, "شاهد پشتیبان کشش و صمیمیت");
       }
+    }
+    // Only allocated, exact individual context can refine a supported interaction.
+    // Do not infer a person’s sign or degree from reference-time estimates.
+    const contacts = [primary, ...(support && evidence.some(e => e.id === support.id + "-attraction-intimacy") ? [support] : [])];
+    const points = contacts.flatMap(c => [c.pointA, c.pointB]);
+    const rules: Record<string, string> = {
+      "venus:jupiter:conjunction": "در این خوانش، لذت از یک انتخاب می‌تواند میل به گسترش آن تجربه را برانگیزد؛ مثلاً پس از کشف چیزی دلپذیر، پیشنهاد کند بخش دیگری از همان تجربه را هم امتحان کنند.",
+      "venus:mars:conjunction": "در این خوانش، پسندیدن و پیش‌قدم شدن در تجربه به هم پیوند می‌خورند؛ برای نمونه، پس از استقبال از یک سرگرمی، خودش هم چیزی به شیوهٔ انجام آن اضافه کند.",
+      "sun:venus:conjunction": "در این خوانش، سلیقه با شیوهٔ ابراز خود پیوند دارد؛ برای نمونه، خودش جزئی کوچک از فضای مشترک را انتخاب کند که رنگ شخصی او را دارد.",
+    };
+    for (const item of plan?.natalContext ?? []) {
+      const pair = [item.firstPointId, item.secondPointId];
+      const point = points.find(p => p.chartId === item.ownerChartId && pair.includes(p.id));
+      if (!point || evidence.some(e => e.id === item.evidenceId)) continue;
+      const valid = plan?.context.find(c => c.ownerChartId === point.chartId && c.pointId === point.id);
+      if (!valid || valid.birthTimeStatus !== "exact" || valid.limitation) continue;
+      const key = pair.join(":") + ":" + item.aspectId;
+      const rule = rules[key] ?? rules[[...pair].reverse().join(":") + ":" + item.aspectId];
+      if (!rule) continue;
+      const labelMap: Record<string, string> = { sun: "خورشید", venus: "زهره", mars: "مریخ", jupiter: "مشتری" };
+      const description = `${aspects[item.aspectId]} ${labelMap[pair[0]]} و ${labelMap[pair[1]]} در چارت ${names[point.chartSide]}`;
+      example += ` ${description} زمینهٔ فردی این برداشت است: ${rule}`;
+      evidence.push({ id: item.evidenceId, label: "جنبهٔ فردی مرتبط با کشش و صمیمیت", detail: description + "." });
     }
   }
   return {
