@@ -496,7 +496,7 @@ function buildCommunicationChapter(
   }
   if (support && secondarySun && secondaryMercury && secondarySun !== secondaryMercury &&
       (support.aspectId === "opposition" || support.aspectId === "square") && !sun) {
-    challenge += ` استثنا زمانی پیدا می‌شود که موضوع، سلیقهٔ شخصی باشد. اگر ${secondarySun} از یک سبک طراحی دفاع کند و ${secondaryMercury} ایراد اجرایی بگیرد، ممکن است پاسخ به پرسشی دربارهٔ زیبایی، صرفاً بررسی امکان اجرا باشد. این تفاوت را ${relationship(support)} برجسته می‌کند.`;
+    challenge += ` محدودیت دیگری از ${relationship(support)} پیداست: اگر ${secondarySun} دو پوستر را از نظر زیبایی مقایسه کند و ${secondaryMercury} خوانایی متن را بسنجد، هر دو ممکن است به نتیجه‌ای معتبر اما متفاوت برسند. آزمون خوانایی دربارهٔ زیبایی داوری نمی‌کند.`;
     evidence.push(evidenceFor(support, "شاهد پشتیبان"));
   }
   // Only context assigned by the evidence planner is eligible here. Reference-time
@@ -505,9 +505,9 @@ function buildCommunicationChapter(
     "mercury:aries": { sign: "اریز", sentence: (description) => ` در این صحنه، مستقیم بودن پرسش با تعبیر نجومی ${description} هم‌خوان است؛ کوتاهی سؤال هنوز نشانهٔ مخالفت نیست.` },
     "sun:libra": { sign: "لیبرا", sentence: (description) => ` در خوانش ${description}، مقایسهٔ چند معیار می‌تواند راهی برای توضیح دادن یک ترجیح باشد، نه صرفاً دفاع از آن.` },
     "moon:taurus": { sign: "تارس", sentence: (description) => ` در تعبیر ${description}، همین جزئیات قابل یادآوری به روشن شدن داستان کمک می‌کنند.` },
-    "mercury:cancer": { sign: "کنسر", sentence: (description) => ` خوانش ${description} نیز به اهمیت موقعیت بیان حرف اشاره دارد: یک جمله پیش از تصمیم و پس از آن معنای یکسانی ندارد.` },
+    "mercury:cancer": { sign: "کنسر", sentence: (description) => ` خوانش ${description} نیز به اهمیت موقعیت بیان حرف اشاره دارد: شناخت مخاطب و دلیل گفته شدن آن جمله نیز به فهم معنایش کمک می‌کند.` },
     "mars:libra": { sign: "لیبرا", sentence: (description) => ` ${description} در تعبیر نجومی وجه دیگری به این همکاری می‌دهد: انتخاب روشی که هر دو بتوانند در آزمودنش مشارکت کنند.` },
-    "mercury:virgo": { sign: "ویرگو", sentence: (description) => ` تعبیر ${description} به تفکیک ایراد اجرایی از ارزش کلی طرح کمک می‌کند؛ دقیقاً همان تمایزی که در این مثال لازم است.` },
+    "mercury:virgo": { sign: "ویرگو", sentence: (description) => ` در تعبیر ${description}، توجه به ایرادهای جزئی ابزار بررسی است، نه معیار یگانهٔ ارزش یک طرح.` },
   };
   const seenContext = new Set<string>();
   for (const point of [primary.pointA, primary.pointB, ...(support ? [support.pointA, support.pointB] : [])]) {
