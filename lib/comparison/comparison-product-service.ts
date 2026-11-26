@@ -340,6 +340,9 @@ function buildNarrativeChapters(
   const boundaryPlan = evidencePlan.chapterPlans.find(
     (chapter) => chapter.chapter === "boundaries-commitment",
   );
+  const frictionPlan = evidencePlan.chapterPlans.find(
+    (chapter) => chapter.chapter === "friction-repair",
+  );
   return specs.map((spec) => {
     if (spec.id === "communication") {
       const primary = report.contacts.find((contact) => contact.id === communicationPlan?.primary?.id);
@@ -389,22 +392,13 @@ function buildNarrativeChapters(
         block: buildBoundaryChapter(primary, support, labels, report.relationshipContext, boundaryPlan),
       };
     }
-    const crossReference = contact
-      ? null
-      : primaryPatterns.find((pattern) =>
-          pattern.contactIds.some((contactId) => {
-            const patternContact = report.contacts.find((item) => item.id === contactId);
-            return patternContact ? spec.predicate(patternContact) : false;
-          }),
-        ) ?? null;
+    const primary = report.contacts.find(item => item.id === frictionPlan?.primary?.id);
+    const support = report.contacts.find(item => item.id === frictionPlan?.support?.id);
     return {
-      id: spec.id,
-      eyebrow: spec.eyebrow,
-      title: spec.title,
-      ownerContactId: contact?.id ?? null,
-      crossReferencePatternId: crossReference?.id ?? null,
-      crossReferencePatternTitle: crossReference?.title ?? null,
-      block: buildDirectionalBlock(spec.section, contact, labels, spec.fallback),
+      id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
+      ownerContactId: primary?.id ?? null,
+      crossReferencePatternId: null, crossReferencePatternTitle: null,
+      block: buildFrictionChapter(primary, support, labels, report.relationshipContext, frictionPlan),
     };
   });
 }
@@ -1150,6 +1144,128 @@ function buildBoundaryChapter(
   const unknownRole = "انتظار اختصاصی او دربارهٔ قول یا استقلال از این شاهد روشن نیست.";
   return {
     id: primary ? "boundaries-commitment-" + primary.id : "boundaries-commitment-insufficient",
+    title, humanExperience: lead, dailySituation: example, strength, challenge,
+    practicalStep: step, evidence,
+    personA: roles.a ?? unknownRole, personB: roles.b ?? unknownRole,
+    feelingOrReaction: challenge, effect: strength, cycle: example,
+  };
+}
+
+/** Describe escalation and repair, not the original disagreement or a diagnosis. */
+function buildFrictionChapter(
+  primary: SynastryInterChartAspect | undefined,
+  support: SynastryInterChartAspect | undefined,
+  labels: { a: string; b: string },
+  relationship: RealSynastryReport["relationshipContext"],
+  plan: ReturnType<typeof buildComparisonEvidencePlan>["chapterPlans"][number] | undefined,
+): HumanFirstDirectionalNarrativeBlock {
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" } : labels;
+  const roles: Partial<Record<Side, string>> = {};
+  const evidence: HumanFirstEvidence[] = [];
+  const side = (c: SynastryInterChartAspect, id: string) =>
+    c.pointA.id === id ? c.pointA.chartSide : c.pointB.id === id ? c.pointB.chartSide : null;
+  const owner = (c: SynastryInterChartAspect, id: string) => {
+    const s = side(c, id);
+    return s ? names[s] : null;
+  };
+  const assign = (c: SynastryInterChartAspect, id: string, role: string) => {
+    const s = side(c, id);
+    if (s) roles[s] = role;
+  };
+  const aspects: Record<string, string> = {
+    conjunction: "هم‌نشینیِ", opposition: "مقابلهٔ", square: "مربعِ",
+    trine: "تثلیثِ", sextile: "سکستایلِ",
+  };
+  const pointName = (p: SynastryInterChartAspect["pointA"]) =>
+    ({ asc: "اسندنت", dsc: "دیسندنت", ic: "آی‌سی", mc: "ام‌سی" } as Record<string, string>)[p.id] ?? p.label;
+  const ezafe = (p: SynastryInterChartAspect["pointA"]) => {
+    const name = pointName(p);
+    return name + (name.endsWith("ه") ? "ٔ" : name.endsWith("و") ? "ی" : "ِ");
+  };
+  const describe = (c: SynastryInterChartAspect) =>
+    `${aspects[c.aspectId] ?? c.aspectLabel} ${ezafe(c.pointA)} ${names[c.pointA.chartSide]} با ${ezafe(c.pointB)} ${names[c.pointB.chartSide]}`;
+  const addEvidence = (c: SynastryInterChartAspect, label: string) => {
+    if (!evidence.some(e => e.id === c.id + "-friction-repair"))
+      evidence.push({ id: c.id + "-friction-repair", label, detail: describe(c) + "." });
+  };
+  const scenes = {
+    romantic: { immediate: "در یک آشپزخانهٔ شلوغ، یکی وسط کار دیگری دست به کار می‌شود", control: "هنگام جمع‌کردن وسایل برای بیرون رفتن", verbal: "هنگام پیدا کردن یک وسیلهٔ گمشده", privateSpace: "وسط یک اختلاف در فضای خانه" },
+    friendship: { immediate: "در آماده‌کردن میز یک دورهمی، یکی وسط کار دیگری دست به کار می‌شود", control: "هنگام جمع‌کردن وسایل یک گردش", verbal: "هنگام پیدا کردن نشانی یک مقصد", privateSpace: "وسط یک اختلاف در جمع دوستان" },
+    family: { immediate: "در آماده‌کردن یک وعدهٔ خانوادگی، یکی وسط کار دیگری دست به کار می‌شود", control: "هنگام مرتب‌کردن وسایل مشترک", verbal: "هنگام پیدا کردن یک مدرک گمشده", privateSpace: "وسط یک اختلاف خانوادگی" },
+    work: { immediate: "در آماده‌کردن یک فایل، یکی وسط کار دیگری دست به کار می‌شود", control: "هنگام رفع یک اشکال در فایل مشترک", verbal: "هنگام پیدا کردن علت یک خطای فنی", privateSpace: "وسط یک اختلاف در جلسه" },
+    general: { immediate: "در آماده‌کردن یک کار مشترک، یکی وسط کار دیگری دست به کار می‌شود", control: "هنگام مرتب‌کردن وسایل مشترک", verbal: "هنگام پیدا کردن علت یک اشکال", privateSpace: "وسط یک اختلاف در جمع" },
+  }[relationship];
+  let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
+  if (!primary || plan?.status !== "supported") {
+    title = "اختلاف از کجا بزرگ‌تر می‌شود؟";
+    lead = primary
+      ? `${describe(primary)} در نقشهٔ این فصل شاهد محدودی است؛ از آن نمی‌توان ترتیب واکنش‌های این دو نفر هنگام اختلاف را تعیین کرد.`
+      : "شاهد اختصاصی کافی برای تعیین چرخهٔ تنش این دو نفر در دست نیست.";
+    if (primary) addEvidence(primary, "شاهد محدود اصطکاک و ترمیم");
+    example = "برای شناخت چرخه، یک اختلاف واقعی را از لحظه‌ای که شدت گرفت مرور کنید؛ چه رفتار قابل مشاهده‌ای پیش از تغییر لحن اتفاق افتاد؟";
+    strength = "تفاوت میان موضوع اولیه و واکنشی که اختلاف را بزرگ‌تر کرد، نقطهٔ مناسبی برای پیدا کردن راه برگشت است.";
+    challenge = "از این دادهٔ محدود نمی‌توان تعیین کرد کدام نفر بیشتر به دفاع یا فاصله گرفتن روی می‌آورد.";
+    step = "یک پیشنهاد عمومی: هر نفر یک رفتار قابل تغییر از جانب خودش انتخاب کند و زمان مناسبی برای بازگشت به موضوع تعیین کنید.";
+  } else {
+    addEvidence(primary, "شاهد اصلی اصطکاک و ترمیم");
+    const mars = owner(primary, "mars");
+    const asc = owner(primary, "asc");
+    const pluto = owner(primary, "pluto");
+    const mercury = owner(primary, "mercury");
+    if (mars && asc) {
+      title = "وقتی مداخله به واکنش متقابل تبدیل می‌شود";
+      lead = `${mars} برای جلو بردن کار وارد عمل می‌شود و ${asc} همان مداخله را ممکن است فشار مستقیم تجربه کند. ${describe(primary)} در خوانش نجومی این برخوردِ اقدام و واکنش فوری را برجسته می‌کند. اگر ${asc} مقاومت کند و ${mars} بر ادامهٔ کار اصرار کند، مسئله از خود کار بزرگ‌تر می‌شود.`;
+      example = `${scenes.immediate}. اگر ${mars} بدون مکث بخواهد روش کار را اصلاح کند، ${asc} می‌تواند دستش را کنار بزند یا بگوید «خودم انجامش می‌دم». ادامهٔ مداخله بعد از این پاسخ، جرقه را به رویارویی تبدیل می‌کند.`;
+      strength = `نقطهٔ برگشت لحظه‌ای است که ${mars} مداخله را متوقف کند و ${asc} مشخص کند کدام کمک را می‌پذیرد. توقف عمل هنوز به معنی حل مسئله نیست؛ فقط فرصت می‌دهد بدون فشار دربارهٔ کار ناتمام تصمیم بگیرند.`;
+      challenge = "هر بار که یکی پاسخ دفاعی دیگری را با عمل شدیدتری جواب بدهد، موضوع تازه‌ای برای جبران به اختلاف اولیه اضافه می‌شود.";
+      step = `${mars} قبل از تکرار اقدام دست نگه دارد؛ ${asc} یک درخواست مشخص بدهد: «فعلاً این بخش رو بذار خودم انجام بدم؛ اگه کمک خواستم می‌گم.» بعد از فروکش تنش، اگر لحن تند شده بابت همان رفتار عذرخواهی کنید.`;
+      assign(primary, "mars", "با ادامهٔ اقدام پس از مقاومت می‌تواند تنش را بیشتر کند؛ توقف مداخله نقطهٔ برگشت اوست.");
+      assign(primary, "asc", "به مداخلهٔ مستقیم واکنش فوری نشان می‌دهد؛ مشخص کردن کمک قابل قبول نقطهٔ برگشت اوست.");
+    } else if (mars && pluto) {
+      title = "وقتی حل یک مسئله به کشمکش بر سر برنده تبدیل می‌شود";
+      lead = `${mars} می‌خواهد اختلاف به یک اقدام مشخص برسد؛ ${pluto} ممکن است اصرار بر آن اقدام را تلاش برای تحمیل نتیجه بشنود. ${describe(primary)} در خوانش نجومی از امکان تشدید متقابل خبر می‌دهد: هرچه یکی محکم‌تر بر راه خودش بایستد، دیگری سخت‌تر از موضعش کوتاه می‌آید.`;
+      example = `${scenes.control}، فرض کنید ${mars} می‌خواهد یک راه را فوراً امتحان کند. اگر ${pluto} به جای بررسی همان راه، تمام پیشنهادها را متوقف کند، ${mars} ممکن است خودش شروع به کار کند. حالا بحث دیگر بر سر نتیجهٔ بهتر نیست؛ هر نفر می‌خواهد پاسخ دیگری را عوض کند.`;
+      strength = `برای بازگشت، ${pluto} یک نگرانی مشخص دربارهٔ نتیجه را از حق تصمیم گرفتن جدا کند. ${mars} هم اقدامی را پیشنهاد کند که قابل بازگشت باشد. یک آزمون کوچک به هر دو اجازه می‌دهد بدون تسلیم شدن، شواهد تازه‌ای برای تصمیم داشته باشند.`;
+      challenge = "تهدید، تحقیر یا گرفتن اختیار از دیگری راه ترمیم نیست؛ هیچ جنبهٔ نجومی هم به معنای وقوع یا توجیه این رفتارها نیست.";
+      step = "وقتی بحث به اثبات حقانیت کشیده شد، اقدام یک‌طرفه را متوقف کنید. پس از مکث، روی یک معیار قابل مشاهده برای ارزیابی دو راه توافق کنید و فقط همان مسئله را دوباره باز کنید.";
+      assign(primary, "mars", "برای پایان دادن به اختلاف به اقدام رو می‌آورد؛ پیشنهاد آزمون برگشت‌پذیر مسیر ترمیم اوست.");
+      assign(primary, "pluto", "ممکن است در برابر تحمیل نتیجه سخت‌تر بر موضع بایستد؛ بیان نگرانی مشخص مسیر ترمیم اوست.");
+    } else if (mars && mercury) {
+      title = "وقتی هر توضیح، پاسخ تندتری به دنبال می‌آورد";
+      lead = `${mercury} با توضیح بیشتر می‌خواهد اختلاف را حل کند و ${mars} وقتی بحث طولانی می‌شود به سمت عمل یا جواب فوری می‌رود. ${describe(primary)} در خوانش نجومی نشان می‌دهد چگونه تکرار توضیح و قطع کردن آن می‌توانند یکدیگر را تشدید کنند.`;
+      example = `${scenes.verbal}، ${mercury} دلیل اتفاق را دوباره توضیح می‌دهد و ${mars} وسط جمله می‌گوید «خب، حالا چی کار کنیم؟». اگر نفر اول همان توضیح را از ابتدا با صدای بلندتر شروع کند، نفر دوم هم برای ختم بحث سریع‌تر جواب می‌دهد.`;
+      strength = `ترمیم از لحظه‌ای شروع می‌شود که ${mercury} ادامهٔ استدلال را به بعد موکول کند و ${mars} اجازه دهد یک جملهٔ ناتمام کامل شود. سپس به جای بازکردن تمام بحث، یک مسئلهٔ فوری برای حل و یک مسئلهٔ باقی‌مانده برای بررسی بعدی تعیین کنند.`;
+      challenge = "اگر در پایان اختلاف فقط کار فوری انجام شده باشد، هنوز باید به قطع کردن حرف یا تندی لحن رسیدگی شود؛ انجام کار جای ترمیم رفتار را نمی‌گیرد.";
+      step = `${mercury} یک جمله دربارهٔ کاری که اکنون لازم است بگوید؛ ${mars} پیش از اقدام همان درخواست را بازگو کند. بعد از رفع مسئله، هر نفر بابت رفتار مشخص خودش در لحظهٔ تشدید مسئولیت بپذیرد، نه بابت داشتن نظر متفاوت.`;
+      assign(primary, "mercury", "توضیح را در پاسخ به قطع شدن تکرار می‌کند؛ توقف تکرار و تعیین مسئلهٔ فوری مسیر ترمیم اوست.");
+      assign(primary, "mars", "می‌خواهد بحث را با عمل یا پاسخ سریع تمام کند؛ کامل شنیدن یک جمله مسیر ترمیم اوست.");
+    } else {
+      title = "پیش از اینکه واکنش به واکنش تبدیل شود";
+      lead = `${describe(primary)} شاهد تخصیص‌یافتهٔ این فصل است. این تماس امکان اصطکاک را مطرح می‌کند، اما برای تعیین شکل دقیق چرخهٔ این دو نفر باید نوع واکنش‌ها را با تجربهٔ خودشان بررسی کرد.`;
+      example = `فرض کنید ${scenes.privateSpace} شدت بحث بالا رفته است؛ نخستین تغییر قابل مشاهده در رفتار هر نفر را از موضوع اصلی جدا کنید.`;
+      strength = "توقف رفتار تشدیدکننده فرصتی می‌دهد که بعداً فقط به موضوع اصلی برگردید.";
+      challenge = "برای این ترکیب نمی‌توان یک نقش ثابت در آغاز یا پایان اختلاف به هر نفر نسبت داد.";
+      step = "هنگام بازگشت به بحث، هر نفر یک رفتار مشخص خودش را نام ببرد که می‌تواند دفعهٔ بعد تغییر دهد.";
+    }
+    if (support && support.id !== primary.id) {
+      addEvidence(support, "شاهد پشتیبان اصطکاک و ترمیم");
+      const sm = owner(support, "mars");
+      const sic = owner(support, "ic");
+      const sa = owner(support, "asc");
+      if (sm && sic) {
+        challenge += ` ${describe(support)} لایهٔ دیگری را به خوانش اضافه می‌کند: ${scenes.privateSpace}، اگر ${sm} برای گرفتن پاسخ بحث را دنبال کند، ${sic} ممکن است مکث را ضروری بداند. در این موقعیت دنبال کردن بحث پس از درخواست توقف، تنش را دوباره فعال می‌کند؛ فرصت برگشت به گفت‌وگو را از پیش مشخص کنید.`;
+      } else if (sm && sa) {
+        challenge += ` ${describe(support)} نشان می‌دهد برخورد مستقیمِ ${sm} با واکنش فوریِ ${sa} می‌تواند مسیر تشدید را کوتاه‌تر کند. هنگام مکث، کنار کشیدن از کار یا قطع یک حرکت عملی از ادامهٔ مجادله جلوگیری می‌کند؛ درخواست توقف را با تلاش دیگری برای اثبات نظر جواب ندهید.`;
+      } else {
+        challenge += ` شاهد پشتیبان، ${describe(support)}، امکان بررسی یک لایهٔ دیگر از واکنش را می‌دهد؛ نوع آن باید جدا از الگوی اصلی و بدون فرض نقش تازه بررسی شود.`;
+      }
+    }
+  }
+  const unknownRole = "نقش اختصاصی او در تشدید یا ترمیم اختلاف از این شاهد روشن نیست.";
+  return {
+    id: primary ? "friction-repair-" + primary.id : "friction-repair-insufficient",
     title, humanExperience: lead, dailySituation: example, strength, challenge,
     practicalStep: step, evidence,
     personA: roles.a ?? unknownRole, personB: roles.b ?? unknownRole,
