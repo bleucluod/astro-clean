@@ -1055,8 +1055,8 @@ function buildBoundaryChapter(
     }[target];
     const lens = {
       saturn: "انتظار از مسئولیت و ثبات",
-      uranus: "نیاز به تغییر و آزادی عمل",
-      pluto: "حساسیت به دامنهٔ اختیار و نفوذ",
+      uranus: "تمایل به تغییر و آزادی عمل",
+      pluto: "پرسشِ اختیار و نفوذ در تصمیم",
     }[outer];
     return { holder, person, target, outer, tense, domain, lens };
   };
@@ -1067,9 +1067,9 @@ function buildBoundaryChapter(
       ? `${describe(primary)} تماسی میان دو سیارهٔ کند است. در این خوانش، چنین شاهدی برای شناخت انتظار شخصی هر نفر از قول و استقلال کافی نیست.`
       : "شاهد اختصاصی کافی برای توصیف انتظار این دو نفر از قول و مسئولیت در دست نیست.";
     if (primary) addEvidence(primary, "شاهد محدود مرز و تعهد");
-    example = `وقتی صحبت از ${scenes.uncertain} است، ${terms.limited}.`;
-    strength = "پیش از پاسخ، مشخص کنید چه اطلاعاتی هنوز کم است؛ مثلاً زمان آزاد یا هزینهٔ نهایی. این فاصله برای تصمیم‌گرفتن است، نه قبول ضمنی پیشنهاد.";
-    challenge = "پاسخ دیرهنگام یا سکوت را موافقت فرض نکنید.";
+    example = `در تصمیم دربارهٔ ${scenes.uncertain}، ${terms.limited}.`;
+    strength = "پیش از پاسخ، مشخص کنید چه اطلاعاتی هنوز کم است؛ مثلاً زمان آزاد یا هزینهٔ نهایی. مثلاً پیش از خرید یا تعیین موعد، گزینهٔ قابل‌لغو را از گزینهٔ قطعی جدا کنید.";
+    challenge = "اگر تا موعد پاسخ نرسید، سکوت را موافقت فرض نکنید.";
     step = `یک توافق کوتاه برای همین موقعیت: «${terms.limit}». این یک پیشنهاد عمومی برای روشن‌کردن توافق است.`;
   } else {
     addEvidence(primary, "شاهد اصلی مرز و تعهد");
@@ -1090,22 +1090,22 @@ function buildBoundaryChapter(
           side(support, "saturn") !== side(primary, "saturn")) {
         const otherSaturn = owner(support, "saturn");
         const otherVenus = owner(support, "venus");
-        strength += ` در تماس دوم، ${describe(support)}، این بار ${otherSaturn} است که روی تعهد حساب می‌کند${support.aspectId === "square" || support.aspectId === "opposition" ? " و انتخاب شخصی نفر دیگر ممکن است با قرار قبلی جور درنیاید" : ""}. فرض کنید ${otherVenus} برای ${scenes.personal} وقت گذاشته و ${concrete.clash}. اگر ${otherVenus} بتواند سهم مشترک را در ساعتی دیگر انجام دهد، ${otherSaturn} باید دربارهٔ همان تغییر تصمیم بگیرد، نه دربارهٔ ارزش برنامهٔ شخصی او.`;
+        strength += ` در تماس دوم، ${describe(support)}، این بار ${otherSaturn} است که روی تعهد حساب می‌کند${support.aspectId === "square" || support.aspectId === "opposition" ? " و انتخاب شخصی نفر دیگر ممکن است با قرار قبلی جور درنیاید" : ""}. فرض کنید ${otherVenus} برای ${scenes.personal} وقت گذاشته و ${concrete.clash}. اگر ${otherVenus} بتواند سهم مشترک را در ساعتی دیگر انجام دهد، ${otherSaturn} می‌تواند دربارهٔ تغییر سهم مشترک نظر بدهد، نه دربارهٔ ارزش برنامهٔ شخصی او.`;
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     } else if (saturn && dsc) {
       title = "چه کسی مسئول کدام بخش است؟";
       lead = `در ${scenes.duty}، برای ${dsc} مهم است بداند کدام بخش را می‌تواند به ${saturn} بسپارد. ${describe(primary)} در خوانش نجومی مسئولیت را به نقطهٔ شراکت در چارت ${dsc} پیوند می‌دهد. اینجا معیار اعتماد، انجام کاری است که دیگری پذیرفته، نه تعداد کارهایی که به عهده گرفته است.`;
-      example = `مثلاً ${saturn} مسئولیت ${scenes.handoff} را می‌پذیرد. به جای اینکه ${dsc} هر مرحله را دوباره پیگیری کند، می‌توانند از پیش تعیین کنند ${saturn} چه زمانی نتیجه را به ${dsc} اطلاع دهد. سپس برای ${concrete.next} تصمیم می‌گیرند.`;
-      strength = `${terms.review}. این سقف اختیار را پیشاپیش تعیین کنید تا ${saturn} برای تصمیم‌های کوچک منتظر نماند و ${dsc} در تصمیم‌های مهم غافلگیر نشود. برای کار تکرارشونده نیز می‌توان یک دورهٔ مشخص تعیین کرد؛ مسئولیت یک نوبت، تعهد همیشگی نیست.`;
-      challenge = "تقسیم کار موفق ممکن است باعث شود کار تازه‌ای را بدون توافق به همان مسئولیت قبلی اضافه کنید.";
+      example = `مثلاً ${saturn} مسئولیت ${scenes.handoff} را می‌پذیرد. به جای اینکه ${dsc} هر مرحله را دوباره پیگیری کند، می‌توانند از پیش تعیین کنند ${saturn} چه زمانی نتیجه را به ${dsc} اطلاع دهد. سپس دربارهٔ ${concrete.next} با هم تصمیم می‌گیرند.`;
+      strength = `${terms.review}. این سقف اختیار را پیشاپیش تعیین کنید تا ${saturn} برای تصمیم‌های کوچک منتظر نماند و ${dsc} در تصمیم‌های مهم غافلگیر نشود. اگر کار تازه‌ای پیش آمد، ابتدا روشن کنید داخل همین سهم است یا باید جداگانه پذیرفته شود.`;
+      challenge = "گاهی یک توافق کاری یا اجرایی از محدودهٔ خودش فراتر می‌رود.";
       step = "برای یک کار تکراری، پایان دورهٔ آزمایشی تعیین کنید؛ آن روز بررسی کنید تقسیم کار هنوز برای هر دو مناسب است یا باید عوض شود.";
       assign(primary, "saturn", "معیار مسئولیت و امکان اتکا را وارد توافق می‌کند.");
       assign(primary, "dsc", "از رفتار مشخص طرف مقابل معنای شراکت را می‌سنجد.");
       if (support && owner(support, "saturn") && owner(support, "ic")) {
         const privateSide = owner(support, "ic");
         const dutySide = owner(support, "saturn");
-        challenge += ` ${describe(support)} در خوانش نجومی، با توجه به معنای آی‌سی به‌عنوان نقطهٔ زندگی خصوصی، ${support.aspectId === "square" || support.aspectId === "opposition" ? "مرز میان مسئولیتی که یک نفر انتظار دارد و حریمی که نفر دیگر خودش اداره می‌کند را برجسته می‌کند" : "ارتباط مسئولیت مشترک با حریم شخصی را برجسته می‌کند"}. فرض کنید ${dutySide} بخواهد ${concrete.privacy(privateSide)}. در این موقعیت ${privateSide} می‌تواند درخواست تازه را رد کند، بدون اینکه تعهد قبلی‌اش لغو شود.`;
+        challenge += ` ${describe(support)} در خوانش نجومی ${support.aspectId === "square" || support.aspectId === "opposition" ? "تفاوت میان انتظار از مسئولیت و اختیار در زندگی خصوصی را برجسته می‌کند" : "رابطهٔ مسئولیت مشترک با حریم زندگی خصوصی را برجسته می‌کند"}. آی‌سی به حریم خانه و زندگی خصوصی مربوط است. فرض کنید ${dutySide} بخواهد ${concrete.privacy(privateSide)}. در این موقعیت ${privateSide} می‌تواند درخواست تازه را رد کند، بدون اینکه تعهد قبلی‌اش لغو شود.`;
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     } else if (saturn && ["sun", "asc", "ic", "mc"].some(id => owner(primary, id))) {
@@ -1124,7 +1124,7 @@ function buildBoundaryChapter(
     } else if (boundaryLens(primary)) {
       const lens = boundaryLens(primary)!;
       title = lens.outer === "uranus" ? "کجا تغییر برنامه به توافق تازه نیاز دارد؟" : "اختیار هر نفر در تصمیم مشترک";
-      lead = `${describe(primary)} در خوانش نجومی ${lens.tense ? "تفاوت احتمالی میان" : "پیوند میان"} ${lens.lens} در سمت ${lens.holder} و ${lens.domain.topic} ${lens.person} را مطرح می‌کند. این تماس به‌تنهایی رفتار کنترل‌گرانه یا بی‌تعهدی را ثابت نمی‌کند.`;
+      lead = `${describe(primary)} در خوانش نجومی ${lens.tense ? "تفاوت احتمالی میان" : "پیوند میان"} ${lens.lens} برای ${lens.holder} و ${lens.domain.topic} برای ${lens.person} را مطرح می‌کند. این تماس به‌تنهایی رفتار کنترل‌گرانه یا بی‌تعهدی را ثابت نمی‌کند.`;
       example = `فرض کنید ${lens.domain.scene}. در این موقعیت ${lens.domain.rule}.`;
       strength = lens.outer === "uranus" ? "برای تغییر برنامه، بخشی را که هنوز قابل انتخاب است از کاری که قبلاً پذیرفته‌اید جدا کنید؛ به این ترتیب آزادی عمل مستلزم لغو همهٔ توافق‌ها نیست." : "پیش از تصمیمی که برای هر دو پیامد دارد، دامنهٔ اختیار هر نفر را تعیین کنید؛ نظر دادن با حق تصمیم نهایی یکسان نیست.";
       challenge = "پذیرفتن یک پیشنهاد نباید به معنای موافقت با درخواست‌های بعدی باشد.";
@@ -1142,7 +1142,7 @@ function buildBoundaryChapter(
     if (support && !evidence.some(e => e.id === support.id + "-boundaries-commitment")) {
       const extra = boundaryLens(support);
       if (extra) {
-        challenge += ` شاهد دوم، ${describe(support)}، ${extra.tense ? "تفاوت احتمالی میان" : "پیوند میان"} ${extra.lens} در سمت ${extra.holder} و ${extra.domain.topic} ${extra.person} را مطرح می‌کند. فرض کنید ${extra.domain.scene}؛ ${extra.domain.rule}.`;
+        challenge += ` شاهد دوم، ${describe(support)}، ${extra.tense ? "تفاوت احتمالی میان" : "پیوند میان"} ${extra.lens} برای ${extra.holder} و ${extra.domain.topic} برای ${extra.person} را مطرح می‌کند. ${boundaryLens(primary)?.target === extra.target ? `این بار به تصمیمی نگاه کنید که دو نفر باید پیش از انجام آن با هم توافق کنند؛ اگر ${extra.person} سهمی از آن نپذیرفته، صرف نظر ${extra.holder} برای قطعی شدنش کافی نیست.` : `فرض کنید ${extra.domain.scene}؛ ${extra.domain.rule}.`}`;
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     }
