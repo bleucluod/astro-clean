@@ -459,8 +459,8 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
           <section className={styles.technicalDetails}>
             <div className={styles.sectionHeading}>
               <p className={styles.eyebrow}>جزئیات فنی</p>
-              <h2>تماس‌ها را مرحله‌به‌مرحله باز کن</h2>
-              <p>در شروع فقط هشت تماس مهم دیده می‌شود. دسته، polarity و ترتیب نمایش را می‌توانی بدون تغییر خود محاسبه فیلتر کنی.</p>
+              <h2>تماس‌های میان دو چارت</h2>
+              <p>ابتدا هشت تماس با رتبهٔ بالاتر نمایش داده می‌شوند. فیلترها فقط ترتیب و انتخاب نمایش را عوض می‌کنند، نه محاسبه را.</p>
             </div>
             <div className={styles.technicalToolbar}>
               <label className={styles.technicalControl}>
@@ -495,7 +495,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             </div>
 
             {technicalCategory === "houses" ? (
-              <p className={styles.technicalEmpty}>فیلتر خانه‌ها فعال است؛ هم‌پوشانی‌های جهت‌دار پایین نمایش داده می‌شوند.</p>
+              <p className={styles.technicalEmpty}>هم‌پوشانی خانه‌ها، در صورت وجود دادهٔ معتبر، در بخش بعدی نمایش داده می‌شود.</p>
             ) : visibleTechnicalContacts.length > 0 ? (
               <>
                 <div className={styles.contactList}>
@@ -741,10 +741,9 @@ function FullInterpretationReading({
       >
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>تمام تماس‌های محاسبه‌شده</p>
-          <h2>هیچ تماس محاسبه‌شده‌ای فقط به خاطر وزن کمتر حذف نشده است</h2>
+          <h2>توضیح همهٔ تماس‌های ثبت‌شده</h2>
           <p>
-            ترتیب همچنان بر اساس اهمیت است، اما همهٔ تماس‌های موجود explanation،
-            زمینهٔ natal، اثر context و evidence خودشان را دارند.
+            هر تماس با جایگاه دو نفر، فاصلهٔ زاویه‌ای، زمینهٔ فردی و شاهدهای مربوط به خودش نمایش داده می‌شود.
           </p>
         </div>
         <div className={styles.fullInterpretationStack}>
@@ -787,7 +786,7 @@ function FullInterpretationReading({
         >
           <div className={styles.sectionHeading}>
             <p className={styles.eyebrow}>تمام هم‌پوشانی‌های خانه‌ای</p>
-            <h2>اثر هر نفر در زندگی دیگری، با جهت و context روشن</h2>
+            <h2>جایگاه‌های هر نفر در خانه‌های نفر دیگر</h2>
           </div>
           <div className={styles.fullInterpretationStack}>
             {full.overlays.map((overlay) => (
@@ -824,7 +823,7 @@ function FullInterpretationReading({
         data-full-interpretation="natal-context"
       >
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>زمینهٔ natal هر دو نفر</p>
+          <p className={styles.eyebrow}>زمینهٔ چارت تولد هر دو نفر</p>
           <h2>چرا یک تماس مشابه برای این دو نفر الزاماً یکسان تجربه نمی‌شود؟</h2>
         </div>
         <div className={styles.fullInterpretationStack}>
@@ -858,7 +857,7 @@ function FullInterpretationReading({
           <p>{full.calculation.summaryFa}</p>
           <p>{full.calculation.confidenceFa}</p>
           <details className={styles.inlineTechnicalDetails}>
-            <summary>روش‌ها و provenance</summary>
+            <summary>روش‌ها و منشأ داده‌ها</summary>
             <ul className={styles.fullInterpretationFacts}>
               {full.calculation.methodNotesFa.map((item, index) => (
                 <li key={`method-${index}`}>{item}</li>
@@ -895,11 +894,11 @@ function TechnicalEngineAudit({
       data-full-interpretation="technical-audit"
     >
       <div className={styles.sectionHeading}>
-        <p className={styles.eyebrow}>Audit کامل موتور</p>
-        <h2>پوشش تفسیری و snapshot کامل هر دو چارت</h2>
+        <p className={styles.eyebrow}>جزئیات محاسبات موتور</p>
+        <h2>پوشش داده‌ها و اطلاعات خام هر دو چارت</h2>
         <p>
-          این بخش برای audit است: هیچ field موتور به دلیل technical بودن حذف نشده و
-          snapshot کامل در progressive disclosure قابل بررسی است.
+          وضعیت هر دسته از داده‌ها در اینجا ثبت شده است؛ دادهٔ خام هر چارت را نیز می‌توان جداگانه باز کرد.
+          وجود یک مقدار خام لزوماً به معنی اعتبار آن برای تفسیر نیست.
         </p>
       </div>
       <div className={styles.coverageGrid}>
@@ -915,19 +914,19 @@ function TechnicalEngineAudit({
         ))}
       </div>
       <details className={styles.rawEngineDetails}>
-        <summary>Full normalized engine snapshot — نفر اول</summary>
+        <summary>دادهٔ خام موتور — نفر اول</summary>
         <pre className={styles.technicalJson}>
           {JSON.stringify(report.chartA.engineSnapshot ?? null, null, 2)}
         </pre>
       </details>
       <details className={styles.rawEngineDetails}>
-        <summary>Full normalized engine snapshot — نفر دوم</summary>
+        <summary>دادهٔ خام موتور — نفر دوم</summary>
         <pre className={styles.technicalJson}>
           {JSON.stringify(report.chartB.engineSnapshot ?? null, null, 2)}
         </pre>
       </details>
       <details className={styles.rawEngineDetails}>
-        <summary>Full normalized point inventory</summary>
+        <summary>فهرست نقاط ثبت‌شده</summary>
         <pre className={styles.technicalJson}>
           {JSON.stringify(
             {

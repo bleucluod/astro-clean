@@ -39,6 +39,24 @@ const SIGN_LABELS_FA: Record<string, string> = {
   pisces: "حوت",
 };
 
+const PLANET_LABELS_FA: Record<string, string> = {
+  sun: "خورشید", moon: "ماه", mercury: "عطارد", venus: "زهره", mars: "مریخ",
+  jupiter: "مشتری", saturn: "زحل", uranus: "اورانوس", neptune: "نپتون", pluto: "پلوتو",
+  asc: "طالع", dsc: "نزول", mc: "میانهٔ آسمان", ic: "پایین آسمان",
+};
+const SIGNATURE_LABELS_FA: Record<string, string> = {
+  fire: "آتش", earth: "خاک", air: "هوا", water: "آب", cardinal: "آغازگر",
+  fixed: "ثابت", mutable: "تغییرپذیر", active: "فعال", receptive: "پذیرا",
+};
+function planetLabel(id: string): string { return PLANET_LABELS_FA[id] ?? id; }
+function signatureLabel(id: string | null | undefined): string {
+  return id ? SIGNATURE_LABELS_FA[id] ?? id : "غالب مشخصی ندارد";
+}
+function aspectName(id: string, fallback: string): string {
+  const names: Record<string, string> = { conjunction: "هم‌نشینی", opposition: "مقابله", square: "مربع", trine: "تثلیث", sextile: "تسدیس" };
+  return names[id] ?? fallback;
+}
+
 const CONTEXT_LABELS_FA: Record<SynastryRelationshipContext, string> = {
   romantic: "رابطهٔ عاطفی",
   friendship: "دوستی",
@@ -239,39 +257,44 @@ function buildContactInterpretation(
   birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
 ): ComparisonContactInterpretation {
   const theme = describeContactTheme(contact);
+  const first = labels[contact.pointA.chartSide];
+  const second = labels[contact.pointB.chartSide];
+  const firstPoint = `${contact.pointA.label} ${first}`;
+  const secondPoint = `${contact.pointB.label} ${second}`;
+  const limited = birthTime.a !== "exact" || birthTime.b !== "exact";
   const relatedOverlays = overlays.filter((overlay) =>
     overlay.relatedContactIds.includes(contact.id),
   );
-  const natalA = describeNatalModifier(report.chartA, contact.pointA.id, labels.a);
-  const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b);
+  const natalA = describeNatalModifier(report.chartA, contact.pointA.id, labels.a, birthTime.a);
+  const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b, birthTime.b);
   const confidenceFa = buildContactConfidence(contact, birthTime);
   const supportive = contact.polarity === "supportive";
   const tension = contact.polarity === "tension" || contact.polarity === "intense";
   const tightness = contact.allowedOrb > 0 ? Math.max(0, 1 - contact.orb / contact.allowedOrb) : 0;
   const importanceFa = contact.relevanceScore >= 80 || tightness >= 0.8
-    ? `این تماس به‌دلیل نزدیکی به زاویهٔ دقیق و امتیاز ارتباطی ${contact.relevanceScore.toLocaleString("fa-IR")} در لایهٔ پررنگ‌تر گزارش قرار می‌گیرد.`
+    ? `در رتبه‌بندی موتور، این تماس پررنگ است (امتیاز ${contact.relevanceScore.toLocaleString("fa-IR")})؛ نزدیکی به زاویهٔ دقیق نیز در رتبه اثر دارد. این امتیاز درصد سازگاری نیست.`
     : contact.relevanceScore >= 45
       ? `این تماس وزن میانی دارد؛ به‌تنهایی داستان رابطه را تعیین نمی‌کند اما وقتی با شواهد هم‌جهت تکرار شود معنای بیشتری پیدا می‌کند.`
       : `این تماس در رتبهٔ پایین‌تری قرار دارد و بهتر است به‌عنوان زمینهٔ تکمیلی خوانده شود، نه محور اصلی رابطه.`;
 
   return {
     id: contact.id,
-    titleFa: contact.titleFa,
-    pointAFactFa: formatPointFact(contact.pointA, labels.a),
-    pointBFactFa: formatPointFact(contact.pointB, labels.b),
-    aspectFa: `${contact.aspectLabel} با فاصلهٔ ${formatDegree(contact.separation)} و اورب ${formatDegree(contact.orb)} از سقف مجاز ${formatDegree(contact.allowedOrb)}`,
+    titleFa: `${firstPoint} و ${secondPoint}؛ ${aspectName(contact.aspectId, contact.aspectLabel)}`,
+    pointAFactFa: formatPointFact(contact.pointA, first, birthTime[contact.pointA.chartSide]),
+    pointBFactFa: formatPointFact(contact.pointB, second, birthTime[contact.pointB.chartSide]),
+    aspectFa: `${aspectName(contact.aspectId, contact.aspectLabel)}: فاصلهٔ زاویه‌ای ${formatDegree(contact.separation)}، فاصله از زاویهٔ دقیق (اورب) ${formatDegree(contact.orb)} از سقف ${formatDegree(contact.allowedOrb)}${limited ? "؛ بر پایهٔ زمان مرجع" : ""}`,
     importanceFa,
     healthyFa: supportive
-      ? `در حالت سالم، ${theme} به مسیر همکاری تبدیل می‌شود و تفاوت واکنش‌ها به‌جای تهدید، اطلاعات بیشتری دربارهٔ نیاز هر نفر می‌دهد.`
-      : `در حالت سالم، حتی اگر این تماس ساده نباشد، ${theme} می‌تواند به گفت‌وگوی روشن دربارهٔ تفاوت نیازها و تنظیم مرزها کمک کند.`,
+      ? `در خوانش نمادین، ${firstPoint} و ${secondPoint} در موضوع «${theme}» فرصتی برای هماهنگی نشان می‌دهند؛ ببینید این امکان در رفتار واقعی هم دیده می‌شود یا نه.`
+      : `موضوع «${theme}» را در رفتارهای مرتبط با ${firstPoint} و ${secondPoint} جداگانه بررسی کنید؛ لازم نیست هر دو به یک شیوه پاسخ دهند.`,
     stressFa: tension
-      ? `زیر فشار، ${theme} می‌تواند سریع به سوءبرداشت، دفاع یا تلاش برای وادارکردن دیگری به همان ریتم تبدیل شود.`
-      : `زیر فشار، مزیت این تماس ممکن است بدیهی فرض شود و خواسته‌های ناگفته زیر ظاهر آرام رابطه پنهان بمانند.`,
+      ? `اگر تفاوتِ مربوط به ${theme} در عمل دیده می‌شود، پیش از نسبت دادن قصد به ${first} یا ${second}، دربارهٔ همان اتفاق مشخص حرف بزنید.`
+      : `از این تماس نمی‌شود نتیجه گرفت که ${first} و ${second} همیشه در موضوع «${theme}» هم‌نظرند؛ موقعیت‌های خلاف آن را هم در نظر بگیرید.`,
     contextFa: describeRelationshipContextForContact(report.relationshipContext, theme),
     natalContextFa: `${natalA} ${natalB}`,
     overlayContextFa: relatedOverlays.length > 0
       ? relatedOverlays.map((item) => item.contextFa).join(" ")
-      : `برای این تماس هم‌پوشانی خانه‌ای مستقیم و قابل اتکایی ثبت نشده است؛ بنابراین این بخش از تفسیر روی خود تماس و زمینهٔ natal دو نفر تکیه می‌کند.`,
+      : `برای این تماس هم‌پوشانی معتبر خانه‌ای ثبت نشده است؛ توضیح حاضر به خود تماس و زمینهٔ فردی محدود می‌ماند.`,
     confidenceFa,
     evidenceIds: uniqueStrings([
       contact.id,
@@ -301,10 +324,10 @@ function buildOverlayInterpretation(
     id: overlay.id,
     directionFa: `${sourceLabel} → زندگی ${targetLabel}`,
     titleFa: `${overlay.sourcePointLabel} ${sourceLabel} در خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} ${targetLabel}`,
-    meaningFa: `${theme} در حضور ${sourceLabel} برای ${targetLabel} زودتر فعال می‌شود.`,
+    meaningFa: `در این هم‌پوشانی، ${overlay.sourcePointLabel} متعلق به ${sourceLabel} است و خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} متعلق به ${targetLabel}؛ موضوع خانه «${theme}» است.`,
     contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel),
     supportiveFa: `وقتی این حوزه با انتخاب روشن و مرز قابل مذاکره مدیریت شود، حضور ${sourceLabel} می‌تواند به ${targetLabel} کمک کند این بخش از زندگی را آگاهانه‌تر ببیند.`,
-    stressFa: `اگر نقش‌ها یا انتظارها نامشخص بمانند، همین حوزه می‌تواند محل فرافکنی، فشار یا تفسیر عجولانهٔ رفتار دیگری شود.`,
+    stressFa: `فعال شدن این حوزه به معنی رضایت ${targetLabel} یا مسئولیت خودکار ${sourceLabel} نیست؛ حدود مشارکت باید در زندگی واقعی روشن شود.`,
     confidenceFa: `این هم‌پوشانی فقط چون هر دو چارت دادهٔ خانه‌ای قابل استفاده دارند محاسبه شده است؛ با تغییر معنی‌دار ساعت تولد، جایگاه خانه می‌تواند تغییر کند.`,
     relatedContactIds,
     evidenceIds: uniqueStrings([overlay.id, ...relatedContactIds]),
@@ -342,7 +365,7 @@ function buildDeepLayers(
     ...buildNodeItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildNodeItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "lunar-nodes", "نودهای ماه و مسیر رشد", "نودها به‌عنوان زمینهٔ رشدی هر نفر خوانده می‌شوند؛ برای آن‌ها تماس بین‌چارتی تازه بدون orb policy تأییدشده ساخته نمی‌شود.", nodeItems);
+  pushLayer(layers, "lunar-nodes", "گره‌های ماه و مسیر رشد", "گره‌های ماه در این گزارش متعلق به چارت فردی‌اند؛ برای آن‌ها جنبهٔ تازه میان دو چارت محاسبه نشده است.", nodeItems);
 
   const specialItems = [
     ...buildLilithItems(report.chartA, "a", labels.a, report.relationshipContext),
@@ -356,33 +379,50 @@ function buildDeepLayers(
     ...buildFixedStarItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildFixedStarItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "fixed-stars", "ستاره‌های ثابت", "فقط conjunction candidateهای موجود در snapshot توضیح داده می‌شوند و برای ستاره‌های ثابت aspect تازه اختراع نمی‌شود.", fixedStarItems);
+  pushLayer(layers, "fixed-stars", "ستاره‌های ثابت", "فقط نزدیکی‌های ثبت‌شدهٔ ستاره‌های ثابت به نقاط چارت تولد نمایش داده می‌شوند؛ این‌ها جنبهٔ تازه میان دو نفر نیستند.", fixedStarItems);
 
   const lotItems = [
     ...buildTraditionalLotItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildTraditionalLotItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "traditional-lots", "سهم‌های سنتی", "سهم‌های سنتی با فرمول و sect ثبت‌شدهٔ خود موتور خوانده می‌شوند و خانهٔ آن‌ها فقط در زمینهٔ Placidus موجود استفاده می‌شود.", lotItems);
+  pushLayer(layers, "traditional-lots", "سهم‌های سنتی", "سهم‌های سنتی با فرمول روز یا شب محاسبه می‌شوند؛ شمارهٔ خانه تنها در صورت اعتبار ساعت تولد قابل خواندن است.", lotItems);
 
   const retrogradeItems = [
     ...buildRetrogradeItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildRetrogradeItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "retrogrades", "حرکت بازگشتی", "retrograde به‌عنوان modifier زمینهٔ فردی استفاده می‌شود و به‌تنهایی حکم دربارهٔ کیفیت رابطه نمی‌دهد.", retrogradeItems);
+  pushLayer(layers, "retrogrades", "حرکت بازگشتی", "حرکت بازگشتی، وضعیت ظاهری حرکت سیاره نزدیک تولد است؛ به‌تنهایی نشانهٔ کیفیت رابطه نیست.", retrogradeItems);
 
   const signatureItems = [
     ...buildSignatureItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildSignatureItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "chart-signatures", "امضای کلی دو چارت", "ترکیب عناصر، کیفیت‌ها و بیان فعال/پذیرا برای توضیح تفاوت ریتم دو نفر استفاده می‌شود.", signatureItems);
+  pushLayer(layers, "chart-signatures", "امضای کلی دو چارت", "توزیع عناصر و کیفیت‌ها در جایگاه‌های اصلی هر چارت جداگانه بررسی می‌شود؛ این توزیع آزمون شخصیت نیست.", signatureItems);
 
   const natalAspectItems = [
     ...buildNatalAspectItems(report.chartA, "a", labels.a, report.relationshipContext),
     ...buildNatalAspectItems(report.chartB, "b", labels.b, report.relationshipContext),
   ];
-  pushLayer(layers, "natal-aspects", "زمینهٔ جنبه‌های تولد", "جنبه‌های درون هر چارت توضیح می‌دهند چرا یک تماس مشابه می‌تواند برای دو نفر اثر یکسانی نداشته باشد.", natalAspectItems);
+  pushLayer(layers, "natal-aspects", "زمینهٔ جنبه‌های تولد", "این جنبه‌ها پیش از مقایسه در چارت هر نفر وجود داشته‌اند؛ با تماس‌های میان دو نفر یکی نیستند.", natalAspectItems);
 
-  return layers;
+  // Keep source IDs and raw values; reference-time records are not natal evidence.
+  return layers.map((layer) => ({
+    ...layer,
+    items: layer.items.map((item) => {
+      const side = item.id.split(":")[1];
+      const snapshot = side === "a" ? report.chartA : side === "b" ? report.chartB : null;
+      if (!snapshot || snapshot.birthTimeStatus === "exact" || item.confidenceFa === "DEFERRED_WITH_REASON") return item;
+      return {
+        ...item,
+        meaningFa: "این مورد در دادهٔ خام زمان مرجع ثبت شده است، اما ساعت تولد معتبر نیست.",
+        relationshipExpressionFa: "از این مورد برای نتیجه‌گیری دربارهٔ رفتار یا کیفیت رابطه استفاده نمی‌کنیم.",
+        supportiveExpressionFa: "پس از ثبت ساعت معتبر می‌توان این لایه را دوباره بررسی کرد.",
+        stressExpressionFa: "نبود اطمینان دربارهٔ جایگاه، نشانهٔ مشکل در رابطه نیست.",
+        contextualExpressionFa: "مقدار و روش اولیه در دادهٔ خام موتور محفوظ است.",
+        confidenceFa: "محدود به زمان مرجع؛ تفسیر فردی این مورد فعلاً معلق است.",
+      };
+    }),
+  }));
 }
 
 function pushLayer(
@@ -495,12 +535,12 @@ function buildFixedStarItems(
   return fixed.conjunctionCandidates.map((candidate, index) => ({
     id: `fixed-star:${side}:${candidate.starId}:${candidate.anchorId}:${index}`,
     titleFa: `${candidate.starLabelFa} با ${candidate.anchorLabel} در چارت ${label}`,
-    meaningFa: `موتور این مورد را به‌عنوان نامزد هم‌نشینی ستارهٔ ثابت با ${candidate.anchorLabel} ثبت کرده است؛ orb ثبت‌شده ${candidate.orbDegrees.toFixed(2)} درجه است.`,
+    meaningFa: `فاصلهٔ ثبت‌شدهٔ ستارهٔ ثابت از ${candidate.anchorLabel} برابر ${candidate.orbDegrees.toFixed(2)} درجه است؛ این مقدار در محدودهٔ بررسی هم‌نشینی قرار دارد.`,
     relationshipExpressionFa: `در این ${CONTEXT_LABELS_FA[context]}، این داده یک لایهٔ فرعی برای فهم زمینهٔ natal ${label} است و به‌تنهایی تماس بین‌چارتی محسوب نمی‌شود.`,
-    supportiveExpressionFa: `اگر موضوع این anchor در سایر شواهد هم تکرار شود، این نامزد می‌تواند به‌عنوان تأکید ثانویه در همان محور خوانده شود.`,
-    stressExpressionFa: `نباید از این داده aspectهای دیگر یا نتیجهٔ قطعی ساخته شود؛ contract فعلی فقط conjunction candidate ثبت‌شده را می‌شناسد.`,
+    supportiveExpressionFa: `این ثبت برای بررسی جایگاه تولد مفید است؛ برداشت رابطه‌ای به شواهد جداگانه نیاز دارد.`,
+    stressExpressionFa: `از نزدیکی یک ستاره به نقطهٔ تولد نمی‌توان نتیجهٔ قطعی دربارهٔ آینده یا کیفیت رابطه گرفت.`,
     contextualExpressionFa: `کاتالوگ ${fixed.catalogueVersion} و سقف نامزدی ${fixed.conjunctionCandidateOrbDegrees.toFixed(2)} درجه مبنای این ثبت هستند.`,
-    confidenceFa: `اعتبار این مورد محدود به همان candidate ذخیره‌شده در snapshot است؛ narrative promotion مستقل از contact هنوز contract جداگانه می‌خواهد.`,
+    confidenceFa: `در این نسخه فقط نزدیکی ثبت‌شده گزارش می‌شود؛ جنبهٔ مستقلی میان دو چارت برای آن محاسبه نشده است.`,
     evidenceIds: [`engine:${side}:specialistAstrology.fixedStars.conjunctionCandidates`, `fixed-star:${side}:${candidate.starId}:${candidate.anchorId}`],
   }));
 }
@@ -521,7 +561,7 @@ function buildTraditionalLotItems(
     supportiveExpressionFa: `وقتی موضوع این سهم با تماس‌ها یا هم‌پوشانی‌های مستقل تکرار شود، می‌تواند به فهم دقیق‌تر همان محور کمک کند.`,
     stressExpressionFa: `این سهم نباید جای تماس‌های واقعی بین دو چارت را بگیرد یا به‌تنهایی به حکم دربارهٔ آیندهٔ رابطه تبدیل شود.`,
     contextualExpressionFa: `فرمول ${lot.formulaId}، sect ${lot.sect} و رفتار ${lot.dayNightBehavior} در snapshot ثبت شده‌اند.`,
-    confidenceFa: `خانهٔ این سهم طبق contract فقط placement در Placidus است و whole-sign interpretation روی آن اعمال نشده است.`,
+    confidenceFa: `شمارهٔ خانه، جایگاه محاسبه‌شده در پلاسیدوس است؛ تفسیر خانه بر اساس سیستم نشان کامل در اینجا اعمال نشده است.`,
     evidenceIds: [`engine:${side}:specialistAstrology.traditionalLots`, `lot:${side}:${lot.id}`],
   }));
 }
@@ -552,13 +592,13 @@ function buildRetrogradeItems(
   }
   return retrogrades.planetIds.map((planetId) => ({
     id: `retrograde:${side}:${planetId}`,
-    titleFa: `${planetId} بازگشتی در چارت ${label}`,
-    meaningFa: `حرکت بازگشتی ${planetId} به‌عنوان modifier نشان می‌دهد پردازش و بیان موضوع‌های این سیاره می‌تواند بیشتر درونی، بازبینی‌شونده یا غیرخطی تجربه شود.`,
+    titleFa: `${planetLabel(planetId)} بازگشتی در چارت ${label}`,
+    meaningFa: `در زمان ثبت‌شدهٔ تولد ${label}، حرکت ظاهری ${planetLabel(planetId)} بازگشتی بوده است؛ در خوانش نمادین، بازبینی موضوع‌های این سیاره مطرح می‌شود.`,
     relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این modifier فقط برای توضیح واکنش ${label} به تماس‌های مربوط به ${planetId} استفاده می‌شود.`,
     supportiveExpressionFa: "بازبینی بیشتر می‌تواند به دقت و خودآگاهی کمک کند.",
     stressExpressionFa: "زیر فشار، بازگشت مکرر به موضوع یا دیرتر بیرونی‌کردن تصمیم می‌تواند برای نفر مقابل مبهم شود.",
     contextualExpressionFa: `روش ثبت‌شده: ${retrogrades.method ?? "نامشخص"}.`,
-    confidenceFa: "این modifier از وضعیت motion محاسبه‌شده می‌آید و حکم مستقل دربارهٔ شخصیت یا رابطه نیست.",
+    confidenceFa: "این وضعیت از محاسبهٔ حرکت ظاهری می‌آید و حکم مستقل دربارهٔ شخصیت یا رابطه نیست.",
     evidenceIds: [`engine:${side}:retrogrades`, `retrograde:${side}:${planetId}`],
   }));
 }
@@ -574,10 +614,10 @@ function buildSignatureItems(
   return [{
     id: `signature:${side}`,
     titleFa: `امضای چارت ${label}`,
-    meaningFa: `گرایش غالب این چارت از نظر عنصر ${signature.dominantElement ?? "بدون غالب روشن"}، کیفیت ${signature.dominantModality ?? "بدون غالب روشن"} و بیان ${signature.dominantExpression ?? "بدون غالب روشن"} ثبت شده است.`,
+    meaningFa: `گرایش غالب این چارت از نظر عنصر ${signatureLabel(signature.dominantElement)}، کیفیت ${signatureLabel(signature.dominantModality)} و بیان ${signatureLabel(signature.dominantExpression)} ثبت شده است.`,
     relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این ترکیب به توضیح سرعت واکنش، شیوهٔ اقدام و نحوهٔ تنظیم انرژی ${label} کمک می‌کند.`,
     supportiveExpressionFa: `شناخت این ریتم کمک می‌کند تفاوت سبک با بی‌علاقگی یا فشار اشتباه گرفته نشود.`,
-    stressExpressionFa: `دسته‌های کم یا صفر می‌توانند باعث شوند بعضی شیوه‌های پاسخ به‌طور خودکار در دسترس نباشند و نیاز به تمرین آگاهانه داشته باشند.`,
+    stressExpressionFa: `کم بودن یک دسته در توزیع جایگاه‌ها به معنی نداشتن یک توانایی یا ویژگی شخصیتی نیست.`,
     contextualExpressionFa: `کمبودها: عنصر ${signature.lowElements.join("، ") || "ندارد"}؛ کیفیت ${signature.lowModalities.join("، ") || "ندارد"}؛ بیان ${signature.lowExpressions.join("، ") || "ندارد"}.`,
     confidenceFa: `این signature با روش ${signature.method} و شواهد ${signature.evidence.length.toLocaleString("fa-IR")} جایگاه اصلی ساخته شده است.`,
     evidenceIds: [`engine:${side}:chartSignature`, ...signature.evidence.map((item) => `placement:${side}:${item.placementId}`)],
@@ -594,10 +634,10 @@ function buildNatalAspectItems(
     id: `natal-aspect:${side}:${aspect.id}`,
     titleFa: `${aspect.firstPlanetLabel} ${aspect.aspectLabel} ${aspect.secondPlanetLabel} در چارت ${label}`,
     meaningFa: aspect.narrative || aspect.meaning,
-    relationshipExpressionFa: `این جنبهٔ natal توضیح می‌دهد چرا ${label} تماس‌های بین‌چارتی مربوط به ${aspect.firstPlanetLabel} یا ${aspect.secondPlanetLabel} را با زمینهٔ ازپیش‌موجود خودش تجربه می‌کند.`,
+    relationshipExpressionFa: `این جنبه در چارت تولد ${label} میان ${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} است؛ در مقایسه صرفاً زمینه‌ای برای بررسی تماس‌های مربوط به این دو نقطه فراهم می‌کند.`,
     supportiveExpressionFa: `اگر تماس بیرونی با این الگوی natal هم‌جهت باشد، فرد ممکن است سریع‌تر آن را بشناسد و مسیر استفاده از آن برایش آشناتر باشد.`,
     stressExpressionFa: `اگر تماس بیرونی همان تنش natal را دوباره فعال کند، واکنش می‌تواند شدیدتر یا تکرارشونده‌تر از چیزی باشد که فقط از تماس بین دو چارت انتظار می‌رود.`,
-    contextualExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این جنبه modifier است، نه تماس تازه میان دو نفر.`,
+    contextualExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این جنبه متعلق به یک نفر است، نه یک تماس تازه میان دو نفر.`,
     confidenceFa: `اورب natal ثبت‌شده ${aspect.orb.toFixed(2)} درجه است و این داده مستقیماً از snapshot ${label} می‌آید.`,
     evidenceIds: [`engine:${side}:aspects`, `natal-aspect:${side}:${aspect.id}`],
   }));
@@ -625,7 +665,7 @@ function buildPointLayerItem(input: {
     relationshipExpressionFa: `${input.titleFa} در ${placement} قرار دارد و در ${CONTEXT_LABELS_FA[input.context]} به‌عنوان زمینهٔ واکنش ${input.label} و در صورت وجود، هم‌پوشانی خانه‌ای معتبر استفاده می‌شود.`,
     supportiveExpressionFa: "در حالت سازنده، آگاهی از این نقطه کمک می‌کند موضوع آن به زبان روشن و قابل مذاکره وارد رابطه شود.",
     stressExpressionFa: "زیر فشار، موضوع این نقطه می‌تواند به واکنش دفاعی یا تکرار یک الگوی آشنا تبدیل شود؛ تفسیر آن باید با شواهد مستقل دیگر سنجیده شود.",
-    contextualExpressionFa: "برای این گروه از نقاط تا وقتی orb policy معتبر تعریف نشده، تماس بین‌چارتی تازه ساخته نمی‌شود؛ نبود contact ساختگی بخشی از صداقت محاسباتی گزارش است.",
+    contextualExpressionFa: "برای این گروه از نقاط هنوز قاعدهٔ تأییدشدهٔ جنبه‌های میان دو چارت وجود ندارد؛ جایگاه فردی با جنبهٔ دونفره یکی نیست.",
     confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability}. ` : ""}${input.limitation ?? "محدودیت ویژه‌ای در snapshot ثبت نشده است."}`,
     evidenceIds: input.evidenceIds,
   };
@@ -641,8 +681,8 @@ function buildDeferredLayerItem(
     id,
     titleFa,
     meaningFa: "این لایه در قرارداد موتور وجود دارد اما دادهٔ قابل تفسیر فعلی برای آن کامل نیست.",
-    relationshipExpressionFa: "برای جلوگیری از ساختن معنای نجومی جعلی، این مورد به‌صورت deferred نگه داشته می‌شود.",
-    supportiveExpressionFa: "مزیت این وضعیت این است که گزارش مرز میان دادهٔ واقعی و دادهٔ محاسبه‌نشده را شفاف نگه می‌دارد.",
+    relationshipExpressionFa: "در این گزارش از این مورد برای تفسیر رابطه استفاده نمی‌شود.",
+    supportiveExpressionFa: "اگر دادهٔ لازم فراهم شود، می‌توان این بخش را دوباره بررسی کرد.",
     stressExpressionFa: "نباید از نبود داده نتیجهٔ مثبت یا منفی دربارهٔ رابطه ساخته شود.",
     contextualExpressionFa: reasonFa,
     confidenceFa: "DEFERRED_WITH_REASON",
@@ -658,15 +698,18 @@ function buildNatalContext(
   const engine = snapshot.engineSnapshot;
   const signature = engine?.chartSignature;
   const retrograde = engine?.retrogrades;
-  const summaryFa = signature
+  const exact = snapshot.birthTimeStatus === "exact";
+  const summaryFa = !exact
+    ? `ساعت تولد ${label} معلوم نیست. فهرست زیر جایگاه‌های زمان مرجع را نشان می‌دهد؛ خانه‌ها و جنبه‌های فردی وابسته به زمان مبنای تفسیر نیستند.`
+    : signature
     ? `${label} در امضای کلی چارت، ${signature.dominantElement ?? "بدون عنصر غالب"} / ${signature.dominantModality ?? "بدون کیفیت غالب"} / ${signature.dominantExpression ?? "بدون بیان غالب"} را دارد؛ این ریتم به‌عنوان modifier تماس‌های رابطه استفاده می‌شود.`
     : `${label} امضای کلی محاسبه‌شده در snapshot ندارد؛ زمینهٔ natal از جایگاه‌ها و جنبه‌های موجود خوانده می‌شود.`;
   const factsFa = [
-    ...(engine?.placements ?? []).map((placement) => `${placement.label}: ${SIGN_LABELS_FA[placement.signId] ?? placement.signId} ${placement.degreeInSign.toFixed(1)}°${placement.house ? `، خانه ${placement.house.toLocaleString("fa-IR")}` : ""}${placement.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`),
+    ...(engine?.placements ?? []).map((placement) => `${placement.label}: ${SIGN_LABELS_FA[placement.signId] ?? placement.signId} ${placement.degreeInSign.toFixed(1)}°${exact && placement.house ? `، خانه ${placement.house.toLocaleString("fa-IR")}` : ""}${placement.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`),
     ...(engine?.aspects ?? []).map((aspect) => `${aspect.firstPlanetLabel} ${aspect.aspectLabel} ${aspect.secondPlanetLabel}: اورب ${aspect.orb.toFixed(2)}°.`),
   ];
   if (retrograde?.status === "calculated" && retrograde.planetIds.length > 0) {
-    factsFa.push(`سیاره‌های بازگشتی ثبت‌شده: ${retrograde.planetIds.join("، ")}.`);
+    factsFa.push(`سیاره‌های بازگشتی ثبت‌شده: ${retrograde.planetIds.map(planetLabel).join("، ")}.`);
   }
   return {
     chartSide: side,
@@ -699,12 +742,12 @@ function buildCalculationExplanation(
       warningsFa.push(`${entry.label}: full engine snapshot در این رکورد قدیمی وجود ندارد.`);
       continue;
     }
-    methodNotesFa.push(`${entry.label}: نسخهٔ ${engine.version}، شهر ${engine.cityLabel}، زمان UTC ${engine.utcIso}.`);
+    methodNotesFa.push(`${entry.label}: نسخهٔ ${engine.version}، شهر ${engine.cityLabel}، ${entry.time === "exact" ? "زمان جهانی تولد" : "زمان جهانی مرجع محاسبه، نه ساعت تولد"} ${engine.utcIso}.`);
     if (engine.houseContext) {
-      methodNotesFa.push(`${entry.label}: سیستم خانه ${engine.houseContext.appliedSystem} با confidence ${engine.houseContext.confidence}.`);
+      methodNotesFa.push(`${entry.label}: سیستم خانه ${engine.houseContext.appliedSystem} ، وضعیت ${engine.houseContext.confidence}${entry.time === "exact" ? "" : "؛ دادهٔ خام، برای خوانش رابطه معتبر نیست"}.`);
     }
     if (engine.lunarNodes) {
-      methodNotesFa.push(`${entry.label}: روش نودها ${engine.lunarNodes.method ?? "نامشخص"}.`);
+      methodNotesFa.push(`${entry.label}: روش محاسبهٔ گره‌های ماه ${engine.lunarNodes.method ?? "نامشخص"}.`);
     }
     if (engine.lilith && engine.lilith.status === "calculated" && "validationStatus" in engine.lilith) {
       methodNotesFa.push(`${entry.label}: لیلیت ${engine.lilith.validationStatus} و approvedForReportOutput=${String(engine.lilith.approvedForReportOutput)}.`);
@@ -727,10 +770,10 @@ function buildCalculationExplanation(
   return {
     summaryFa: bothExact
       ? "هر دو ساعت تولد به‌عنوان دقیق وارد این مقایسه شده‌اند؛ بنابراین زاویه‌ها و هم‌پوشانی‌های خانه‌ای در صورت وجود دادهٔ معتبر قابل استفاده‌اند."
-      : "حداقل یک ساعت تولد نامعلوم است؛ تماس‌های سیاره‌ای همچنان قابل استفاده‌اند اما زاویه‌ها و خانه‌های وابسته به زمان با محدودیت یا حذف همراه می‌شوند.",
+      : `ساعت تولد ${snapshots.filter((entry) => entry.time !== "exact").map((entry) => entry.label).join(" و ")} معلوم نیست. تماس‌های سیاره‌ای از زمان مرجع می‌آیند؛ درجه و اورب قطعی نیستند. زاویه‌ها و هم‌پوشانی خانه‌ها مبنای این مقایسه نیستند.`,
     confidenceFa: report.quality.status === "complete"
-      ? "کیفیت محاسبات این مقایسه در contract فعلی complete است؛ این به معنی قطعیت دربارهٔ آیندهٔ رابطه نیست."
-      : "کیفیت محاسبات این مقایسه partial است و محدودیت‌های زیر باید همراه تفسیر خوانده شوند.",
+      ? "موتور داده‌های لازم را کامل گزارش کرده است؛ کامل بودن محاسبه به معنی پیش‌بینی قطعی رابطه نیست."
+      : "بعضی داده‌ها محدود یا ناموجودند. توضیح‌های زیر مشخص می‌کنند چه چیز محاسبه شده و چه چیزی نباید قطعی خوانده شود.",
     methodNotesFa: uniqueStrings(methodNotesFa),
     warningsFa: uniqueStrings(warningsFa),
   };
@@ -833,19 +876,21 @@ function describeNatalModifier(
   snapshot: SynastryNatalSnapshot,
   pointId: string,
   label: string,
+  time: SynastryBirthTimeStatus,
 ): string {
+  if (time !== "exact") return `جنبه‌های فردی ${label} در زمان مرجع ثبت شده‌اند؛ به‌عنوان شاهد قطعی به این تماس اضافه نمی‌شوند.`;
   const aspects = (snapshot.engineSnapshot?.aspects ?? []).filter(
     (aspect) => aspect.firstPlanetId === pointId || aspect.secondPlanetId === pointId,
   );
   if (aspects.length > 0) {
     const first = aspects[0];
     const other = first.firstPlanetId === pointId ? first.secondPlanetLabel : first.firstPlanetLabel;
-    return `در چارت خودِ ${label}، ${pointId} با ${other} در ${first.aspectLabel} است؛ بنابراین این نقطه از قبل یک زمینهٔ natal فعال دارد و تماس رابطه روی صفحهٔ خالی فرود نمی‌آید.`;
+    return `در چارت تولد ${label}، ${planetLabel(pointId)} با ${other} جنبهٔ ${first.aspectLabel} دارد. این جنبه فردی است و به‌تنهایی نحوهٔ واکنش به نفر مقابل را تعیین نمی‌کند.`;
   }
   const signature = snapshot.engineSnapshot?.chartSignature;
   return signature
-    ? `برای ${label} جنبهٔ natal مستقیمی برای این نقطه در snapshot پیدا نشد؛ modifier از امضای کلی ${signature.dominantExpression ?? "بدون بیان غالب"} و ${signature.dominantModality ?? "بدون کیفیت غالب"} گرفته می‌شود.`
-    : `برای ${label} modifier natal اختصاصی ثبت نشده است و تفسیر این تماس به خود تماس محدود می‌ماند.`;
+    ? `برای این نقطه در چارت ${label} جنبهٔ مستقیمی ثبت نشده است؛ ترکیب کلی چارت شاهد اختصاصی این تماس نیست.`
+    : `برای ${label} زمینهٔ فردی اختصاصی ثبت نشده است؛ توضیح به خود تماس محدود می‌ماند.`;
 }
 
 function buildContactConfidence(
@@ -855,14 +900,15 @@ function buildContactConfidence(
   const angleDependent = contact.pointA.kind === "angle" || contact.pointB.kind === "angle";
   if (angleDependent) {
     return birthTime.a === "exact" && birthTime.b === "exact"
-      ? "این تماس angle-dependent است و فقط چون هر دو ساعت تولد در این رکورد exact هستند وارد محاسبه شده است."
+      ? "این تماس به محور چارت وابسته است و با ساعت تولد دقیق هر دو نفر محاسبه شده است."
       : "این تماس به زاویه وابسته است و با ساعت تولد نامعلوم نباید معتبر فرض شود.";
   }
-  return "هندسهٔ اصلی این تماس سیاره‌ای به ساعت خانه‌ها وابسته نیست؛ اما modifierهای خانه و زاویه فقط در صورت زمان تولد معتبر اضافه می‌شوند.";
+  if (birthTime.a !== "exact" || birthTime.b !== "exact") return "فاصلهٔ سیاره‌ها در زمان مرجع محاسبه شده است؛ با تغییر ساعت تولد، درجه و اورب ممکن است تغییر کنند.";
+  return "فاصلهٔ سیاره‌ها از جایگاه محاسبه‌شدهٔ تولد به دست آمده است؛ تفسیر خانه و زاویه شاهد جداگانه می‌خواهد.";
 }
 
-function formatPointFact(point: SynastryNatalPoint, label: string): string {
-  return `${point.label} ${label}: ${SIGN_LABELS_FA[point.signId] ?? point.signId} ${point.degreeInSign.toFixed(2)}°، طول ${point.longitude.toFixed(2)}°${point.natalHouse ? `، خانهٔ ${point.natalHouse.toLocaleString("fa-IR")}` : ""}${point.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`;
+function formatPointFact(point: SynastryNatalPoint, label: string, time: SynastryBirthTimeStatus): string {
+  return `${point.label} ${label}${time === "exact" ? "" : " (زمان مرجع)"}: ${SIGN_LABELS_FA[point.signId] ?? point.signId} ${point.degreeInSign.toFixed(2)}°، طول ${point.longitude.toFixed(2)}°${time === "exact" && point.natalHouse ? `، خانهٔ ${point.natalHouse.toLocaleString("fa-IR")}` : ""}${point.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`;
 }
 
 function formatDegree(value: number): string {
