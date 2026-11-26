@@ -7,7 +7,7 @@ import type {
 } from "@/types/synastry-engine";
 
 /** Review policy v1. It does not change the customer-facing writer or access. */
-export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v2";
+export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v3";
 const PERSONAL = new Set(["sun", "moon", "mercury", "venus", "mars"]);
 const CONTEXT = new Set([...PERSONAL, "jupiter", "saturn"]);
 const ANGLES = new Set(["asc", "dsc", "mc", "ic"]);
@@ -154,6 +154,47 @@ const REASONS: Record<EvidenceChapterId, string> = {
   "boundaries-commitment": "saturn/uranus/pluto; prefer saturn with personal planet or relationship axis",
   "friction-repair": "tense/intense mars contact; reserve concrete escalation before other chapters",
 };
+// Context supports an already-selected inter-chart witness; it cannot create one.
+// Personal aspects must fit the chapter's specific question, not merely share
+// a planet with an inter-chart contact. Slow/slow aspects cannot explain an
+// individual relational behavior. Moon–Venus belongs to emotional security;
+// Mercury-based hard Mars aspects belong to escalation, not ordinary dialogue.
+function natalContextScore(chapter: EvidenceChapterId, first: string, second: string, aspect: string): number {
+  const ids = [first, second];
+  const has = (id: string) => ids.includes(id);
+  if (!ids.some(id => PERSONAL.has(id))) return 0;
+  const hard = aspect === "square" || aspect === "opposition";
+  const marsConflict = has("mars") && hard && ids.some(id => ["mercury", "moon", "sun", "venus", "saturn", "pluto"].includes(id));
+  if (marsConflict) return chapter === "friction-repair" ? 3 : 0;
+  switch (chapter) {
+    case "communication":
+      return has("mercury") ? 3 : 0;
+    case "emotional-security":
+      return has("moon") && !has("mercury") && !has("mars")
+        ? (has("venus") || has("saturn") ? 4 : 2) : 0;
+    case "attraction-intimacy":
+      return !has("moon") && !has("mercury") && !has("saturn") &&
+        (has("venus") || (has("sun") && has("mars"))) ? 3 : 0;
+    case "boundaries-commitment":
+      return !has("moon") && !has("mercury") && (has("saturn") || has("uranus"))
+        ? 3 : 0;
+    case "friction-repair":
+      return has("mars") && has("pluto") ? 1 : 0;
+  }
+}
+
+function overlayFits(chapter: EvidenceChapterId, point: string, house: number) {
+  switch (chapter) {
+    case "communication": return point === "mercury" && [3, 9].includes(house);
+    case "emotional-security": return ["moon", "venus"].includes(point) && house === 4;
+    case "attraction-intimacy": return (["sun", "moon", "venus", "mars"].includes(point) && house === 5) ||
+      (["venus", "mars"].includes(point) && [1, 8].includes(house));
+    case "boundaries-commitment": return (["venus", "saturn"].includes(point) && house === 7) ||
+      (point === "saturn" && house === 10);
+    case "friction-repair": return ["mars", "pluto"].includes(point) && [1, 4, 8].includes(house);
+  }
+}
+
 function witness(contact: SynastryInterChartAspect) {
   return {
     id: contact.id,
@@ -200,6 +241,8 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
     }
   }
   const chartFeatures = charts.map(extractChartFeatures);
+  const usedNatal = new Set<string>();
+  const usedOverlays = new Set<string>();
   const chapterPlans = ORDER.map(chapter => {
     const main = primary.get(chapter) ?? null;
     const limited = main && chapter === "boundaries-commitment" &&
@@ -207,10 +250,56 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
     const support = main && !limited ? choose(chapter, true, main) : null;
     if (support) used.add(axisKey(support));
     const primaryWitness = main ? witness(main) : null;
-    const context = main ? [main.pointA, main.pointB].map(point => {
+    const endpoints = main ? [main.pointA, main.pointB, ...(support ? [support.pointA, support.pointB] : [])] : [];
+    const context = [...new Map(endpoints.map(point => {
       const chart = chartById.get(point.chartId)!;
-      return pointContext(point, chart);
-    }) : [];
+      const value = pointContext(point, chart);
+      return [value.evidenceId, value] as const;
+    })).values()];
+    // Natal aspects are supplementary, not proof of interaction. Unknown-time
+    // natal aspects are withheld until their whole-day stability is established.
+    const natalContext = !main || limited ? [] : charts.flatMap(chart => {
+      if (chart.birthTimeStatus !== "exact") return [];
+      const anchors = new Set(endpoints.filter(point => point.chartId === chart.chartId)
+        .map(point => point.id));
+      const validIds = new Set((chart.points?.length ? chart.points : [...chart.placements, ...chart.angles])
+        .filter(point => eligiblePoint(point, chart)).map(point => point.id));
+      const candidates = (chart.engineSnapshot?.aspects ?? []).map(aspect => ({
+        aspect, score: natalContextScore(chapter, aspect.firstPlanetId, aspect.secondPlanetId, aspect.aspectId),
+      })).filter(({aspect, score}) => {
+        const ids = [aspect.firstPlanetId, aspect.secondPlanetId];
+        return score > 0 && ids.every(id => validIds.has(id)) &&
+          ids.some(id => anchors.has(id)) &&
+          aspect.orb <= 5 &&
+          !usedNatal.has("natal-aspect:" + chart.chartId + ":" + aspect.id);
+      }).sort((a, b) => b.score - a.score || a.aspect.orb - b.aspect.orb || a.aspect.id.localeCompare(b.aspect.id));
+      const selected = candidates[0]?.aspect;
+      if (!selected) return [];
+      const evidenceId = "natal-aspect:" + chart.chartId + ":" + selected.id;
+      usedNatal.add(evidenceId);
+      return [{
+        evidenceId, ownerChartId: chart.chartId, ownerLabel: chart.label,
+        firstPointId: selected.firstPlanetId, secondPointId: selected.secondPlanetId,
+        aspectId: selected.aspectId, orb: selected.orb,
+        reason: "natal-aspect-linked-to-chapter-contact",
+      }];
+    });
+    const overlayContext = !main || limited || !report.quality.houseOverlaysAvailable ||
+      charts.some(chart => chart.birthTimeStatus !== "exact") ? [] :
+      report.houseOverlays.filter(overlay =>
+        !usedOverlays.has(overlay.id) && overlayFits(chapter, overlay.sourcePointId, overlay.targetHouse))
+        .sort((a, b) => b.relevanceScore - a.relevanceScore ||
+          [a.sourceChartId, a.sourcePointId, a.targetChartId, a.targetHouse].join("|").localeCompare(
+            [b.sourceChartId, b.sourcePointId, b.targetChartId, b.targetHouse].join("|")))
+        .slice(0, 2).map(overlay => {
+          usedOverlays.add(overlay.id);
+          return {
+            evidenceId: overlay.id, sourceChartId: overlay.sourceChartId,
+            sourcePointId: overlay.sourcePointId, targetChartId: overlay.targetChartId,
+            targetHouse: overlay.targetHouse, relevanceScore: overlay.relevanceScore,
+            reason: "chapter-specific-house-context-not-an-independent-interaction-claim",
+          };
+        });
     return {
       chapter,
       status: !main ? "insufficient" : limited ? "limited" : "supported",
@@ -218,6 +307,8 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
       primaryScore: main ? rank(chapter, main) : null,
       support: support ? witness(support) : null,
       context,
+      natalContext,
+      overlayContext,
       reason: REASONS[chapter],
       limitation: limited ? "shared-slow-planet-contact-does-not-establish-different-expectations" :
         !main ? "no-unclaimed-eligible-contact" : null,
