@@ -269,6 +269,41 @@ export function comparisonContactHasInterpretiveData(
   );
 }
 
+// Symbolic, observable examples, not predictions or additional calculated contacts.
+const POINT_OBSERVATIONS_FA: Record<string, [string, string, string]> = {
+  sun: ["انتخاب یک هدف شخصی", "دلیل انتخابش را روشن کند", "تأیید انتخابش را با تأیید ارزش خودش یکی بگیرد"],
+  moon: ["بیان نیاز به استراحت یا همراهی", "بگوید اکنون به چه نوع همراهی نیاز دارد", "انتظار داشته باشد نیاز ناگفته‌اش فهمیده شود"],
+  mercury: ["بحث دربارهٔ یک پیشنهاد", "سؤالش را از داوری دربارهٔ گوینده جدا کند", "توضیح بیشتر را جای شنیدن بگذارد"],
+  venus: ["انتخاب چیزی که خوشایند هر دو باشد", "سلیقه‌اش را بدون الزام دیگری بیان کند", "همراهی ظاهری را نشانهٔ رضایت بگیرد"],
+  mars: ["شروع یا تغییر یک کار", "پیش از اقدام دربارهٔ زمان و روش توافق کند", "پیشنهاد را بدون توافق به اقدام تبدیل کند"],
+  jupiter: ["بررسی یک فرصت تازه", "امکان تازه‌ای را همراه با حدود عملی آن مطرح کند", "بیش از ظرفیت واقعی وعده بدهد"],
+  saturn: ["تعیین مسئولیت و زمان تحویل", "حدود مسئولیت را از پیش مشخص کند", "قاعدهٔ شخصی را به دیگری تحمیل کند"],
+  uranus: ["تغییر یک برنامهٔ از قبل تعیین‌شده", "برای تغییر برنامه فرصت انتخاب بدهد", "تغییر ناگهانی را بدون هماهنگی پیش ببرد"],
+  neptune: ["روشن‌کردن یک انتظار مبهم", "تفاوت آرزو و توافق واقعی را روشن کند", "برداشت دلخواهش را توافق قطعی بداند"],
+  pluto: ["گفت‌وگو دربارهٔ اختیار تصمیم", "جایی برای مخالفت و بازنگری باقی بگذارد", "اصرار بر تغییر نظر دیگری را ضروری بداند"],
+  asc: ["نحوهٔ حضور در یک جمع", "شیوهٔ حضور دلخواهش را بیان کند", "خود را برای جلب تأیید دیگری تغییر دهد"],
+  dsc: ["توافق بر نقش دو نفر", "انتظارش از مشارکت را مشخص کند", "نقش دلخواهش را برای دیگری بدیهی فرض کند"],
+  mc: ["معرفی یک هدف اجتماعی یا حرفه‌ای", "مشخص کند چه نوع کمکی برای هدفش می‌خواهد", "موفقیت بیرونی را معیار تأیید دیگری بگیرد"],
+  ic: ["تنظیم خلوت و فضای شخصی", "حدود حریم و احساس تعلقش را توضیح دهد", "دسترسی به حریم شخصی را بدون توافق بپذیرد"],
+};
+function pointObservation(id: string): [string, string, string] {
+  return POINT_OBSERVATIONS_FA[id] ?? ["یک موضوع مشترک", "نظرش را صریح بیان کند", "از یک برداشت اولیه نتیجهٔ قطعی بگیرد"];
+}
+function contactObservation(contact: SynastryInterChartAspect, first: string, second: string): { healthy: string; stress: string } {
+  const a = pointObservation(contact.pointA.id);
+  const b = pointObservation(contact.pointB.id);
+  const roles = `${first} می‌تواند ${a[1]} و ${second} می‌تواند ${b[1]}.`;
+  const risks = `اگر ${first} ${a[2]} یا ${second} ${b[2]}،`;
+  switch (contact.aspectId) {
+    case "sextile": return { healthy: `تسدیس در خوانش نمادین فرصتی است که به انتخاب آگاهانه نیاز دارد. ${roles}`, stress: `${risks} فرصت همکاری ممکن است اصلاً به عمل نرسد.` };
+    case "trine": return { healthy: `در تثلیث، همراهی این دو نقش ممکن است روان‌تر شکل بگیرد. ${roles}`, stress: `${risks} سهولت اولیه می‌تواند جای بررسی توافق واقعی را بگیرد.` };
+    case "opposition": return { healthy: `در مقابله، قرار نیست یکی از دو دیدگاه حذف شود. ${roles}`, stress: `${risks} گفت‌وگو ممکن است به انتخاب اجباری میان دو موضع تبدیل شود.` };
+    case "square": return { healthy: `مربع در این خوانش به ضرورت تنظیم دو خواسته اشاره دارد، نه ناممکن بودن همکاری. ${roles}`, stress: `${risks} شیوهٔ پیش‌بردن کار برای یکی می‌تواند مانع دیگری شود.` };
+    case "conjunction": return { healthy: `در هم‌نشینی، موضوع دو نقطه در یک موقعیت به هم نزدیک می‌شود. ${roles}`, stress: `${risks} مرز میان خواستهٔ دو نفر ممکن است روشن نماند.` };
+    default: return { healthy: `در این خوانش نمادین، ${roles}`, stress: `${risks} بهتر است هر نفر برداشت خودش را جداگانه توضیح دهد.` };
+  }
+}
+
 function buildContactInterpretation(
   report: RealSynastryReport,
   contact: SynastryInterChartAspect,
@@ -289,10 +324,7 @@ function buildContactInterpretation(
   const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b, birthTime.b);
   const hasInterpretiveData = comparisonContactHasInterpretiveData(contact, birthTime);
   const confidenceFa = hasInterpretiveData ? buildContactConfidence(contact, birthTime) : "این تماس فقط ثبت محاسباتی است؛ به دلیل محدودیت داده، شاهد معتبر برای تفسیر رابطه نیست.";
-  const supportive = contact.polarity === "supportive";
-  const tension = contact.polarity === "tension" || contact.polarity === "intense";
-  const firstRole = pointRole(contact.pointA.id);
-  const secondRole = pointRole(contact.pointB.id);
+  const observation = contactObservation(contact, first, second);
   const tightness = contact.allowedOrb > 0 ? Math.max(0, 1 - contact.orb / contact.allowedOrb) : 0;
   const importanceFa = contact.relevanceScore >= 80 || tightness >= 0.8
     ? `در رتبه‌بندی موتور، این تماس پررنگ است (امتیاز ${contact.relevanceScore.toLocaleString("fa-IR")})؛ نزدیکی به زاویهٔ دقیق نیز در رتبه اثر دارد. این امتیاز درصد سازگاری نیست.`
@@ -309,15 +341,11 @@ function buildContactInterpretation(
     importanceFa: hasInterpretiveData ? importanceFa : `رتبهٔ خام موتور ${contact.relevanceScore.toLocaleString("fa-IR")} است؛ این رتبه مجوز تفسیر تماس نیست.`,
     healthyFa: !hasInterpretiveData
       ? `از این تماس نمی‌توان دربارهٔ هماهنگی ${first} و ${second} نتیجه گرفت؛ جایگاه لازم برای تفسیر معتبر نیست.`
-      : supportive
-      ? `در خوانش نمادین، ${first} از مسیر ${firstRole} و ${second} از مسیر ${secondRole} می‌توانند به یکدیگر پاسخ بدهند؛ این امکان را در رفتار واقعی بسنجید.`
-      : `در موضوع ${theme}، سهم ${first} را از مسیر ${firstRole} و سهم ${second} را از مسیر ${secondRole} جدا ببینید؛ تفاوت نقش‌ها لزوماً به معنی مخالفت نیست.`,
+      : observation.healthy,
     stressFa: !hasInterpretiveData
       ? "از این ثبت خام، تنش یا ضعف رابطه استنباط نمی‌شود."
-      : tension
-      ? `اگر میان این دو نقش اصطکاکی پیش آمد، یک موقعیت مشخص را مرور کنید: چه چیزی گفته یا انجام شد و طرف مقابل چه برداشتی از آن داشت؟`
-      : `هماهنگی احتمالی در یک موقعیت به معنی همراهی همیشگی نیست؛ ببینید نفر مقابل هنوز با همان شیوه موافق است یا نه.`,
-    contextFa: hasInterpretiveData ? describeRelationshipContextForContact(report.relationshipContext, theme) : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
+      : observation.stress,
+    contextFa: hasInterpretiveData ? describeRelationshipContextForContact(report.relationshipContext, theme) + ` برای نمونه، موقعیت «${pointObservation(contact.pointA.id)[0]}» را در کنار «${pointObservation(contact.pointB.id)[0]}» بررسی کنید؛ این‌ها مثال‌اند، نه رویدادهای ثبت‌شده.` : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
     natalContextFa: hasInterpretiveData ? `${natalA} ${natalB}` : "شواهد فردی ثبت‌شده جایگزین اعتبار تماس میان دو نفر نمی‌شوند.",
     overlayContextFa: relatedOverlays.length > 0
       ? relatedOverlays.map((item) => item.contextFa).join(" ")
@@ -352,9 +380,9 @@ function buildOverlayInterpretation(
     directionFa: `${sourceLabel} → زندگی ${targetLabel}`,
     titleFa: `${overlay.sourcePointLabel} ${sourceLabel} در خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} ${targetLabel}`,
     meaningFa: `در این هم‌پوشانی، ${overlay.sourcePointLabel} متعلق به ${sourceLabel} است و خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} متعلق به ${targetLabel}؛ موضوع خانه «${theme}» است.`,
-    contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel),
-    supportiveFa: `در خوانش نمادین، ${sourceLabel} از مسیر ${pointRole(overlay.sourcePointId)} می‌تواند به ${targetLabel} در بررسی این حوزه کمک کند؛ تصمیم دربارهٔ آن با صاحب خانه است.`,
-    stressFa: `اگر ${targetLabel} این نوع مشارکت را نمی‌خواهد، ${sourceLabel} نباید صرف حضور خود را مجوز دخالت در موضوع «${theme}» بداند.`,
+    contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel) + ` از میان موقعیت‌ها، «${pointObservation(overlay.sourcePointId)[0]}» نمونه‌ای برای بررسی نقش این نقطه است.`,
+    supportiveFa: `در موضوع «${theme}»، ${sourceLabel} می‌تواند ${pointObservation(overlay.sourcePointId)[1]}. ${targetLabel} مشخص کند آیا این مشارکت در حوزهٔ زندگی خودش به کار می‌آید یا نه.`,
+    stressFa: `در همین حوزه، اگر ${sourceLabel} ${pointObservation(overlay.sourcePointId)[2]}، ${targetLabel} می‌تواند حدود مشارکت را دوباره مشخص کند. این جایگاه به‌تنهایی وجود چنین رفتاری را ثابت نمی‌کند.`,
     confidenceFa: `این هم‌پوشانی فقط چون هر دو چارت دادهٔ خانه‌ای قابل استفاده دارند محاسبه شده است؛ با تغییر معنی‌دار ساعت تولد، جایگاه خانه می‌تواند تغییر کند.`,
     relatedContactIds,
     evidenceIds: uniqueStrings([overlay.id, ...relatedContactIds]),
@@ -623,12 +651,12 @@ function buildRetrogradeItems(
     return [{
       id: `retrograde:${side}:none`,
       titleFa: `حرکت بازگشتی ${label}`,
-      meaningFa: "در دادهٔ محاسبه‌شده این چارت هیچ سیارهٔ اصلی با وضعیت retrograde ثبت نشده است.",
-      relationshipExpressionFa: `پس در ${CONTEXT_LABELS_FA[context]} modifier بازگشتی برای سیاره‌های اصلی ${label} به روایت اضافه نمی‌شود.`,
+      meaningFa: "در دادهٔ محاسبه‌شده این چارت هیچ سیارهٔ اصلی با وضعیت بازگشتی ثبت نشده است.",
+      relationshipExpressionFa: `پس در ${CONTEXT_LABELS_FA[context]} توضیح تکمیلی بازگشتی برای سیاره‌های اصلی ${label} به روایت اضافه نمی‌شود.`,
       supportiveExpressionFa: "این وضعیت به‌خودی‌خود امتیاز مثبت یا منفی نیست.",
-      stressExpressionFa: "نبود retrograde نباید به سادگی یا بی‌چالشی رابطه تعبیر شود.",
+      stressExpressionFa: "نبود حرکت بازگشتی نباید به سادگی یا بی‌چالشی رابطه تعبیر شود.",
       contextualExpressionFa: `روش محاسبه: ${retrogrades.method ?? "ثبت نشده"}.`,
-      confidenceFa: "این توضیح فقط وضعیت محاسبه‌شدهٔ snapshot را گزارش می‌کند.",
+      confidenceFa: "این توضیح فقط وضعیت محاسبه‌شدهٔ دادهٔ تولد را گزارش می‌کند.",
       evidenceIds: [`engine:${side}:retrogrades`],
     }];
   }
@@ -636,9 +664,9 @@ function buildRetrogradeItems(
     id: `retrograde:${side}:${planetId}`,
     titleFa: `${planetLabel(planetId)} بازگشتی در چارت ${label}`,
     meaningFa: `در زمان ثبت‌شدهٔ تولد ${label}، حرکت ظاهری ${planetLabel(planetId)} بازگشتی بوده است؛ در خوانش نمادین، بازبینی موضوع‌های این سیاره مطرح می‌شود.`,
-    relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این زمینه فقط برای توضیح واکنش ${label} به تماس‌های مربوط به ${planetId} استفاده می‌شود.`,
-    supportiveExpressionFa: "بازبینی بیشتر می‌تواند به دقت و خودآگاهی کمک کند.",
-    stressExpressionFa: "زیر فشار، بازگشت مکرر به موضوع یا دیرتر بیرونی‌کردن تصمیم می‌تواند برای نفر مقابل مبهم شود.",
+    relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]}، موضوع فردی ${planetLabel(planetId)} را می‌توان در موقعیت «${pointObservation(planetId)[0]}» بررسی کرد؛ وضعیت بازگشتی وجود هیچ واکنش خاصی را ثابت نمی‌کند.`,
+    supportiveExpressionFa: `یک راه بررسی سازنده این است که ${label} ${pointObservation(planetId)[1]}.`,
+    stressExpressionFa: `اگر ${label} ${pointObservation(planetId)[2]}، ابتدا رفتار واقعی را بررسی کنید؛ حرکت بازگشتی علت اثبات‌شدهٔ آن نیست.`,
     contextualExpressionFa: `روش ثبت‌شده: ${retrogrades.method ?? "نامشخص"}.`,
     confidenceFa: "این وضعیت از محاسبهٔ حرکت ظاهری می‌آید و حکم مستقل دربارهٔ شخصیت یا رابطه نیست.",
     evidenceIds: [`engine:${side}:retrogrades`, `retrograde:${side}:${planetId}`],
@@ -661,7 +689,7 @@ function buildSignatureItems(
     supportiveExpressionFa: `شناخت این ریتم کمک می‌کند تفاوت سبک با بی‌علاقگی یا فشار اشتباه گرفته نشود.`,
     stressExpressionFa: `کم بودن یک دسته در توزیع جایگاه‌ها به معنی نداشتن یک توانایی یا ویژگی شخصیتی نیست.`,
     contextualExpressionFa: `کمبودها: عنصر ${signature.lowElements.map(signatureLabel).join("، ") || "ندارد"}؛ کیفیت ${signature.lowModalities.map(signatureLabel).join("، ") || "ندارد"}؛ بیان ${signature.lowExpressions.map(signatureLabel).join("، ") || "ندارد"}.`,
-    confidenceFa: `این signature با روش ${signature.method} و شواهد ${signature.evidence.length.toLocaleString("fa-IR")} جایگاه اصلی ساخته شده است.`,
+    confidenceFa: `این امضای چارت با روش ${signature.method} و شواهد ${signature.evidence.length.toLocaleString("fa-IR")} جایگاه اصلی ساخته شده است.`,
     evidenceIds: [`engine:${side}:chartSignature`, ...signature.evidence.map((item) => `placement:${side}:${item.placementId}`)],
   }];
 }
@@ -677,8 +705,8 @@ function buildNatalAspectItems(
     titleFa: `${aspect.firstPlanetLabel} ${comparisonAspectNameFa(aspect.aspectId, aspect.aspectLabel)} ${aspect.secondPlanetLabel} در چارت ${label}`,
     meaningFa: aspect.narrative || aspect.meaning,
     relationshipExpressionFa: `این جنبه در چارت تولد ${label} میان ${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} است؛ در مقایسه صرفاً زمینه‌ای برای بررسی تماس‌های مربوط به این دو نقطه فراهم می‌کند.`,
-    supportiveExpressionFa: `اگر تماس بیرونی با این الگوی تولد هم‌جهت باشد، فرد ممکن است سریع‌تر آن را بشناسد و مسیر استفاده از آن برایش آشناتر باشد.`,
-    stressExpressionFa: `اگر تماس بیرونی همان تنش تولد را دوباره فعال کند، واکنش می‌تواند شدیدتر یا تکرارشونده‌تر از چیزی باشد که فقط از تماس بین دو چارت انتظار می‌رود.`,
+    supportiveExpressionFa: `برای مشاهدهٔ این الگوی فردی، ${label} می‌تواند موقعیت «${pointObservation(aspect.firstPlanetId)[0]}» و «${pointObservation(aspect.secondPlanetId)[0]}» را جدا بررسی کند؛ فقط با شاهد مستقل به رابطه وصل می‌شود.`,
+    stressExpressionFa: `وجود ${comparisonAspectNameFa(aspect.aspectId, aspect.aspectLabel)} در تولد کافی نیست که واکنش به نفر مقابل را به آن نسبت دهیم؛ به‌خصوص اگر تماس بیرونی با همین نقاط ثبت نشده باشد.`,
     contextualExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این جنبه متعلق به یک نفر است، نه یک تماس تازه میان دو نفر.`,
     confidenceFa: `اورب تولد ثبت‌شده ${aspect.orb.toFixed(2)} درجه است و این داده مستقیماً از دادهٔ تولد ${label} می‌آید.`,
     evidenceIds: [`engine:${side}:aspects`, `natal-aspect:${side}:${aspect.id}`],
@@ -781,7 +809,7 @@ function buildCalculationExplanation(
   for (const entry of snapshots) {
     const engine = entry.snapshot.engineSnapshot;
     if (!engine) {
-      warningsFa.push(`${entry.label}: full engine snapshot در این رکورد قدیمی وجود ندارد.`);
+      warningsFa.push(`${entry.label}: دادهٔ کامل موتور در این رکورد قدیمی وجود ندارد.`);
       continue;
     }
     methodNotesFa.push(`${entry.label}: نسخهٔ ${engine.version}، شهر ${engine.cityLabel}، ${entry.time === "exact" ? "زمان جهانی تولد" : "زمان جهانی مرجع محاسبه، نه ساعت تولد"} ${engine.utcIso}.`);
@@ -792,17 +820,17 @@ function buildCalculationExplanation(
       methodNotesFa.push(`${entry.label}: روش محاسبهٔ گره‌های ماه ${engine.lunarNodes.method ?? "نامشخص"}.`);
     }
     if (engine.lilith && engine.lilith.status === "calculated" && "validationStatus" in engine.lilith) {
-      methodNotesFa.push(`${entry.label}: لیلیت ${engine.lilith.validationStatus} و approvedForReportOutput=${String(engine.lilith.approvedForReportOutput)}.`);
+      methodNotesFa.push(`${entry.label}: لیلیت ${engine.lilith.validationStatus} ؛ مجوز نمایش در گزارش: ${engine.lilith.approvedForReportOutput ? "دارد" : "ندارد"}.`);
     }
     if (engine.specialistAstrology?.fixedStars) {
       const fixed = engine.specialistAstrology.fixedStars;
-      methodNotesFa.push(`${entry.label}: کاتالوگ ستاره‌های ثابت ${fixed.catalogueVersion} با orb نامزدی ${fixed.conjunctionCandidateOrbDegrees.toFixed(2)}°.`);
+      methodNotesFa.push(`${entry.label}: کاتالوگ ستاره‌های ثابت ${fixed.catalogueVersion} با فاصلهٔ مجاز بررسی ${fixed.conjunctionCandidateOrbDegrees.toFixed(2)}°.`);
     }
     if (engine.specialistAstrology?.traditionalLots) {
       methodNotesFa.push(`${entry.label}: مجموعه فرمول سهم‌ها ${engine.specialistAstrology.traditionalLots.formulaSetVersion}.`);
     }
     if (engine.specialistAstrology?.asteroidLab) {
-      methodNotesFa.push(`${entry.label}: asteroid lab در سطح ${engine.specialistAstrology.asteroidLab.surface} است و main-report promotion=${engine.specialistAstrology.asteroidLab.mainReportPromotion}.`);
+      methodNotesFa.push(`${entry.label}: آزمایش اجرام کوچک؛ سطح ثبت‌شده ${engine.specialistAstrology.asteroidLab.surface}، وضعیت ورود به گزارش اصلی ${engine.specialistAstrology.asteroidLab.mainReportPromotion}.`);
     }
     warningsFa.push(...(engine.calculationQuality?.warnings ?? []).map((item) => `${entry.label}: ${item}`));
     warningsFa.push(...(engine.calculationQuality?.limitations ?? []).map((item) => `${entry.label}: ${item}`));
@@ -927,7 +955,7 @@ function describeNatalModifier(
   if (aspects.length > 0) {
     const first = aspects[0];
     const other = first.firstPlanetId === pointId ? first.secondPlanetLabel : first.firstPlanetLabel;
-    return `در چارت تولد ${label}، ${planetLabel(pointId)} با ${other} جنبهٔ ${comparisonAspectNameFa(first.aspectId, first.aspectLabel)} دارد. این جنبه فردی است و به‌تنهایی نحوهٔ واکنش به نفر مقابل را تعیین نمی‌کند.`;
+    return `در چارت تولد ${label}، ${planetLabel(pointId)} با ${other} جنبهٔ ${comparisonAspectNameFa(first.aspectId, first.aspectLabel)} دارد. پرسش فردی: ${label} در موقعیت «${pointObservation(pointId)[0]}» چه می‌کند؟ این جنبه به‌تنهایی نحوهٔ واکنش به نفر مقابل را تعیین نمی‌کند.`;
   }
   const signature = snapshot.engineSnapshot?.chartSignature;
   return signature
