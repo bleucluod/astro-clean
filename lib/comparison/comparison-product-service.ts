@@ -433,25 +433,25 @@ function buildCommunicationChapter(
   if (mercury && sun && hard) {
     title = "یک سؤال، دو معنای متفاوت";
     lead = `${sun} ایده‌ای را با علاقه توضیح می‌دهد و اولین جواب ${mercury} این است: «چرا این راه؟» سؤال می‌تواند دربارهٔ خود پیشنهاد باشد، اما برای ${sun} معنای دیگری پیدا کند: «پس انتخابم را نپسندیدی؟» ${relationship(primary)} در تفسیر نجومی همین فاصله میان نقد یک نظر و واکنش به صاحب آن را برجسته می‌کند.`;
-    example = `در بررسی طرح یک پروژه، ${mercury} سراغ هزینه‌ها می‌رود؛ هنوز معلوم نیست خود طرح را جذاب می‌داند یا نه. اگر ${sun} هم فقط بگوید «من اینو بیشتر دوست دارم»، دلیل ترجیحش ناگفته می‌ماند.`;
+    example = `در بررسی طرح یک پروژه، ${mercury} می‌پرسد «هزینه‌اش چقدره؟» و ${sun} هنوز نمی‌داند طرف مقابل با اصل طرح موافق است یا نه. اگر جواب فقط «این یکی بهتره» باشد، دلیل ترجیح هم ناگفته می‌ماند.`;
     strength = `هنگام مقایسهٔ دو دورهٔ آموزشی، ${sun} توضیح می‌دهد کدام با هدفش جور درمی‌آید و ${mercury} زمان و محتوای آن‌ها را می‌سنجد. اختلاف سلیقه به معیار انتخاب تبدیل می‌شود.`;
-    challenge = `در بازخوانی نوشتهٔ ${sun}، شمردن غلط‌های نگارشی هنوز پاسخی به این سؤال نیست که پیام اصلی منتقل شده یا نه.`;
+    challenge = `فرض کنید ${sun} نوشته‌ای را برای نظرخواهی می‌فرستد. اگر ${mercury} فقط غلط‌های نگارشی را پیدا کند، سؤال اصلی بی‌جواب می‌ماند: آیا خواننده پیام نوشته را گرفته است؟ درست بودن جزئیات با مؤثر بودن کل نوشته فرق دارد.`;
     step = `${sun} نوع بازخورد را مشخص کند: «اول بگو پیام اصلی رو گرفتی یا نه». ${mercury} ابتدا برداشتش را بگوید، سپس یک نکتهٔ قابل اصلاح را مطرح کند.`;
     assignRoles(mercury, "پیشنهاد را از نظر دلیل و جزئیات می‌سنجد.", sun, "به معنای شخصی انتخاب و نظر کلی توجه دارد.");
   } else if (mercury && moon && smooth) {
     title = "معنایی که بین جمله‌ها پیدا می‌شود";
     lead = `${moon} از یک اتفاق می‌گوید: «یه جای کار عجیب بود». ${mercury} می‌پرسد «یعنی انتظار داشتی از قبل خبرت کنند؟» و موضوع از یک حس مبهم به پرسشی روشن تبدیل می‌شود. ${relationship(primary)} در تفسیر نجومی به توانایی پیدا کردن کلمات برای تجربه‌ای اشاره دارد که هنوز کامل بیان نشده است.`;
-    example = `وقتی ${mercury} خبری را تعریف می‌کند، نقش‌ها عوض می‌شوند: ${moon} به اهمیت جزئی که در روایت جا افتاده اشاره می‌کند. مثلاً تغییر زمان اعلام یک تصمیم می‌تواند معنی کل خبر را عوض کند.`;
-    strength = `در تعریف ماجرای یک سفر برای نفر سوم، ${mercury} ترتیب وقایع را می‌چیند و ${moon} یادآوری می‌کند کدام لحظه برای فهم داستان ضروری است. نتیجه روایتی است که شنونده هم می‌تواند دنبال کند.`;
-    challenge = `تعبیر سریع گاهی فقط نصف ماجراست. اگر ${mercury} وسط تعریف ${moon} بگوید «پس از نتیجه ناراضی بودی»، هنوز ممکن است مسئله نه نتیجه بلکه طرز اعلام آن باشد.`;
+    example = `این توانایی یک‌طرفه نیست. وقتی ${mercury} ماجرایی را نقل می‌کند، ممکن است ${moon} بپرسد تصمیم قبل از جلسه گرفته شده بود یا بعد از آن. همین ترتیب زمانی معنای خبر را عوض می‌کند.`;
+    strength = `هنگام تعریف ماجرای یک سفر برای کسی که همراهشان نبوده، ${mercury} ترتیب وقایع را توضیح می‌دهد و ${moon} لحظه‌ای را به یاد می‌آورد که دلیل تغییر مسیر را روشن می‌کند. شنونده فقط فهرست اتفاق‌ها را نمی‌شنود؛ می‌فهمد چرا رخ دادند.`;
+    challenge = `خطر این نزدیکی آن است که یک تعبیر درست، تمام ماجرا فرض شود. اگر ${mercury} وسط حرف ${moon} نتیجه بگیرد «پس از نتیجه ناراضی بودی»، ممکن است موضوع واقعی طرز اعلام آن باشد، نه خود نتیجه.`;
     step = `${mercury} پس از برداشت اولیه بپرسد «کدوم بخشش؟» و ${moon} یک نمونه از خود اتفاق بدهد. قبل از نتیجه‌گیری، تفاوت دو تعبیر را با همان نمونه بررسی کنید.`;
     assignRoles(moon, "اهمیت و معنای تجربه را وارد گفت‌وگو می‌کند.", mercury, "با سؤال دقیق به تجربه صورت روشن می‌دهد.");
   } else if (mercury && mars && smooth) {
     title = "وقتی حرف به یک امتحان کوچک تبدیل می‌شود";
     lead = `${mercury} می‌پرسد «می‌شه این وسیله رو یه جور دیگه چید؟» و ${mars} راهی برای امتحان کردن پیشنهاد پیدا می‌کند. ${relationship(primary)} در تفسیر نجومی پیوند فکر و عمل را برجسته می‌کند: یک پیشنهاد تنها با موافقت یا مخالفت روبه‌رو نمی‌شود؛ نتیجه‌ای پیدا می‌کند که هر دو می‌توانند درباره‌اش حرف بزنند.`;
-    example = `فرض کنید ${mars} روش یک بازی را با نشان دادن حرکت اول توضیح می‌دهد و ${mercury} همان‌جا استثنایی در قاعده پیدا می‌کند. این بار یک حرکت، نقص توضیح را آشکار می‌کند.`;
-    strength = `وقتی قرار است کاری را به نفر سومی یاد بدهید، ${mars} نمونهٔ قابل مشاهده را می‌سازد و ${mercury} مراحل را توضیح می‌دهد. دیگری هم می‌تواند آن را تکرار کند.`;
-    challenge = `نتیجهٔ آزمایش کوچک همیشه پاسخ پرسش اصلی نیست: اگر ${mercury} بخواهد سه گزینه را مقایسه کند، امتحان کردن نخستین پیشنهاد هنوز مقایسه را کامل نکرده است.`;
+    example = `فرض کنید ${mars} قواعد یک بازی را با حرکت اول توضیح می‌دهد. ${mercury} حالتی را پیدا می‌کند که در آن قاعده کار نمی‌کند. به‌جای بحث بر سر اینکه توضیح کافی بوده یا نه، می‌توانند همان حالت را دوباره بازی کنند و قاعده را دقیق‌تر بنویسند.`;
+    strength = `اگر قرار باشد استفاده از وسیله‌ای را به نفر سومی یاد بدهند، ${mars} می‌تواند نمونهٔ عملی بسازد و ${mercury} ترتیب مراحل را روشن کند. معیار موفقیت این است که یادگیرنده بتواند بدون کمکشان همان کار را انجام دهد.`;
+    challenge = `توافق بر سر امتحان یک گزینه به معنای انتخاب نهایی آن نیست. اگر ${mercury} قصد مقایسهٔ سه راه را داشته باشد، موفقیت اولین آزمایش هنوز جواب سؤالش نیست.`;
     step = `ابتدا معیار آزمون را مشخص کنید: «می‌خوایم جا بیشتر بشه یا دسترسی راحت‌تر؟» سپس ${mars} یک تغییر کوچک انجام دهد و ${mercury} نتیجه را با همان معیار توصیف کند.`;
     assignRoles(mercury, "سؤال و معیار سنجش را مطرح می‌کند.", mars, "راه آزمودن ایده را پیشنهاد می‌دهد.");
   } else if (primary.pointA.id === "mercury" && primary.pointB.id === "mercury") {
@@ -487,27 +487,27 @@ function buildCommunicationChapter(
   }
   if (support && (support.aspectId === "sextile" || support.aspectId === "trine" || support.aspectId === "conjunction")) {
     if (secondaryMoon && secondaryMercury && secondaryMoon !== secondaryMercury && moon !== secondaryMoon) {
-      strength += ` ${relationship(support)} امکان جابه‌جایی نقش‌ها را هم نشان می‌دهد: پس از دیدن یک نمایش، ${secondaryMercury} می‌تواند از روایت ${secondaryMoon} فرق پایان غیرمنتظره و پایان نامفهوم را بیرون بکشد.`;
+      strength += ` نقش‌ها همیشه ثابت نیستند. پس از دیدن یک نمایش، ${secondaryMoon} شاید بتواند توضیح دهد چرا پایان داستان قانع‌کننده نبود و ${secondaryMercury} از او بپرسد: «غافلگیرت کرد یا دلیل اتفاق‌ها روشن نبود؟» این ظرفیت با ${relationship(support)} پیوند دارد.`;
       evidence.push(evidenceFor(support, "شاهد پشتیبان"));
     } else if (secondaryJupiter && secondaryMercury && secondaryJupiter !== secondaryMercury) {
-      strength += ` ${relationship(support)} کارکرد دیگری دارد: اگر ${secondaryMercury} برای یادگیری مهارتی یک راه در نظر گرفته باشد، ${secondaryJupiter} گزینه‌ای را پیش می‌کشد که اصلاً در فهرست نبود. گفت‌وگو این بار امکان تازه می‌سازد.`;
+      strength += ` در تصمیمی دربارهٔ یادگیری یک مهارت، ${secondaryJupiter} ممکن است راهی بیرون از گزینه‌های اولیهٔ ${secondaryMercury} پیشنهاد کند. ${relationship(support)} پشتوانهٔ این برداشت است: گفت‌وگو فقط برای فهمیدن نیست؛ می‌تواند دامنهٔ انتخاب را بزرگ‌تر کند.`;
       evidence.push(evidenceFor(support, "شاهد پشتیبان"));
     }
   }
   if (support && secondarySun && secondaryMercury && secondarySun !== secondaryMercury &&
       (support.aspectId === "opposition" || support.aspectId === "square") && !sun) {
-    challenge += ` ${relationship(support)} استثنایی را روشن می‌کند: اگر ${secondarySun} از یک سبک طراحی دفاع کند و ${secondaryMercury} به استدلالش ایراد بگیرد، پرسش فنی ممکن است مخالفت با سلیقه شنیده شود. آزمایش بیشتر این تفاوت را حل نمی‌کند.`;
+    challenge += ` استثنا زمانی پیدا می‌شود که موضوع، سلیقهٔ شخصی باشد. اگر ${secondarySun} از یک سبک طراحی دفاع کند و ${secondaryMercury} ایراد اجرایی بگیرد، ممکن است پاسخ به پرسشی دربارهٔ زیبایی، صرفاً بررسی امکان اجرا باشد. این تفاوت را ${relationship(support)} برجسته می‌کند.`;
     evidence.push(evidenceFor(support, "شاهد پشتیبان"));
   }
   // Only context assigned by the evidence planner is eligible here. Reference-time
   // placements from an unknown birth time are deliberately not used as sign claims.
-  const signProfiles: Record<string, { sign: string; sentence: (name: string, description: string) => string }> = {
-    "mercury:aries": { sign: "اریز", sentence: (name, description) => ` ${description} مستقیم سر اصل مسئله رفتنِ ${name} را در این خوانش توضیح می‌دهد.` },
-    "sun:libra": { sign: "لیبرا", sentence: (name, description) => ` برای ${name}، سنجیدن گزینه‌ها از چند زاویه با ${description} هم‌خوان است.` },
-    "moon:taurus": { sign: "تارس", sentence: (name, description) => ` ${description} بر جزئیات ملموس تجربه تأکید دارد؛ نقل خود اتفاق برای ${name} نقطهٔ شروع است.` },
-    "mercury:cancer": { sign: "کنسر", sentence: (name, description) => ` با ${description}، توجه ${name} به زمینهٔ حرف معنی پیدا می‌کند: یک جمله در دو موقعیت می‌تواند دو منظور داشته باشد.` },
-    "mars:libra": { sign: "لیبرا", sentence: (name, description) => ` ${description} نشان می‌دهد چرا ${name} در این خوانش به راهی مشترک برای آزمودن ایده توجه دارد.` },
-    "mercury:virgo": { sign: "ویرگو", sentence: (name, description) => ` با ${description}، ${name} می‌تواند ایراد یک بخش را از رد کل طرح جدا کند.` },
+  const signProfiles: Record<string, { sign: string; sentence: (description: string) => string }> = {
+    "mercury:aries": { sign: "اریز", sentence: (description) => ` در این صحنه، مستقیم بودن پرسش با تعبیر نجومی ${description} هم‌خوان است؛ کوتاهی سؤال هنوز نشانهٔ مخالفت نیست.` },
+    "sun:libra": { sign: "لیبرا", sentence: (description) => ` در خوانش ${description}، مقایسهٔ چند معیار می‌تواند راهی برای توضیح دادن یک ترجیح باشد، نه صرفاً دفاع از آن.` },
+    "moon:taurus": { sign: "تارس", sentence: (description) => ` در تعبیر ${description}، همین جزئیات قابل یادآوری به روشن شدن داستان کمک می‌کنند.` },
+    "mercury:cancer": { sign: "کنسر", sentence: (description) => ` خوانش ${description} نیز به اهمیت موقعیت بیان حرف اشاره دارد: یک جمله پیش از تصمیم و پس از آن معنای یکسانی ندارد.` },
+    "mars:libra": { sign: "لیبرا", sentence: (description) => ` ${description} در تعبیر نجومی وجه دیگری به این همکاری می‌دهد: انتخاب روشی که هر دو بتوانند در آزمودنش مشارکت کنند.` },
+    "mercury:virgo": { sign: "ویرگو", sentence: (description) => ` تعبیر ${description} به تفکیک ایراد اجرایی از ارزش کلی طرح کمک می‌کند؛ دقیقاً همان تمایزی که در این مثال لازم است.` },
   };
   const seenContext = new Set<string>();
   for (const point of [primary.pointA, primary.pointB, ...(support ? [support.pointA, support.pointB] : [])]) {
@@ -516,7 +516,7 @@ function buildCommunicationChapter(
     const profile = signProfiles[point.id + ":" + context.signId];
     if (!profile) continue;
     const description = `${point.label}ِ ${names[point.chartSide]} در نشان ${profile.sign}`;
-    const sentence = profile.sentence(names[point.chartSide], description);
+    const sentence = profile.sentence(description);
     if (point.id === "mars" || point.id === "sun") strength += sentence;
     else if (point.id === "mercury" && ![primary.pointA, primary.pointB].some(p => p.chartId === point.chartId && p.id === point.id)) challenge += sentence;
     else example += sentence;
@@ -525,11 +525,11 @@ function buildCommunicationChapter(
   }
 
   const natalRules: Record<string, string> = {
-    "mercury:saturn:sextile": "به تبدیل سؤال به معیار مشخص بررسی کمک می‌کند.",
-    "mercury:saturn:trine": "به جدا کردن دلیل اصلی از توضیحات فرعی کمک می‌کند.",
-    "mercury:moon:trine": "پشتوانه‌ای برای روایت مستقل تجربه است؛ لازم نیست دیگری جملهٔ او را کامل کند.",
-    "mercury:uranus:opposition": "می‌تواند با یک تداعی تازه مسیر بحث را عوض کند؛ پیش از سؤال بعدی، نکتهٔ قبلی روشن شود.",
-    "mercury:jupiter:square": "فاصلهٔ یک نکتهٔ قابل سنجش و نتیجه‌گیری کلی را برجسته می‌کند؛ نقد یک نمونه را به رد همهٔ گزینه‌ها تعمیم ندهید.",
+    "mercury:saturn:sextile": "در تفسیر نجومی، به سؤال عددی وجه عملی می‌دهد: می‌توان سقف هزینه را مشخص کرد و بعد دربارهٔ خود ایده نظر داد.",
+    "mercury:saturn:trine": "در خوانش فردی، می‌تواند پشتوانهٔ توضیح منظم دلیل ترجیح باشد؛ اول هدف طرح، سپس دلیل انتخاب این راه.",
+    "mercury:moon:trine": "یادآور این است که گوینده نیز می‌تواند روایت خودش را کامل کند؛ شنونده لازم نیست همیشه جملهٔ ناتمام او را حدس بزند.",
+    "mercury:uranus:opposition": "در این خوانش، احتمال جهش به پرسش تازه را مطرح می‌کند. یک ارتباط ذهنی تازه ممکن است جالب باشد، اما هنوز پاسخ جملهٔ قبلی نیست.",
+    "mercury:jupiter:square": "در تفسیر نجومی، احتیاط در تعمیم را برجسته می‌کند: ناموفق بودن یک نمونه، همهٔ روش‌های اجرای همان طرح را رد نمی‌کند.",
   };
   for (const item of plan?.natalContext ?? []) {
     const contactPoint = [primary.pointA, primary.pointB, ...(support ? [support.pointA, support.pointB] : [])]
