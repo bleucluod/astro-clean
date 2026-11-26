@@ -1266,6 +1266,7 @@ export function ChartForm({
             onSubmit={handleSubmit}
             ref={formRef}
           >
+            {!comparisonMode ? <>
               <div className={journeyStyles.journeyProgress} aria-live="polite">
                 <div className={journeyStyles.progressHeading}>
                   <span>{comparisonMode ? "مشخصات تولد" : "آسمان تو در حال شکل‌گرفتنه"}</span>
@@ -1287,7 +1288,7 @@ export function ChartForm({
                 </div>
                 <p className={journeyStyles.progressHint}>
                   {chartProgress.completed === 4
-                    ? (comparisonMode ? "مشخصات این نفر کامل است." : "اطلاعات اصلی آماده است؛ می‌تونی آسمان تولدت رو بسازی.")
+                    ? "اطلاعات اصلی آماده است؛ می‌تونی آسمان تولدت رو بسازی."
                     : "هر اطلاعاتی که تکمیل کنی، یک نقطه از آسمانت روشن می‌شه."}
                 </p>
               </div>
@@ -1322,6 +1323,8 @@ export function ChartForm({
                 ))}
               </div>
             </div>
+
+            </> : null}
 
             <div className="chart-form-fields">
               <div className={journeyStyles.journeyStep + (isCollapsedStep("name") ? " " + journeyStyles.stepCollapsed : "")}
@@ -1591,7 +1594,7 @@ export function ChartForm({
                 </div>
                 ) : null}
 
-                {birthTimeMode === "unknown" ? (
+                {!comparisonMode && birthTimeMode === "unknown" ? (
                   <small className="field-hint">
                     اگر ساعت دقیق را نمی‌دانی، می‌توانی ادامه بدهی؛ در گزارش مشخص می‌کنیم کدام بخش‌ها به ساعت دقیق وابسته‌اند.
                   </small>

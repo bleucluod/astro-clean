@@ -56,32 +56,26 @@ const DirectChartForm = dynamic(
 const RELATIONSHIP_OPTIONS: ReadonlyArray<{
   value: SynastryRelationshipContext;
   label: string;
-  description: string;
 }> = [
   {
     value: "romantic",
     label: "عاطفی",
-    description: "برای رابطه عاشقانه، نامزدی یا زندگی مشترک",
   },
   {
     value: "friendship",
     label: "دوستی",
-    description: "برای صمیمیت، همراهی و مرزهای دوستی",
   },
   {
     value: "family",
     label: "خانوادگی",
-    description: "برای رابطه والد، فرزند، خواهر، برادر یا خویشاوند",
   },
   {
     value: "work",
     label: "کاری",
-    description: "برای همکاری، تقسیم نقش و ارتباط حرفه‌ای",
   },
   {
     value: "general",
     label: "عمومی",
-    description: "برای مقایسه‌ای بدون فرض درباره نوع رابطه",
   },
 ];
 
@@ -596,11 +590,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     !hasRelationshipCredit;
   const selectedChartCount = Number(Boolean(chartA || readyA)) + Number(Boolean(chartB || readyB));
   const pairReady = selectedChartCount === 2;
-  const chartALabel = chartA ? getComparisonChartLabel(chartA, "نفر اول") : "نفر اول";
-  const chartBLabel = chartB ? getComparisonChartLabel(chartB, "نفر دوم") : "نفر دوم";
-  const selectedRelationship =
-    RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext) ??
-    RELATIONSHIP_OPTIONS[0]!;
 
   return (
     <div
@@ -702,9 +691,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           <div>
             <p className={styles.eyebrow}>تحلیل رابطه</p>
             <h2 id="comparison-builder-title">دو نفر را برای تحلیل آماده کن</h2>
-            <p>
-              مشخصات تولد هر نفر را همین‌جا وارد کن یا چارت ذخیره‌شده‌اش را انتخاب کن.
-            </p>
           </div>
 
           <button
@@ -739,13 +725,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           <i aria-hidden="true">
             <b style={{ width: `${selectedChartCount * 50}%` }} />
           </i>
-          <small>
-            {pairReady
-              ? "مشخصات هر دو نفر کامل است"
-              : selectedChartCount === 1
-                ? "مشخصات یک نفر دیگر را کامل کن"
-                : "مشخصات تولد هر دو نفر را وارد کن"}
-          </small>
         </div>
 
 
@@ -814,12 +793,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           </div>
         ) : null}
         <section className={styles.flowStep} data-flow-step="charts">
-          <div className={styles.stepHeading}>
-            <span>۱</span>
-            <div>
-              <h3>مشخصات تولد دو نفر</h3>
-            </div>
-          </div>          <div className={styles.directPeopleGrid} data-step-state={pairReady ? "complete" : "active"}>
+          <div className={styles.directPeopleGrid} data-step-state={pairReady ? "complete" : "active"}>
             <section className={`${styles.directEntryPanel} ${chartStyles.formPanel}`} aria-labelledby="compare-person-a">
               <div className={`${styles.directEntryHeader} ${chartStyles.formPanelHeading}`}>
                 <h4 id="compare-person-a">نفر اول</h4>
@@ -884,13 +858,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         </section>
 
         <section className={styles.flowStep} data-flow-step="relationship">
-          <div className={styles.stepHeading}>
-            <span>۲</span>
-            <div>
-              <h3>این دو نفر چه رابطه‌ای دارند؟</h3>
-              <p>نوع رابطه تعیین می‌کند خوانش با چه مثال‌ها و زبانی نوشته شود.</p>
-            </div>
-          </div>          <fieldset className={styles.relationshipFieldset} disabled={isWorking}>
+          <fieldset className={styles.relationshipFieldset} disabled={isWorking}>
             <legend>نوع رابطه</legend>
             <div className={styles.relationshipGrid}>
               {RELATIONSHIP_OPTIONS.map((option) => (
@@ -917,29 +885,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               ))}
             </div>
           </fieldset>
-          <div className={styles.relationshipContextNote}>
-            <strong>{selectedRelationship.label}</strong>
-            <span>{selectedRelationship.description}</span>
-          </div>
         </section>
 
-
-        {pairReady && chartA && chartB ? (
-          <section className={styles.pairReview} aria-label="خلاصه پیش از ساخت تحلیل">
-            <header>
-              <small>دو چارت آمادهٔ مقایسه‌اند</small>
-              <strong>{chartALabel} × {chartBLabel}</strong>
-              <span>{selectedRelationship.label}</span>
-            </header>
-            <div className={styles.pairReviewPeople}>
-              <p><b>{chartALabel}</b><span>{chartA.input.birthDate} · {chartA.input.birthCity}</span><small>{chartATimeStatus === "exact" ? "ساعت دقیق ✓" : "ساعت نامشخص"}</small></p>
-              <p><b>{chartBLabel}</b><span>{chartB.input.birthDate} · {chartB.input.birthCity}</span><small>{chartBTimeStatus === "exact" ? "ساعت دقیق ✓" : "ساعت نامشخص"}</small></p>
-            </div>
-            <div className={styles.pairReviewTopics}>
-              <span>گفت‌وگو</span><span>امنیت عاطفی</span><span>کشش و صمیمیت</span><span>مرزها</span><span>ترمیم</span>
-            </div>
-          </section>
-        ) : null}
 
         {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
 
@@ -1242,10 +1189,6 @@ function ChartPicker({
           />
           <span>
             <strong>ساعت تولد این چارت دقیق است</strong>
-            <small>
-              اگر ساعت دقیق نیست، رایزینگ و هم‌پوشانی خانه‌ها وارد خوانش نمی‌شوند؛
-              بقیهٔ پیوندها همچنان بررسی می‌شوند.
-            </small>
           </span>
         </label>
       ) : null}
