@@ -105,8 +105,8 @@ if (failures.length) {
   process.exit(1);
 }
 console.log("Halleus Pre-Deploy Batch 4 consumer product UX check passed.");
-console.log("- Compare is a simplified stored-chart-only journey; chart creation is routed to /chart");
-console.log("- retry preserves the same relationship result key and the retired consent/inline-create UI stays absent");
+console.log("- Compare uses the shared ChartForm for direct natal entry and also accepts stored charts");
+console.log("- retry preserves the same relationship result key and the retired consent gate stays absent");
 console.log("- relationship balance is visible before the creation CTA and pricing is the no-credit path");
 console.log("- Dashboard is the personal Halleus home with credits, continuation, recent reports and integrated auth");
 console.log("HALLEUS_PREDEPLOY_CONSUMER_PRODUCT_UX_BATCH4_R2=PASS");

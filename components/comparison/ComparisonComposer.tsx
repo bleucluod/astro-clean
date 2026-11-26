@@ -382,6 +382,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     () => usableReports.find((report) => report.id === chartBId) ?? null,
     [chartBId, usableReports],
   );
+  const editingChart = directEntry?.slot === "a" ? chartA : directEntry?.slot === "b" ? chartB : null;
+  const editingTimeStatus = directEntry?.slot === "a" ? chartATimeStatus : chartBTimeStatus;
 
   useEffect(() => {
     trackComparePublicAggregateEvent("compare_landing_view");
@@ -917,7 +919,10 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
                 key={directEntry.version}
                 mode="comparison"
                 comparisonHeadingId="compare-direct-entry-heading"
-                initialComparisonInput={directEntry.slot === "a" ? chartA?.input : chartB?.input}
+                initialComparisonInput={editingChart ? {
+                  ...editingChart.input,
+                  birthTimeAccuracy: editingTimeStatus === "exact" && getDefaultComparisonBirthTimeStatus(editingChart) === "exact" ? "known" : "unknown",
+                } : undefined}
                 onComparisonChartSaved={(report) => acceptDirectChart(directEntry, report)}
               />
             </section>

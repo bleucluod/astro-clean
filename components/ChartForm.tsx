@@ -624,7 +624,7 @@ export function ChartForm({
         window.clearTimeout(openReportTimerRef.current);
       }
     };
-  }, []);
+  }, [comparisonMode]);
 
   useEffect(() => {
     if (realEngineRequest.status === "idle") {
