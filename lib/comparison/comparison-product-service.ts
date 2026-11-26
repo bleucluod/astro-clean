@@ -360,7 +360,7 @@ function buildNarrativeChapters(
         id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
         ownerContactId: primary?.id ?? null,
         crossReferencePatternId: null, crossReferencePatternTitle: null,
-        block: buildEmotionalSecurityChapter(primary, support, labels),
+        block: buildEmotionalSecurityChapter(primary, support, labels, securityPlan),
       };
     }
     const crossReference = contact
@@ -578,6 +578,7 @@ function buildEmotionalSecurityChapter(
   primary: SynastryInterChartAspect | undefined,
   support: SynastryInterChartAspect | undefined,
   labels: { a: string; b: string },
+  plan: ReturnType<typeof buildComparisonEvidencePlan>["chapterPlans"][number] | undefined,
 ): HumanFirstDirectionalNarrativeBlock {
   type Side = "a" | "b";
   const names = labels.a === labels.b
@@ -663,6 +664,61 @@ function buildEmotionalSecurityChapter(
         strength += ` ${describe(support)} نکتهٔ دیگری به این خوانش اضافه می‌کند: اگر ${secondaryMoon} دوران نقاهت را می‌گذراند، ${secondarySaturn} نباید بهتر شدن او را با سرعت بازگشتش به کارهای روزمره بسنجد. گاهی ارزش مراقبت در فرصت دادن برای بازیابی توان است.`;
         evidence.push(evidenceFor(support, "شاهد پشتیبان امنیت عاطفی"));
       }
+    }
+
+    // Individual context can refine the assigned interaction, never replace it.
+    // Reference-time positions for an unknown birth time are not used here.
+    const points = [primary.pointA, primary.pointB, ...(support ? [support.pointA, support.pointB] : [])];
+    const used = new Set(evidence.map(item => item.id));
+    const exactContext = (point: typeof primary.pointA) => plan?.context.find(item =>
+      item.ownerChartId === point.chartId && item.pointId === point.id &&
+      item.birthTimeStatus === "exact" && !item.limitation);
+    const signContext = (contact: SynastryInterChartAspect, pointId: string, signId: string, signName: string) => {
+      const point = [contact.pointA, contact.pointB].find(p => p.id === pointId);
+      if (!point) return null;
+      const context = exactContext(point);
+      if (!context || context.signId !== signId || used.has(context.evidenceId)) return null;
+      const description = `ماهِ ${names[point.chartSide]} در نشان ${signName}`;
+      evidence.push({ id: context.evidenceId, label: "زمینهٔ فردی امنیت عاطفی", detail: description + "." });
+      used.add(context.evidenceId);
+      return description;
+    };
+    if (moon && saturn && hard) {
+      const context = signContext(primary, "moon", "virgo", "ویرگو");
+      if (context) example = `فرض کنید ${moon} پس از یک نتیجهٔ ناامیدکننده، خودش سرگرم پیدا کردن ایرادهای کارش می‌شود. در تعبیر نجومی ${context}، رسیدگی به جزئیات راهی برای بازیافتن آرامش است؛ اما توصیهٔ فوریِ ${saturn} ممکن است فهرست کارهای باقی‌مانده را بلندتر کند. کمک متفاوت این است که این بار یکی از آن کارها واقعاً از دوش ${moon} برداشته شود.`;
+    } else if (moon && pluto && primary.aspectId === "conjunction") {
+      const context = signContext(primary, "moon", "scorpio", "اسکورپیو");
+      if (context) example = `بعد از دیداری خانوادگی که ${moon} را اندوهگین کرده، ممکن است آماده نباشد دربارهٔ حساس‌ترین بخش ماجرا حرف بزند. در تعبیر نجومی ${context}، اختیارِ آشکار کردن احساسات اهمیت دارد. ${pluto} می‌تواند بدون درخواست جزئیات، جایی آرام برای ${moon} فراهم کند؛ مثلاً پیشنهاد بدهد مهمانی بعدی را فعلاً به تعویق بیندازند.`;
+    } else if (moon && venus && smooth) {
+      const context = signContext(primary, "moon", "aries", "اریز");
+      if (context) example = `فرض کنید ${moon} پس از یک کار مهم هنوز هیجان‌زده یا کلافه است. در تعبیر نجومی ${context}، واکنش به اتفاق تازه می‌تواند فوری باشد؛ توجه ${venus} هم در همان لحظه معنا پیدا می‌کند. یک سرزدن کوتاه بعد از آن کار، حتی اگر هنوز فرصت دیدار نداشته باشند، با هدیه‌ای که چند روز بعد می‌رسد کارکرد یکسانی ندارد.`;
+    }
+    for (const item of plan?.natalContext ?? []) {
+      if (used.has(item.evidenceId) || ![item.firstPointId, item.secondPointId].includes("moon")) continue;
+      const point = points.find(p => p.id === "moon" && p.chartId === item.ownerChartId);
+      if (!point || !exactContext(point)) continue;
+      const other = item.firstPointId === "moon" ? item.secondPointId : item.firstPointId;
+      const name = names[point.chartSide];
+      let sentence: string | null = null;
+      let destination: "challenge" | "strength" = "strength";
+      if (other === "venus" && item.aspectId === "opposition" && saturn && hard && name === moon) {
+        sentence = `مقابلهٔ ماه با زهره در چارت ${name} در این تعبیر، تفاوت میان خوشایند بودن یک رفتار و رفع نیاز همان لحظه را نیز مطرح می‌کند: دعوت به تفریح بعد از روزی سخت ممکن است دلنشین باشد، اما جای فرصت استراحت را نمی‌گیرد.`;
+        destination = "challenge";
+      } else if (other === "venus" && item.aspectId === "square" && pluto && name === moon) {
+        sentence = `مربعِ ماه با زهره در چارت ${name} زاویهٔ دیگری از این موقعیت را در خوانش نجومی روشن می‌کند: کسی می‌تواند در جمع لبخند بزند و از مهمانی لذت ببرد، اما بعد از برگشتن به خانه هنوز به خلوت احتیاج داشته باشد. خوشایند بودن لحظه معیار پایان اندوه نیست.`;
+        destination = "challenge";
+      } else if (other === "jupiter" && item.aspectId === "sextile" && pluto && name === pluto) {
+        sentence = `سکستایلِ ماه با مشتری در چارت ${name} در تعبیر فردی به بازیافتن امید اشاره دارد. وقتی خودش روز دشواری دارد، همراهی در کاری معمول و دلخواه، مثل قدم زدن بی‌برنامه، می‌تواند فرصت دیدن چیزی بیرون از آن مشکل را فراهم کند؛ لازم نیست همان روز به نتیجه برسد.`;
+      } else if (other === "venus" && item.aspectId === "trine" && venus && smooth && name === moon) {
+        sentence = `تثلیثِ ماه با زهره در چارت ${name} در خوانش فردی پیوند میان دریافت و ابراز مهر را نیز برجسته می‌کند: اگر ${venus} روز سختی دارد، ${name} می‌تواند خودش پیش‌قدم شود و بخشی از کار روزانهٔ او را انجام دهد، بی‌آنکه منتظر بماند ابتدا توجهی دریافت کند.`;
+        strength = "";
+      }
+      if (!sentence) continue;
+      if (destination === "challenge") challenge += " " + sentence;
+      else strength = strength ? strength + " " + sentence : sentence;
+      const otherLabel = other === "venus" ? "زهره" : "مشتری";
+      evidence.push({ id: item.evidenceId, label: "جنبهٔ فردی مرتبط با امنیت", detail: `${aspects[item.aspectId]} ماه با ${otherLabel} در چارت ${name}.` });
+      used.add(item.evidenceId);
     }
   }
   return {
