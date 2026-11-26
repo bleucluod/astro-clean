@@ -685,7 +685,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
             <p className={styles.eyebrow}>تحلیل رابطه</p>
             <h2 id="comparison-builder-title">دو نفر را برای تحلیل انتخاب کن</h2>
             <p>
-              چارت خودت و نفر مقابل را انتخاب کن؛ بعد نوع رابطه را مشخص می‌کنی.
+              چارت خودت و نفر مقابل را انتخاب کن. نوع رابطه را هم مشخص کن تا مثال‌های خوانش به زمینهٔ آن مربوط باشند.
             </p>
           </div>
 
@@ -884,7 +884,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         {pairReady && chartA && chartB ? (
           <section className={styles.pairReview} aria-label="خلاصه پیش از ساخت تحلیل">
             <header>
-              <small>خوانش آماده است</small>
+              <small>دو چارت آمادهٔ مقایسه‌اند</small>
               <strong>{chartALabel} × {chartBLabel}</strong>
               <span>{selectedRelationship.label}</span>
             </header>
@@ -906,9 +906,9 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         chartB ? (
           <ProductLockedOffer
             productCode="relationship"
-            title={`خوانش کامل ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
-            description={`برای زمینهٔ ${RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext)?.label ?? "عمومی"}، پاسخ‌های این دو چارت پشت دسترسی Relationship می‌ماند؛ دادهٔ تولد نفر دوم برای بررسی اعتبار به سرور فرستاده نمی‌شود.`}
-            items={["گفت‌وگو و سوءبرداشت", "امنیت عاطفی و نزدیکی", "اصطکاک، مرزها و ترمیم", "این نتیجه بعد از ساخت دوباره اعتبار مصرف نمی‌کند"]}
+            title={`دسترسی به خوانش ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
+            description="خوانش این دو چارت پنج موضوع رابطه را جدا بررسی می‌کند. برای ساخت گزارش در حالت دسترسی فعلی، اعتبار رابطه لازم است."
+            items={["تفاوت در بیان و شنیدن", "نیازهای عاطفی و ریتم نزدیکی", "معنای قول، مرز و مسئولیت", "مسیر اختلاف و راه ترمیم", "بازکردن نتیجهٔ ذخیره‌شده بدون مصرف اعتبار دیگر"]}
             href="/pricing"
           />
         ) : null}
@@ -923,7 +923,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               </div>
             </div>
             <div className={styles.creditWidget}><AccountProductAccessCard /></div>
-            <Link className={styles.purchasePath} href="/pricing">اعتبار کافی نداری؟ بسته‌های فعال را ببین</Link>
+            <Link className={styles.purchasePath} href="/pricing">مشاهدهٔ بسته‌های اعتبار رابطه</Link>
           </section>
         ) : null}
 

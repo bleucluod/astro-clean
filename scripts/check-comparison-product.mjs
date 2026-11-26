@@ -52,7 +52,7 @@ const sources = Object.fromEntries(
 );
 
 requireMarkers("public comparison metadata", sources.indexPage, [
-  "چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد",
+  "چارت ازدواج آنلاین | مقایسه دو چارت تولد",
   'canonical: "/compare"',
   "index: true",
   "follow: true",
