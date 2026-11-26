@@ -390,16 +390,29 @@ function buildCommunicationChapter(
       cycle: limited, evidence: [],
     };
   }
-  const owner = (contact: SynastryInterChartAspect, point: string) =>
-    contact.pointA.id === point ? labels.a : contact.pointB.id === point ? labels.b : null;
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" }
+    : labels;
+  const ownerSide = (contact: SynastryInterChartAspect, point: string): Side | null =>
+    contact.pointA.id === point ? contact.pointA.chartSide :
+      contact.pointB.id === point ? contact.pointB.chartSide : null;
+  const owner = (contact: SynastryInterChartAspect, point: string) => {
+    const side = ownerSide(contact, point);
+    return side ? names[side] : null;
+  };
   const mercury = owner(primary, "mercury");
   const sun = owner(primary, "sun");
   const moon = owner(primary, "moon");
   const mars = owner(primary, "mars");
   const smooth = primary.aspectId === "trine" || primary.aspectId === "sextile";
   const hard = primary.aspectId === "opposition" || primary.aspectId === "square";
+  const aspectNames: Record<string, string> = {
+    conjunction: "هم‌نشینی", opposition: "مقابله", square: "مربع",
+    trine: "تثلیث", sextile: "سکستایل",
+  };
   const relationship = (contact: SynastryInterChartAspect) =>
-    `${contact.pointA.label} ${labels.a} و ${contact.pointB.label} ${labels.b} در جنبهٔ ${contact.aspectLabel}`;
+    `${aspectNames[contact.aspectId] ?? contact.aspectLabel} ${contact.pointA.label}ِ ${names[contact.pointA.chartSide]} با ${contact.pointB.label}ِ ${names[contact.pointB.chartSide]}`;
   const evidenceFor = (contact: SynastryInterChartAspect, label: string): HumanFirstEvidence => ({
     id: contact.id + "-communication", label,
     detail: relationship(contact) + ".",
@@ -410,36 +423,56 @@ function buildCommunicationChapter(
   const secondarySun = support && owner(support, "sun");
   const secondaryJupiter = support && owner(support, "jupiter");
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
-  let roles: Record<string, string> = {};
+  let roles: Partial<Record<Side, string>> = {};
+  const assignRoles = (first: string, firstRole: string, second: string, secondRole: string) => {
+    const firstSide: Side = first === names.a ? "a" : "b";
+    const secondSide: Side = second === names.a ? "a" : "b";
+    roles = { [firstSide]: firstRole, [secondSide]: secondRole };
+  };
   if (mercury && sun && hard) {
-    title = "وقتی نقد یک نظر، نقد خودِ آدم شنیده می‌شود";
-    lead = `${mercury} برای بررسی یک فکر سراغ دلیل و سؤال می‌رود؛ ${sun} ممکن است همان سؤال را ارزیابی انتخاب خودش بشنود. در تفسیر نجومی، ${relationship(primary)} این فاصله میان قصد گوینده و برداشت شنونده را برجسته می‌کند. مثلاً وقتی ${sun} از ایدهٔ تازه‌ای حرف می‌زند و ${mercury} می‌پرسد «چرا این راه؟»، سؤال دربارهٔ طرح است، نه لزوماً دربارهٔ توانایی صاحب آن.`;
-    example = `در انتخاب یک فیلم هم، ${mercury} می‌تواند ضعف داستان را توضیح بدهد، اما ${sun} جواب را مخالفت با سلیقهٔ خودش بشنود. اگر ${sun} فقط می‌پرسد نظرت چیست، لازم است روشن باشد که دنبال بررسی است یا شریک‌کردن دیگری در تجربه‌اش.`;
-    strength = `این تفاوت یک امکان هم دارد: ${sun} زاویهٔ شخصی انتخاب را روشن می‌کند و ${mercury} کمک می‌کند دلایل آن قابل توضیح شوند.`;
-    challenge = `وقتی ${mercury} بدون بیان موضوع سؤال وارد جزئیات می‌شود، ${sun} ممکن است معنای شخصی به آن بدهد؛ و وقتی ${sun} فقط بر انتخاب خود تأکید می‌کند، سؤال اول بی‌جواب می‌ماند.`;
-    step = `${mercury} پیش از نظر دادن مشخص کند کدام بخش ایده را می‌سنجد؛ ${sun} نیز بپرسد «منظورت نقد این پیشنهاد است یا چیز دیگری؟» تا دو موضوع از هم جدا شوند.`;
-    roles = { [mercury]: "دلیل و محتوای پیشنهاد را بررسی می‌کند.", [sun]: "معنای سؤال را از زاویهٔ انتخاب شخصی می‌سنجد." };
+    title = "یک سؤال، دو معنای متفاوت";
+    lead = `${sun} ایده‌ای مطرح می‌کند و ${mercury} می‌پرسد «چرا این راه؟»؛ سؤال دربارهٔ پیشنهاد است، اما می‌تواند زیر سؤال بردن انتخاب شنیده شود. ${relationship(primary)} در خوانش نجومی همین تفاوت را برجسته می‌کند.`;
+    example = `فرض کنید ${sun} برای یک پروژه طرحی آماده کرده است. اگر ${mercury} مستقیم سراغ هزینه و زمان اجرا برود، بخش مهمی از حرف ناگفته می‌ماند: شاید ${sun} هنوز دربارهٔ خود ایده نظر می‌خواهد، نه امکان اجرای آن. برعکس، وقتی ${sun} فقط جواب می‌دهد «به نظرم خوبه»، ${mercury} هنوز پاسخی برای سؤال مشخصش ندارد.`;
+    strength = `در تصمیم‌هایی که هنوز قطعی نیستند، ${sun} دلیل علاقه به یک گزینه را روشن می‌کند و ${mercury} معیارهایی برای مقایسهٔ آن با گزینه‌های دیگر می‌آورد. حتی اگر به نتیجهٔ یکسان نرسید، می‌فهمید اختلاف نظر دقیقاً دربارهٔ کدام معیار است.`;
+    challenge = `هنگام خواندن یک نوشته، ${sun} ممکن است منتظر برداشت کلی باشد و ${mercury} ایرادهای جزئی را ردیف کند. هر دو دربارهٔ همان اثر حرف می‌زنند، اما به دو سؤال متفاوت پاسخ می‌دهند.`;
+    step = `${sun} پیش از نظرخواهی بگوید «اول بگو ایده به نظرت چطوره، بعد بریم سراغ ایرادها». ${mercury} هم نظر کلی و نکتهٔ قابل‌اصلاح را در دو جملهٔ جدا بیان کند.`;
+    assignRoles(mercury, "پیشنهاد را از نظر دلیل و جزئیات می‌سنجد.", sun, "به معنای شخصی انتخاب و نظر کلی توجه دارد.");
   } else if (mercury && moon && smooth) {
-    title = "وقتی یکی چیزی را حس می‌کند و دیگری برایش کلمه پیدا می‌کند";
-    lead = `${moon} لازم نیست همیشه از همان ابتدا برای تجربه‌اش عبارت دقیقی داشته باشد. ${mercury} از جزئیات حرف او سرنخ می‌گیرد و منظور را صورت‌بندی می‌کند. ${relationship(primary)} در زبان سیناستری نشانهٔ این امکان برای فهم متقابل است. مثلاً ${moon} هنگام تعریف یک اتفاق فقط می‌گوید «یه جای کار عجیب بود»؛ ${mercury} می‌پرسد «یعنی انتظار داشتی از قبل خبرت کنند؟» و ابهام به موضوعی روشن تبدیل می‌شود.`;
-    example = `وقتی ${mercury} یک خبر را با جزئیات تعریف می‌کند، ${moon} می‌تواند به نکته‌ای اشاره کند که در خود خبر گفته نشده: مثلاً اینکه چرا آن تصمیم برای گوینده مهم بوده است. این بار جهت فهم برعکس است؛ شنونده معنای انسانی حرف را پیدا می‌کند.`;
-    strength = `گفت‌وگوی شما از کنار هم گذاشتن دو نوع اطلاعات سود می‌برد: تجربهٔ ${moon} و عبارت‌بندی ${mercury}. هر کدام می‌تواند چیزی را به روایت دیگری اضافه کند.`;
-    challenge = `هم‌زبانی به معنای خواندن ذهن نیست. اگر ${mercury} اولین توضیح خودش را جواب نهایی بداند، احتمال دارد نکتهٔ دیگری را که ${moon} هنوز توضیح نداده نشنود.`;
-    step = `${mercury} برداشت خود را به صورت سؤال بازگرداند، نه نتیجهٔ قطعی: «درست فهمیدم که مسئله این بود؟» ${moon} همان بخش را تأیید یا اصلاح کند.`;
-    roles = { [moon]: "سرنخ تجربه و معنای آن را وارد گفت‌وگو می‌کند.", [mercury]: "به تجربه عبارت و ساختار قابل بررسی می‌دهد." };
+    title = "معنایی که بین جمله‌ها پیدا می‌شود";
+    lead = `${moon} از یک اتفاق می‌گوید: «یه جای کار عجیب بود». ${mercury} می‌پرسد «یعنی انتظار داشتی از قبل خبرت کنند؟» و ابهام کمتر می‌شود. ${relationship(primary)} در تفسیر نجومی، این امکان را برای فهم دقیق‌تر تجربه برجسته می‌کند.`;
+    example = `این توانایی فقط در شنیدن حرف ${moon} نیست. وقتی ${mercury} خبری را با جزئیات تعریف می‌کند، ${moon} می‌تواند به نکته‌ای اشاره کند که در خود خبر گفته نشده است؛ مثلاً اینکه چرا آن تصمیم برای کسی که خبر را داده مهم بوده. این بار شنونده معنای انسانی حرف را روشن می‌کند.`;
+    strength = `وقتی می‌خواهید اتفاق پیچیده‌ای را برای شخص دیگری تعریف کنید، ${mercury} ترتیب ماجرا و نکتهٔ اصلی را روشن می‌کند و ${moon} تشخیص می‌دهد کدام بخش برای فهم آن اهمیت بیشتری دارد. به این ترتیب، اطلاعات لازم را از جزئیاتی که پیام را شلوغ می‌کنند جدا می‌کنید.`;
+    challenge = `هم‌زبانی به معنای خواندن ذهن نیست. اگر ${mercury} زود جملهٔ ناتمام را کامل کند، شاید توضیح دوم ${moon} هرگز شنیده نشود. مثلاً «حتماً از تصمیمشان تعجب کردی» می‌تواند با «نه، از شیوهٔ اعلامش» اصلاح شود.`;
+    step = `${mercury} برداشتش را با یک سؤال مشخص امتحان کند، نه با پایان‌دادن به جملهٔ دیگری. ${moon} هم فقط تأیید یا رد نکند؛ یک جزئیات تازه اضافه کند که معلوم کند منظورش دقیقاً چه بوده است.`;
+    assignRoles(moon, "اهمیت و معنای تجربه را وارد گفت‌وگو می‌کند.", mercury, "با سؤال دقیق به تجربه صورت روشن می‌دهد.");
   } else if (mercury && mars && smooth) {
-    title = "از حرف تا امتحان‌کردن یک ایده";
-    lead = `${mercury} با طرح یک راه یا سؤال، جهت گفت‌وگو را عوض می‌کند و ${mars} با یک پیشنهاد عملی به آن جان می‌دهد. ${relationship(primary)} در خوانش نجومی از پیوند میان فکر و اقدام حمایت می‌کند. مثلاً ${mercury} می‌گوید «می‌شه این وسیله رو یه جور دیگه چید؟» و ${mars} پیشنهاد می‌دهد همان‌جا یک بار امتحانش کنند. حرف به جای ماندن در حد فرض، چیزی برای بررسی پیدا می‌کند.`;
-    example = `در گفت‌وگو دربارهٔ یک مسیر تازه یا روش انجام کاری، ${mars} می‌تواند نخستین پیشنهاد را مطرح کند و ${mercury} گزینه‌هایش را مرتب کند. این شکل برعکس هم کار می‌کند: اقدام، سؤال تازه‌ای به وجود می‌آورد.`;
-    strength = `وقتی موضوع قابل آزمودن است، ${mercury} معیار مقایسه را روشن می‌کند و ${mars} کمک می‌کند از حد بحث نظری فراتر بروید.`;
-    challenge = `سرعت تبدیل حرف به عمل گاهی معنای جمله را عوض می‌کند: ${mercury} ممکن است صرفاً یک احتمال مطرح کرده باشد، در حالی که ${mars} آن را پیشنهاد انجام دادن می‌شنود.`;
-    step = `قبل از امتحان یک ایده، ${mercury} مشخص کند که در حال فکر کردن با صدای بلند است یا واقعاً پیشنهاد اجرا دارد؛ ${mars} بر همان اساس جواب بدهد.`;
-    roles = { [mercury]: "ایده و معیار بررسی را به زبان می‌آورد.", [mars]: "راه آزمودن ایده را مطرح می‌کند." };
+    title = "وقتی حرف به یک امتحان کوچک تبدیل می‌شود";
+    lead = `${mercury} می‌گوید «می‌شه این وسیله رو یه جور دیگه چید؟» و ${mars} پیشنهاد می‌دهد همان‌جا امتحانش کنید. ${relationship(primary)} در خوانش نجومی، پیوند میان طرح یک فکر و پیدا کردن راه آزمودن آن را نشان می‌دهد.`;
+    example = `وقتی دنبال راه ساده‌تری برای انجام کاری هستید، ${mars} می‌تواند با یک نمونهٔ عملی شروع کند و ${mercury} بعد از دیدن نتیجه، سؤال اولیه‌اش را دقیق‌تر مطرح کند. لازم نیست همیشه بحث از توضیح کامل شروع شود؛ نتیجهٔ یک امتحان کوچک خودش اطلاعات تازه‌ای برای گفت‌وگو به دست می‌دهد.`;
+    strength = `در خرید یک وسیله یا مقایسهٔ دو روش، ${mercury} پیشاپیش می‌گوید چه چیزی باید بهتر شود و ${mars} پیشنهاد می‌دهد آن را در شرایط مشابه امتحان کنید. این‌جاست که دو نظر متفاوت با یک معیار مشترک قابل بررسی می‌شوند، نه با تکرار استدلال هر نفر.`;
+    challenge = `مرز این همکاری جایی است که یک سؤال هنوز فقط فرضیه است. مثلاً ${mercury} دربارهٔ مسیر تازه‌ای فکر می‌کند، ولی ${mars} آن را به‌عنوان تصمیم آمادهٔ اجرا می‌شنود. پیش از اقدام باید نوع جمله مشخص شود: سؤال، پیشنهاد آزمایشی یا تصمیم.`;
+    step = `سه عبارت را از هم جدا کنید: «فقط دارم فکر می‌کنم»، «بیا یک بار امتحان کنیم» و «تصمیم گرفتیم». ${mercury} مرحله را نام ببرد و ${mars} پیش از اقدام، همان مرحله را بازگو کند.`;
+    assignRoles(mercury, "سؤال و معیار سنجش را مطرح می‌کند.", mars, "راه آزمودن ایده را پیشنهاد می‌دهد.");
+  } else if (primary.pointA.id === "mercury" && primary.pointB.id === "mercury") {
+    title = "آیا از یک کلمه، یک چیز می‌فهمید؟";
+    lead = `${relationship(primary)} در خوانش نجومی به عبارت‌بندی هر دو نفر مربوط است. ${smooth ? "این تماس امکان پیدا کردن زبان مشترک را برجسته می‌کند." : hard ? "این تماس تفاوت در تعریف یا ترتیب توضیح را برجسته می‌کند." : "این تماس توجه را به انتخاب واژه‌ها جلب می‌کند."} مثلاً «آماده است» برای یکی می‌تواند به معنای قابل‌بررسی و برای دیگری به معنای تمام‌شده باشد.`;
+    example = "در توضیح یک دستور یا مسیر، نخست واژه‌های مبهم را مشخص کنید و بعد سراغ جزئیات بروید.";
+    strength = "با تعریف معیار هر نفر، مقایسهٔ دو برداشت ممکن می‌شود.";
+    challenge = "از این شاهد به‌تنهایی نمی‌توان تعیین کرد کدام نفر سریع‌تر یا دقیق‌تر حرف می‌زند.";
+    step = "هر نفر یک مثال از منظور خودش بزند و بعد تعریف مشترکی برای واژهٔ مورد بحث پیدا کنید.";
+    roles.a = roles.b = "عبارت‌بندی و معنای واژه‌ها را وارد گفت‌وگو می‌کند.";
+  } else if (!mercury) {
+    title = "شاهد محدود برای شیوهٔ گفت‌وگو";
+    lead = `${relationship(primary)} در نقشهٔ شواهد این فصل آمده است، اما برای نسبت دادن سبک حرف زدن به هر نفر به‌تنهایی کافی نیست.`;
+    example = "هنگام نظرخواهی، از یک جواب کوتاه نتیجهٔ قطعی دربارهٔ منظور دیگری نگیرید.";
+    strength = "نقش اختصاصی هر نفر در گفت‌وگو هنوز روشن نیست.";
+    challenge = "نباید یک تماس غیرمستقیم را جایگزین شاهد اختصاصی عطارد کرد.";
+    step = "پیش از پاسخ، پرسش اصلی را با یک جمله بازگو کنید.";
   } else {
     // Other Mercury contacts require their own detailed semantic rules.
     // Until then, name the actual witness and limit the interpretation.
-    const speaker = mercury ?? labels.a;
-    const listener = speaker === labels.a ? labels.b : labels.a;
+    const speaker = mercury ?? names.a;
+    const listener = speaker === names.a ? names.b : names.a;
     const other = primary.pointA.id === "mercury" ? primary.pointB : primary.pointA;
     const focus: Record<string, string> = { sun: "نظر و انتخاب شخصی", moon: "تجربه و احساس", mercury: "معنای کلمات", venus: "سلیقه و شیوهٔ بیان علاقه", mars: "پیشنهاد عملی", jupiter: "دامنه و امکان‌های ایده", saturn: "جزئیات و معیارهای قابل بررسی", uranus: "راه‌های غیرمنتظره", neptune: "معنای ضمنی", pluto: "پرسش‌های عمیق‌تر", asc: "برداشت نخست", dsc: "معنای شراکت", mc: "هدف", ic: "معنای شخصی" };
     const theme = focus[other.id] ?? "معنای پیشنهاد";
@@ -449,27 +482,27 @@ function buildCommunicationChapter(
     strength = "این تماس زمینه‌ای برای بررسی تفاوت برداشت فراهم می‌کند، نه حکم قطعی دربارهٔ کیفیت ارتباط.";
     challenge = "از این تماس به تنهایی نمی‌توان انگیزهٔ پنهان یا شیوهٔ ثابت واکنش را نتیجه گرفت.";
     step = "موضوع سؤال را از برداشت شخصی دربارهٔ گوینده جدا کنید و به همان موضوع جواب بدهید.";
-    roles = { [speaker]: "پرسش یا عبارت را مطرح می‌کند.", [listener]: "آن را از زاویهٔ موضوع مرتبط می‌سنجد." };
+    assignRoles(speaker, "پرسش یا عبارت را مطرح می‌کند.", listener, "آن را از زاویهٔ موضوع مرتبط می‌سنجد.");
   }
   if (support && (support.aspectId === "sextile" || support.aspectId === "trine" || support.aspectId === "conjunction")) {
     if (secondaryMoon && secondaryMercury && secondaryMoon !== secondaryMercury && moon !== secondaryMoon) {
-      strength += ` شاهد دوم، ${relationship(support)}، مسیر دیگری باز می‌کند: وقتی ${secondaryMoon} به جای داوری دربارهٔ یک نظر، تجربهٔ خودش را توضیح می‌دهد، ${secondaryMercury} می‌تواند روی معنای دقیق آن سؤال کند. مثلاً پس از یک بازدید، به‌جای «خوب نبود»، شرح اینکه کدام بخش تجربه دلچسب نبود، موضوع قابل گفت‌وگو را روشن می‌کند.`;
+      strength += ` یک راه دیگر هم در همین چارت‌ها دیده می‌شود: ${relationship(support)}. پس از یک نمایشگاه، اگر ${secondaryMoon} بگوید «انتظار دیگری داشتم»، ${secondaryMercury} می‌تواند با پرسیدن اینکه انتظارش چه بوده، مقصود دقیق او را روشن کند. این بار جای سؤال‌کننده و روایت‌کننده با صحنهٔ نخست فرق دارد.`;
       evidence.push(evidenceFor(support, "شاهد پشتیبان"));
     } else if (secondaryJupiter && secondaryMercury && secondaryJupiter !== secondaryMercury) {
-      strength += ` ${relationship(support)} به عنوان شاهد دوم، امکان گسترش یک فکر را نشان می‌دهد: وقتی ${secondaryMercury} دربارهٔ یادگیری یک مهارت حرف می‌زند، ${secondaryJupiter} می‌تواند گزینه‌ای را مطرح کند که پیش از آن در نظر نگرفته بود. این بخش دربارهٔ ساختن ایدهٔ تازه است، نه صرفاً توضیح دوبارهٔ احساس.`;
+      strength += ` ${relationship(support)} زاویهٔ دیگری اضافه می‌کند: اگر ${secondaryMercury} برای یادگیری یک مهارت فقط یک مسیر در نظر گرفته باشد، ${secondaryJupiter} می‌تواند راهی را مطرح کند که در فهرست اولیه نبوده است. ارزش گفت‌وگو این بار در پیدا کردن گزینهٔ تازه است.`;
       evidence.push(evidenceFor(support, "شاهد پشتیبان"));
     }
   }
   if (support && secondarySun && secondaryMercury && secondarySun !== secondaryMercury &&
       (support.aspectId === "opposition" || support.aspectId === "square") && !sun) {
-    challenge += ` شاهد دوم، ${relationship(support)}، مرز این توانایی را روشن می‌کند. در موضوعی که انتخاب شخصی ${secondarySun} مطرح است، سؤال ${secondaryMercury} ممکن است نقد خود آن انتخاب شنیده شود؛ حتی وقتی در کارهای عملی هماهنگی خوبی دارند.`;
+    challenge += ` در بحثی که موضوع آن نه روش اجرا، بلکه خود انتخاب است، ${relationship(support)} تفاوت دیگری را نشان می‌دهد. مثلاً ${secondarySun} دربارهٔ یک سبک طراحی نظر داده و ${secondaryMercury} دلیل انتخاب را می‌پرسد. اینجا امتحان عملی لزوماً جواب نمی‌دهد؛ اول باید معلوم شود پرسش دربارهٔ معیار انتخاب است یا خود طرح.`;
     evidence.push(evidenceFor(support, "شاهد پشتیبان"));
   }
   return {
     id: "communication-" + primary.id, title, humanExperience: lead,
     dailySituation: example, strength, challenge, practicalStep: step, evidence,
-    personA: roles[labels.a] ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
-    personB: roles[labels.b] ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
+    personA: roles.a ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
+    personB: roles.b ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
   };
 }
