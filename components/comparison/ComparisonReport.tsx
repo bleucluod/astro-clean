@@ -46,7 +46,7 @@ import type {
   SynastryRelationshipContext,
 } from "@/types/synastry-engine";
 
-import { comparisonAspectNameFa } from "@/lib/comparison/comparison-full-interpretation";
+import { comparisonAspectNameFa, comparisonContactHasInterpretiveData } from "@/lib/comparison/comparison-full-interpretation";
 import styles from "./comparison.module.css";
 import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 
@@ -284,6 +284,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     a: normalizePersonLabel(record.chartALabel, "نفر اول"),
     b: normalizePersonLabel(record.chartBLabel, "نفر دوم"),
   };
+  const technicalBirthTime = { a: record.chartABirthTimeStatus, b: record.chartBBirthTimeStatus };
   const filteredTechnicalContacts = filterTechnicalContacts(
     record.report.contacts,
     technicalCategory,
@@ -505,15 +506,15 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
                       <div>
                         <span>{comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}</span>
                         <strong data-person-direction="true">{directionalAspectTitle(contact, labels)}</strong>
-                        <small className={styles.contactDirection}>{contact.titleFa}</small>
+                        <small className={styles.contactDirection}>{comparisonContactHasInterpretiveData(contact, technicalBirthTime) ? "تماس قابل بررسی نمادین" : "ثبت زمان مرجع؛ خارج از شواهد تفسیری"}</small>
                       </div>
-                      <p className={styles.contactReason}>{describeContactImportance(contact)}</p>
+                      <p className={styles.contactReason}>{comparisonContactHasInterpretiveData(contact, technicalBirthTime) ? describeContactImportance(contact) : "این تماس فقط برای بررسی محاسبه حفظ شده است؛ از آن دربارهٔ رابطه نتیجه نمی‌گیریم."}</p>
                       <div className={styles.contactCategoryTags}>
                         {contact.categories.map((category) => <span key={category}>{formatContactCategory(category)}</span>)}
                       </div>
                       <dl className={styles.contactFacts}>
                         <div><dt>فاصلهٔ زاویه‌ای</dt><dd>{formatDegree(contact.separation)}</dd></div>
-                        <div><dt>اورب</dt><dd>{formatDegree(contact.orb)}</dd></div>
+                        <div><dt>{technicalBirthTime.a === "exact" && technicalBirthTime.b === "exact" ? "اورب" : "اورب زمان مرجع"}</dt><dd>{formatDegree(contact.orb)}</dd></div>
                       </dl>
                     </article>
                   ))}
@@ -1104,11 +1105,11 @@ function matchesTechnicalCategory(
 }
 
 function describeContactImportance(contact: ComparisonRecord["report"]["contacts"][number]) {
-  if (contact.categories.includes("communication")) return "این تماس مستقیماً روی شیوهٔ شنیدن، توضیح‌دادن یا سوءبرداشت میان دو نفر اثر می‌گذارد.";
+  if (contact.categories.includes("communication")) return "در خوانش نمادین این تماس به شیوهٔ شنیدن، توضیح‌دادن و امکان سوءبرداشت مربوط است.";
   if (contact.categories.includes("closeness")) return "این تماس به کشش، صمیمیت یا تعریف هر نفر از نزدیکی وزن بیشتری می‌دهد.";
   if (contact.categories.includes("independence")) return "این تماس برای مرز، آزادی عمل و نحوهٔ تنظیم فاصله مهم است.";
   if (contact.polarity === "tension" || contact.polarity === "intense") return "به‌خاطر فشار یا شدت بالاتر، این تماس می‌تواند زودتر در چرخهٔ تعارض دیده شود.";
-  return "این تماس به‌خاطر relevance بالاتر در میان شواهد فنی این خوانش زودتر نمایش داده شده است.";
+  return "این تماس به دلیل رتبهٔ بالاتر در فهرست محاسباتی زودتر نمایش داده شده است.";
 }
 
 function formatContactCategory(category: string) {

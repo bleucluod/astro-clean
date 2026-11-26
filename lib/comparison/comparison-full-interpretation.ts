@@ -258,6 +258,17 @@ function countPersianWords(value: string): number {
   return value.trim().split(/\s+/u).filter(Boolean).length;
 }
 
+export function comparisonContactHasInterpretiveData(
+  contact: SynastryInterChartAspect,
+  birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
+): boolean {
+  return [contact.pointA, contact.pointB].every((point) =>
+    point.analysisEligible !== false &&
+    (birthTime[point.chartSide] === "exact" ||
+      (!point.requiresExactBirthTime && point.kind === "planet" && point.id !== "moon")),
+  );
+}
+
 function buildContactInterpretation(
   report: RealSynastryReport,
   contact: SynastryInterChartAspect,
@@ -276,7 +287,8 @@ function buildContactInterpretation(
   );
   const natalA = describeNatalModifier(report.chartA, contact.pointA.id, labels.a, birthTime.a);
   const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b, birthTime.b);
-  const confidenceFa = buildContactConfidence(contact, birthTime);
+  const hasInterpretiveData = comparisonContactHasInterpretiveData(contact, birthTime);
+  const confidenceFa = hasInterpretiveData ? buildContactConfidence(contact, birthTime) : "این تماس فقط ثبت محاسباتی است؛ به دلیل محدودیت داده، شاهد معتبر برای تفسیر رابطه نیست.";
   const supportive = contact.polarity === "supportive";
   const tension = contact.polarity === "tension" || contact.polarity === "intense";
   const firstRole = pointRole(contact.pointA.id);
@@ -294,15 +306,19 @@ function buildContactInterpretation(
     pointAFactFa: formatPointFact(contact.pointA, first, birthTime[contact.pointA.chartSide]),
     pointBFactFa: formatPointFact(contact.pointB, second, birthTime[contact.pointB.chartSide]),
     aspectFa: `${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}: فاصلهٔ زاویه‌ای ${formatDegree(contact.separation)}، فاصله از زاویهٔ دقیق (اورب) ${formatDegree(contact.orb)} از سقف ${formatDegree(contact.allowedOrb)}${limited ? "؛ بر پایهٔ زمان مرجع" : ""}`,
-    importanceFa,
-    healthyFa: supportive
+    importanceFa: hasInterpretiveData ? importanceFa : `رتبهٔ خام موتور ${contact.relevanceScore.toLocaleString("fa-IR")} است؛ این رتبه مجوز تفسیر تماس نیست.`,
+    healthyFa: !hasInterpretiveData
+      ? `از این تماس نمی‌توان دربارهٔ هماهنگی ${first} و ${second} نتیجه گرفت؛ جایگاه لازم برای تفسیر معتبر نیست.`
+      : supportive
       ? `در خوانش نمادین، ${first} از مسیر ${firstRole} و ${second} از مسیر ${secondRole} می‌توانند به یکدیگر پاسخ بدهند؛ این امکان را در رفتار واقعی بسنجید.`
       : `در موضوع ${theme}، سهم ${first} را از مسیر ${firstRole} و سهم ${second} را از مسیر ${secondRole} جدا ببینید؛ تفاوت نقش‌ها لزوماً به معنی مخالفت نیست.`,
-    stressFa: tension
+    stressFa: !hasInterpretiveData
+      ? "از این ثبت خام، تنش یا ضعف رابطه استنباط نمی‌شود."
+      : tension
       ? `اگر میان این دو نقش اصطکاکی پیش آمد، یک موقعیت مشخص را مرور کنید: چه چیزی گفته یا انجام شد و طرف مقابل چه برداشتی از آن داشت؟`
       : `هماهنگی احتمالی در یک موقعیت به معنی همراهی همیشگی نیست؛ ببینید نفر مقابل هنوز با همان شیوه موافق است یا نه.`,
-    contextFa: describeRelationshipContextForContact(report.relationshipContext, theme),
-    natalContextFa: `${natalA} ${natalB}`,
+    contextFa: hasInterpretiveData ? describeRelationshipContextForContact(report.relationshipContext, theme) : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
+    natalContextFa: hasInterpretiveData ? `${natalA} ${natalB}` : "شواهد فردی ثبت‌شده جایگزین اعتبار تماس میان دو نفر نمی‌شوند.",
     overlayContextFa: relatedOverlays.length > 0
       ? relatedOverlays.map((item) => item.contextFa).join(" ")
       : `شاهد خانه‌ای مستقلی برای این تماس در دست نیست.`,
