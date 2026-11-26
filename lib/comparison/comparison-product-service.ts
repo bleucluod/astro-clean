@@ -327,8 +327,12 @@ function buildNarrativeChapters(
     },
   ];
 
-  const communicationPlan = buildComparisonEvidencePlan(report).chapterPlans.find(
+  const evidencePlan = buildComparisonEvidencePlan(report);
+  const communicationPlan = evidencePlan.chapterPlans.find(
     (chapter) => chapter.chapter === "communication",
+  );
+  const securityPlan = evidencePlan.chapterPlans.find(
+    (chapter) => chapter.chapter === "emotional-security",
   );
   return specs.map((spec) => {
     if (spec.id === "communication") {
@@ -349,6 +353,16 @@ function buildNarrativeChapters(
     }
     const contact = findOwnedContact(report, narrativeOwner, spec.predicate);
     if (contact) narrativeOwner.add(contact.id);
+    if (spec.id === "emotional-security") {
+      const primary = report.contacts.find(item => item.id === securityPlan?.primary?.id);
+      const support = report.contacts.find(item => item.id === securityPlan?.support?.id);
+      return {
+        id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
+        ownerContactId: primary?.id ?? null,
+        crossReferencePatternId: null, crossReferencePatternTitle: null,
+        block: buildEmotionalSecurityChapter(primary, support, labels),
+      };
+    }
     const crossReference = contact
       ? null
       : primaryPatterns.find((pattern) =>
@@ -553,6 +567,110 @@ function buildCommunicationChapter(
     dailySituation: example, strength, challenge, practicalStep: step, evidence,
     personA: roles.a ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
     personB: roles.b ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
+    feelingOrReaction: challenge, effect: strength, cycle: example,
+  };
+}
+
+
+/** Read only the contacts assigned to emotional security. Preserve legacy
+ * allocation above for the chapters still awaiting their own rewrite. */
+function buildEmotionalSecurityChapter(
+  primary: SynastryInterChartAspect | undefined,
+  support: SynastryInterChartAspect | undefined,
+  labels: { a: string; b: string },
+): HumanFirstDirectionalNarrativeBlock {
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" }
+    : labels;
+  const side = (contact: SynastryInterChartAspect, point: string): Side | null =>
+    contact.pointA.id === point ? contact.pointA.chartSide :
+      contact.pointB.id === point ? contact.pointB.chartSide : null;
+  const owner = (contact: SynastryInterChartAspect, point: string) => {
+    const s = side(contact, point);
+    return s ? names[s] : null;
+  };
+  const aspects: Record<string, string> = {
+    conjunction: "هم‌نشینیِ", opposition: "مقابلهٔ", square: "مربعِ",
+    trine: "تثلیثِ", sextile: "سکستایلِ",
+  };
+  const describe = (c: SynastryInterChartAspect) =>
+    `${aspects[c.aspectId] ?? c.aspectLabel} ${c.pointA.label}ِ ${names[c.pointA.chartSide]} با ${c.pointB.label}ِ ${names[c.pointB.chartSide]}`;
+  const evidenceFor = (c: SynastryInterChartAspect, label: string): HumanFirstEvidence => ({
+    id: c.id + "-emotional-security", label, detail: describe(c) + ".",
+  });
+  const evidence: HumanFirstEvidence[] = [];
+  const roles: Partial<Record<Side, string>> = {};
+  const assign = (c: SynastryInterChartAspect, point: string, role: string) => {
+    const s = side(c, point);
+    if (s) roles[s] = role;
+  };
+  let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
+  if (!primary) {
+    title = "آنچه دربارهٔ احساس امنیت هنوز روشن نیست";
+    lead = "تماس معتبر و اختصاصی کافی برای تعیین شیوهٔ تجربهٔ حمایت در این رابطه در دست نیست.";
+    example = "پس از یک روز دشوار، یک نفر ممکن است همراهی بخواهد و نفر دیگر خلوت. این فقط نمونه‌ای از تفاوت نیازهاست، نه توصیف شما.";
+    strength = "نیاز واقعی هر نفر از رفتار و درخواست خود او روشن می‌شود.";
+    challenge = "نبود شاهد به معنای نبود امنیت عاطفی نیست.";
+    step = "اگر روز سختی داشتید، به جای حدس زدن نیاز دیگری از او بپرسید اکنون چه کمکی می‌خواهد.";
+  } else {
+    evidence.push(evidenceFor(primary, "شاهد اصلی امنیت عاطفی"));
+    const moon = owner(primary, "moon");
+    const saturn = owner(primary, "saturn");
+    const pluto = owner(primary, "pluto");
+    const venus = owner(primary, "venus");
+    const hard = primary.aspectId === "opposition" || primary.aspectId === "square";
+    const smooth = primary.aspectId === "conjunction" || primary.aspectId === "trine" || primary.aspectId === "sextile";
+    if (moon && saturn && hard) {
+      title = "وقتی کمک کردن جای دلگرمی را می‌گیرد";
+      lead = `${moon} بعد از یک روز سخت به خانه برمی‌گردد و می‌گوید امروز دیگر توانش را ندارد. ${saturn} به فکر کم کردن کارهای فردا می‌افتد، اما ${moon} شاید پیش از هر راه‌حلی دلش بخواهد کسی خستگی‌اش را ببیند. ${describe(primary)} در خوانش نجومی همین تفاوت میان دریافت حمایت و سامان دادن به مشکل را برجسته می‌کند.`;
+      example = `فرض کنید ${moon} از نتیجهٔ ناامیدکنندهٔ یک تلاش شخصی دلگیر است. اگر ${saturn} همان لحظه پیشنهاد کند دوباره برنامه‌ریزی کنند، فرصتی برای سوگواری بابت نتیجهٔ قبلی باقی نمی‌ماند. چند دقیقه حضور بی‌انتظار می‌تواند شکل دیگری از کمک باشد.`;
+      strength = `وجه مفید این پیوند در کارهای فرساینده پیدا می‌شود. وقتی ${moon} از فشار یک هفتهٔ شلوغ خسته شده، ${saturn} می‌تواند یکی از کارهای جاری را به عهده بگیرد. این بار حمایت فقط ابراز همدردی نیست؛ بار واقعی روز سبک‌تر می‌شود.`;
+      challenge = `${saturn} لازم نیست هر ناراحتی را نشانهٔ ناکارآمد بودن برنامه بداند. از سوی دیگر، ${moon} ممکن است کمک عملی را به دلیل نبود دلگرمی نادیده بگیرد. این دو شکل حمایت می‌توانند کنار هم باشند، نه جایگزین هم.`;
+      step = `پس از شنیدن خبر ناخوشایند، ${saturn} ابتدا مدتی کنار ${moon} بماند و بعد، اگر او آماده بود، یک کار مشخص را از دوشش بردارد. ${moon} نیز می‌تواند بگوید فعلاً حضور می‌خواهد یا کمک عملی.`;
+      assign(primary, "moon", "به دیده شدن خستگی و احساس خود نیاز دارد.");
+      assign(primary, "saturn", "حمایت را با ایجاد ثبات و کم کردن بار عملی نشان می‌دهد.");
+    } else if (moon && pluto && primary.aspectId === "conjunction") {
+      title = "آرامش وقتی احساس پنهان هم جایی دارد";
+      lead = `${moon} ممکن است بعد از یک خبر سخت ظاهراً به کار روزمره‌اش برگردد، اما هنوز دلش درگیر باشد. ${pluto} به اهمیت بخش ناگفتهٔ آن تجربه توجه می‌کند. ${describe(primary)} در تفسیر نجومی به حساسیت رابطه نسبت به احساسات عمیق اشاره دارد؛ امنیت در اینجا به پذیرفته شدن احساس وابسته است، نه به آشکار کردن همهٔ آن.`;
+      example = `مثلاً پس از دیداری خانوادگی که ${moon} را اندوهگین کرده، ${pluto} می‌تواند کنارش بماند بی‌آنکه منتظر توضیح کامل باشد. احساس سنگین لازم نیست تا پایان همان شب از بین برود تا همراهی مفید به حساب بیاید.`;
+      strength = `در موقعیتی که ${moon} از پذیرفتن ترس یا اندوه خود خجالت می‌کشد، حضور بدون داوری ${pluto} می‌تواند مجال تجربهٔ آن را فراهم کند. مهم این است که نزدیکی به احساس با اجازهٔ صاحب آن باشد.`;
+      challenge = `توجه به لایهٔ عمیق احساس به معنای دانستن آن نیست. اگر ${pluto} بخواهد علت ناراحتی را حتماً کشف کند، ممکن است ${moon} احساس کند برای دریافت حمایت باید خودش را توضیح دهد. هرکس اختیار دارد تجربه‌ای را هنوز نزد خود نگه دارد.`;
+      step = `${pluto} در لحظهٔ ناراحتی به ${moon} حق انتخاب بدهد: حضور آرام، خلوت یا همراهی برای یک کار ساده. لازم نیست انتخاب او به توضیح علت ناراحتی مشروط باشد.`;
+      assign(primary, "moon", "برای احساس حساس خود فضای پذیرفته شدن می‌خواهد.");
+      assign(primary, "pluto", "به عمق تجربه توجه می‌کند، بدون اینکه مالک آن باشد.");
+    } else if (moon && venus && smooth) {
+      title = "توجهی که در رفتارهای کوچک دیده می‌شود";
+      lead = `${moon} خسته از بیرون می‌رسد و ${venus} برایش جا باز می‌کند، نوشیدنی دلخواهش را می‌آورد یا کار کوچکی را که دوست دارد انجام می‌دهد. ${describe(primary)} در خوانش نجومی پیوند نیاز عاطفی و شیوهٔ ابراز توجه را نشان می‌دهد. در این رابطه، یک رفتار ساده می‌تواند پیام «حواسم به تو هست» داشته باشد.`;
+      example = `فرض کنید ${moon} روز مهمی پیش رو دارد. ${venus} صبح زود چیزی را که برای آن روز لازم دارد آماده می‌کند. ارزش این رفتار به بزرگی آن نیست؛ به این است که با نیاز همان روز ارتباط دارد.`;
+      strength = `وقتی ${venus} خودش روز دشواری داشته، ${moon} هم می‌تواند از همین تجربه برای مراقبت از او استفاده کند؛ مثلاً محیط آرام‌تری برای استراحتش فراهم کند. محبت روزمره در هر دو جهت معنا دارد.`;
+      challenge = `کاری که معمولاً خوشایند است همیشه کافی نیست. شاید ${moon} این بار به سکوت و استراحت نیاز داشته باشد، نه یک برنامهٔ سرگرم‌کننده. ${venus} لازم نیست تغییر نیاز را نشانهٔ بی‌ارزش شدن توجه خود بداند.`;
+      step = `یک شکل ساده و قابل تکرار از مراقبت برای روزهای خستگی پیدا کنید؛ مثلاً آماده کردن یک وعدهٔ سبک یا فراهم کردن زمان استراحت. در هر نوبت بررسی کنید آیا همان کار هنوز مناسب نیاز امروز است.`;
+      assign(primary, "moon", "توجه را از تناسب رفتار با نیاز عاطفی روز دریافت می‌کند.");
+      assign(primary, "venus", "علاقه را در رفتارهای خوشایند و مراقبت روزمره ابراز می‌کند.");
+    } else {
+      title = "نشانه‌ای برای بررسی شیوهٔ دریافت حمایت";
+      lead = `${describe(primary)} شاهد تخصیص‌یافتهٔ این فصل است. در چارچوب تفسیر نجومی، این تماس برای بررسی واکنش عاطفی و دریافت حمایت در رابطه به کار می‌آید؛ اما برای تعیین یک رفتار اختصاصی در این ترکیب هنوز تفسیر دقیق کافی نداریم.`;
+      example = "در یک موقعیت دشوار، درخواست همراهی و شکل واقعی کمکی که ارائه شده را جداگانه بررسی کنید.";
+      strength = "معنای حمایت را می‌توان از تجربهٔ خود دو نفر روشن کرد.";
+      challenge = "از این شاهد به تنهایی نمی‌توان کیفیت امنیت یا انگیزهٔ پنهان کسی را نتیجه گرفت.";
+      step = "در موقعیت ناراحتی، نیاز همان لحظه را مشخص کنید و ببینید چه رفتاری واقعاً کمک کرده است.";
+    }
+    if (support && support.id !== primary.id) {
+      const secondaryMoon = owner(support, "moon");
+      const secondarySaturn = owner(support, "saturn");
+      if (secondaryMoon && secondarySaturn && (support.aspectId === "square" || support.aspectId === "opposition")) {
+        strength += ` نیاز به مراقبت یک‌طرفه نیست. ${describe(support)} سوی دیگری از این موضوع را مطرح می‌کند: وقتی ${secondaryMoon} از فشار روزمره خسته است، ${secondarySaturn} نیز می‌تواند به جای انتظار برای سرپا شدن سریع او، فرصتی برای بازیابی انرژی در نظر بگیرد.`;
+        evidence.push(evidenceFor(support, "شاهد پشتیبان امنیت عاطفی"));
+      }
+    }
+  }
+  return {
+    id: primary ? "emotional-security-" + primary.id : "emotional-security-insufficient",
+    title, humanExperience: lead, dailySituation: example, strength, challenge,
+    practicalStep: step, evidence,
+    personA: roles.a ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
+    personB: roles.b ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
   };
 }
