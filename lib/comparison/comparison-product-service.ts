@@ -183,16 +183,18 @@ export function buildHumanFirstComparisonReading(
     a: normalizePersonLabel(context.chartALabel, "نفر اول"),
     b: normalizePersonLabel(context.chartBLabel, "نفر دوم"),
   };
-  const primaryPatterns = selectPrimaryPatterns(report, labels);
+  const legacyPatterns = selectPrimaryPatterns(report, labels);
   const narrativeOwner = new Set(
-    primaryPatterns.flatMap((pattern) => pattern.contactIds),
+    legacyPatterns.flatMap((pattern) => pattern.contactIds),
   );
   const chapters = buildNarrativeChapters(
     report,
     labels,
-    primaryPatterns,
+    legacyPatterns,
     narrativeOwner,
   );
+  const narrative = buildPairNarrative(report, labels, chapters);
+  const primaryPatterns = narrative.patterns;
   const chapterById = new Map(chapters.map((chapter) => [chapter.id, chapter]));
   const communication = chapterById.get("communication")!.block;
   const emotionalSecurity = chapterById.get("emotional-security")!.block;
@@ -206,10 +208,6 @@ export function buildHumanFirstComparisonReading(
     report.synthesis.supportiveFa,
   );
   const misunderstanding = frictionRepair;
-  const growthEvidence = uniqueEvidence([
-    ...primaryPatterns.flatMap((pattern) => pattern.evidence),
-    ...frictionRepair.evidence,
-  ]).slice(0, 6);
   const readingLimitFa = buildReadingLimit(
     context.chartABirthTimeStatus,
     context.chartBBirthTimeStatus,
@@ -219,14 +217,18 @@ export function buildHumanFirstComparisonReading(
     report,
     primaryPatterns,
   );
-  const fullInterpretation = buildFullComparisonInterpretation(report, {
+  const fullInterpretation = {
+    ...buildFullComparisonInterpretation(report, {
     labels,
     chartABirthTimeStatus: context.chartABirthTimeStatus,
     chartBBirthTimeStatus: context.chartBBirthTimeStatus,
     fallbackOverviewParagraphsFa,
-  });
+    }),
+    openingParagraphsFa: narrative.opening,
+    openingEvidence: narrative.openingEvidence,
+  };
   const overviewParagraphsFa = fullInterpretation.openingParagraphsFa;
-  const conversationQuestionsFa = buildConversationQuestions(labels);
+  const conversationQuestionsFa = narrative.questions;
   return {
     overviewFa: overviewParagraphsFa.join(" "),
     overviewParagraphsFa,
@@ -241,14 +243,7 @@ export function buildHumanFirstComparisonReading(
     closenessIndependence,
     boundariesCommitment,
     frictionRepair,
-    growth: {
-      personASkill: buildGrowthSkill(labels.a, communication, frictionRepair),
-      personBSkill: buildGrowthSkill(labels.b, emotionalSecurity, boundariesCommitment),
-      cycleToNotice: frictionRepair.cycle,
-      practicalStep:
-        "هفته‌ای یک بار، پیش از حل مسئله هر نفر در یک جمله بگوید چه احساسی دارد، چه برداشتی کرده و اکنون چه درخواست کوچکی دارد.",
-      evidence: growthEvidence,
-    },
+    growth: narrative.growth,
     readingLimitFa,
     supportiveFa: support.humanExperience,
     frictionFa: misunderstanding.humanExperience,
@@ -1329,12 +1324,307 @@ function buildWeightedComparisonOverview(
   return [first, second];
 }
 
-function buildConversationQuestions(labels: { a: string; b: string }): [string, string, string] {
-  return [
-    `وقتی گفت‌وگو سخت می‌شود، ${labels.a} و ${labels.b} هرکدام بیشتر به پاسخ فوری نیاز دارند یا به مکث؟`,
-    "چه رفتار کوچکی برای هرکدام از شما نشانهٔ امنیت و چه رفتاری نشانهٔ فشار یا فاصله است؟",
-    "یک مرز، انتظار یا درخواست کوچک که اگر این هفته روشن شود، کدام سوءبرداشت تکراری را کمتر می‌کند؟",
+
+type PairCycleDraft = {
+  title: string;
+  opening: string;
+  lead: string;
+  roles: [string, string];
+  cycle: string;
+  situation: string;
+  strength: string;
+  challenge: string;
+  step: string;
+  question: string;
+  experiment: string;
+  next: [string, string];
+};
+
+/** A cycle connects two chapter-owned findings; it is not another contact ranking. */
+function buildPairNarrative(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+  chapters: ComparisonNarrativeChapter[],
+) {
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" }
+    : labels;
+  const plan = buildComparisonEvidencePlan(report);
+  const witness = (id: ComparisonNarrativeChapter["id"]) => {
+    const entry = plan.chapterPlans.find(item => item.chapter === id);
+    return entry?.status === "supported"
+      ? report.contacts.find(contact => contact.id === entry.primary?.id)
+      : undefined;
+  };
+  const comm = witness("communication");
+  const security = witness("emotional-security");
+  const attraction = witness("attraction-intimacy");
+  const boundary = witness("boundaries-commitment");
+  const friction = witness("friction-repair");
+  const match = (contact: SynastryInterChartAspect | undefined, first: string, second: string, aspect: string): Side | null => {
+    if (!contact || contact.aspectId !== aspect) return null;
+    if (contact.pointA.id === first && contact.pointB.id === second) return contact.pointA.chartSide;
+    if (contact.pointB.id === first && contact.pointA.id === second) return contact.pointB.chartSide;
+    return null;
+  };
+  const ordered = (side: Side, first: string, second: string): [string, string] =>
+    side === "a" ? [first, second] : [second, first];
+  const opposite = (side: Side): Side => side === "a" ? "b" : "a";
+  const situation = ({
+    romantic: "هنگام برنامه‌ریزی برای وقت مشترک",
+    friendship: "هنگام هماهنگی یک دیدار دوستانه",
+    family: "هنگام هماهنگی یک کار خانوادگی",
+    work: "هنگام تنظیم کار مشترک",
+    general: "هنگام تصمیم‌گیری دربارهٔ یک کار مشترک",
+  } as const)[report.relationshipContext];
+  const contextName = ({
+    romantic: "رابطهٔ عاطفی", friendship: "دوستی", family: "رابطهٔ خانوادگی",
+    work: "همکاری", general: "رابطه",
+  } as const)[report.relationshipContext];
+
+  const groups = [
+    { key: "words-to-action", ids: ["communication", "friction-repair"] as const, contacts: [comm, friction] },
+    { key: "care-to-enjoyment", ids: ["emotional-security", "attraction-intimacy"] as const, contacts: [security, attraction] },
+    { key: "choice-to-agreement", ids: ["attraction-intimacy", "boundaries-commitment"] as const, contacts: [attraction, boundary] },
   ];
+  const genericDraft = (index: number): PairCycleDraft => {
+    const group = groups[index];
+    const available = group.ids.map(id => chapters.find(chapter => chapter.id === id))
+      .filter(chapter => chapter && witness(chapter.id));
+    const focus = available.map(chapter => "«" + chapter!.block.title + "»").join(" و ");
+    const link = focus
+      ? "این پرسش را در کنار یافتهٔ " + focus + " بررسی کنید، نه به عنوان یک نتیجهٔ قطعی دیگر."
+      : "برای نسبت دادن این چرخه به دو چارت شاهد اختصاصی کافی نداریم.";
+    if (index === 0) return {
+      title: "فاصلهٔ میان شنیدن و تصمیم گرفتن",
+      opening: "در بخش گفت‌وگو و اختلاف، باید دید آیا آنچه ابتدا برای فهمیدن گفته می‌شود در لحظهٔ تصمیم نیز همان معنا را حفظ می‌کند",
+      lead: link, roles: ["آنچه از جمله فهمیده‌اید از آنچه تصمیم گرفته‌اید جدا کنید.", "فرصت دهید برداشت اول قابل اصلاح بماند."],
+      cycle: "به عنوان یک احتمال، برداشت از حرف می‌تواند به تصمیم و تصمیم به واکنش تازه منجر شود؛ ترتیب واقعی را در تجربهٔ خود بررسی کنید.",
+      situation: situation + "، یک پیشنهاد حل‌نشده را دنبال کنید.",
+      strength: "بهتر است بتوان بدون پذیرفتن پیشنهاد، معنای آن را فهمید.",
+      challenge: "از یک اختلاف نمی‌توان سبک همیشگی هیچ‌کدام را نتیجه گرفت.",
+      step: "در یک تصمیم ساده، آنچه شنیدید و آنچه هنوز باید انتخاب شود را جداگانه ثبت کنید.",
+      question: "در آخرین تصمیم مشترک، کدام بخش حرف هنوز برایتان نامفهوم بود؟",
+      experiment: "یک تصمیم کوچک را ثبت کنید و بعد ببینید نتیجه با برداشت اولیه چه تفاوتی داشت.",
+      next: ["یک برداشت را قابل اصلاح نگه دارید.", "یک انتخاب هنوز باز را مشخص کنید."],
+    };
+    if (index === 1) return {
+      title: "از رسیدگی تا میل به همراهی",
+      opening: "حمایت و لذت از همراهی دو تجربهٔ متفاوت‌اند و خوب است روشن شود در چه موقعیتی هرکدام برای شما اهمیت دارد",
+      lead: link, roles: ["تفاوت میان کمک و وقت خوش را در تجربهٔ خود پیدا کنید.", "بگویید کدام شکل همراهی برایتان مناسب است."],
+      cycle: "ممکن است رسیدگی فرصت همراهی ایجاد کند یا به وظیفه بدل شود؛ این تفاوت را در تجربه بسنجید.",
+      situation: "بعد از یک روز پرکار، میان دو راه متفاوت برای همراهی انتخاب کنید.",
+      strength: "همراهی داوطلبانه با انجام وظیفه فرق دارد.",
+      challenge: "کمک یا لذت مشترک به تنهایی نشانهٔ احساس یکسان نیست.",
+      step: "برای یک دیدار، یک امکان برای همراهی و یک امکان برای خلوت در نظر بگیرید.",
+      question: "چه وقت همراهی دیگری به جای آسودگی برایتان به وظیفه بدل می‌شود؟",
+      experiment: "پس از دیدار، تجربهٔ کمک و لذت را جداگانه توصیف کنید.",
+      next: ["امکان خلوت را حفظ کنید.", "نوع همراهی مناسب را بیان کنید."],
+    };
+    return {
+      title: "ترجیح مشترک، توافق جداگانه",
+      opening: "پایدار بودن یک توافق را باید جدا از تجربهٔ خوشایند با هم بررسی کرد، به‌خصوص هر جا شاهد کافی برای انتظار شخصی از تعهد نداریم",
+      lead: link, roles: ["ترجیح خود را بدون وعدهٔ ناخواسته بیان کنید.", "پیش از برنامه‌ریزی بر اساس آن، دربارهٔ توافق سؤال کنید."],
+      cycle: "یک انتخاب خوشایند می‌تواند به انتظار تکرار شدن تبدیل شود؛ این انتظار هنوز به معنی توافق نیست.",
+      situation: situation + "، پیشنهاد تکرار یک کار خوشایند را بررسی کنید.",
+      strength: "موافقت با یک تجربه لازم نیست موافقت با تکرار همیشگی آن باشد.",
+      challenge: "نمی‌توان از پسند مشترک دربارهٔ تعهد قطعی نتیجه گرفت.",
+      step: "یک ترجیح را از یک تصمیم قابل اتکا جدا کنید.",
+      question: "کدام تجربه را دوست دارید بی‌آنکه لازم باشد به برنامه‌ای ثابت تبدیل شود؟",
+      experiment: "یک پیشنهاد را بدون تعهد به تکرار آن امتحان کنید.",
+      next: ["تفاوت پیشنهاد و تعهد را حفظ کنید.", "قبل از اتکا، توافق را بررسی کنید."],
+    };
+  };
+
+  const draft = groups.map((_, index) => genericDraft(index));
+  let side = match(comm, "mercury", "sun", "opposition");
+  if (side && match(friction, "mars", "asc", "square") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[0] = {
+      title: "وقتی بررسی به گرفتن اختیار بدل می‌شود",
+      opening: x + " و " + y + " ممکن است دربارهٔ یک انتخاب به اندازهٔ کافی حرف زده باشند اما هنوز بر سر اینکه تصمیم نهایی با چه کسی است به توافق نرسیده باشند",
+      lead: "مرز این دو فصل در لحظه‌ای پیدا می‌شود که بررسی یک پیشنهاد تمام شده اما هنوز معلوم نیست چه کسی اجازهٔ تغییر آن را دارد؛ پس ادامهٔ استدلال ممکن است دیگر به فهم موضوع کمکی نکند.",
+      roles: ordered(side, "ممکن است پس از پیدا کردن راه بهتر بخواهد آن را اجرا کند.", "می‌تواند مخالفت با تغییر را حتی پس از شنیدن دلیل بیان کند."),
+      cycle: "پیشنهاد بررسی می‌شود؛ راه بهتر پیدا می‌شود؛ اجرای بی‌اجازه آن را به اختلاف دربارهٔ اختیار تبدیل می‌کند.",
+      situation: situation + "، یکی تغییر مسیر رفت‌وآمد را پیشنهاد می‌کند و دیگری از قبل برنامهٔ خودش را چیده است.",
+      strength: "بهترین استدلال می‌تواند بدون گرفتن حق انتخاب دیگری مفید بماند.",
+      challenge: "پاسخ مثبت به شنیدن دلیل، رضایت به اجرای تصمیم نیست.",
+      step: "بعد از بررسی مسیرها مشخص کنید کدام تصمیم فقط به یک نفر مربوط است و کدام تصمیم نیاز به توافق دارد.",
+      question: "کدام تصمیم مشترک اخیر از نظر یکی از شما هنوز فقط یک پیشنهاد بود؟",
+      experiment: "در سه تصمیم کوچک این هفته، قبل از عمل بنویسید انتخاب با چه کسی است و در پایان ببینید کدام تصمیم بدون بحث اضافه پیش رفت.",
+      next: ordered(side, "پیشنهاد پذیرفته‌نشده را به عمل تبدیل نکند.", "نه گفتن به اجرا را از رد کردن همهٔ دلایل جدا کند."),
+    };
+  }
+  side = match(comm, "moon", "mercury", "sextile");
+  if (side && match(friction, "pluto", "mars", "square") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[0] = {
+      title: "وقتی فهمیدن برای انتخاب کافی نیست",
+      opening: y + " ممکن است منظور " + x + " را به‌خوبی فهمیده باشد و با وجود این بر سر راه انجام کار با او اختلاف داشته باشد؛ فهم متقابل لزوماً توافق عملی نیست",
+      lead: "در این پیوند مهارت پیدا کردن معنای حرف می‌تواند به تصمیم مشترک کمک کند، اما اگر به ابزار ثابت کردن اینکه کدام نظر درست است بدل شود، همان مزیت در نقطهٔ اختلاف کارایی‌اش را از دست می‌دهد.",
+      roles: ordered(side, "می‌تواند تجربهٔ خودش را روشن کند بی‌آنکه آن را دلیل نهایی برای انتخاب هر دو بداند.", "می‌تواند برداشت دقیقی داشته باشد و همچنان گزینه‌ای متفاوت پیشنهاد کند."),
+      cycle: "فهم مشترک شکل می‌گیرد؛ یکی انتظار موافقت پیدا می‌کند؛ گزینهٔ متفاوت به رقابت تعبیر می‌شود و دانستن منظور هم مسئله را حل نمی‌کند.",
+      situation: situation + "، هر دو دربارهٔ مشکل اصلی هم‌نظرند اما برای رفع آن دو راه دارند.",
+      strength: "توافق بر سر مسئله می‌تواند محفوظ بماند حتی اگر راه حل هر نفر متفاوت باشد.",
+      challenge: "فهمیدن نظر یک نفر نباید برای دیگری بدهیِ موافقت ایجاد کند.",
+      step: "پیش از مقایسهٔ دو راه، یک جمله بنویسید که هر دو دربارهٔ خود مسئله قبول دارید.",
+      question: "آخرین بار که منظور هم را فهمیدید اما بر سر راه حل موافق نبودید چه شد؟",
+      experiment: "این هفته یک اختلاف نظر را انتخاب کنید و معیار موفقیت را نه انتخاب راه یک نفر، بلکه حفظ توافق دربارهٔ خود مسئله پس از تصمیم نهایی قرار دهید.",
+      next: ordered(side, "هنگام انتخاب، دلیل مشترک را از ترجیح خودش جدا نگه دارد.", "مخالفت با یک راه را بدون زیر سؤال بردن فهم مشترک بیان کند."),
+    };
+  }
+  side = match(comm, "mars", "mercury", "trine");
+  if (side && match(friction, "mercury", "mars", "opposition") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[0] = {
+      title: "وقتی نقش پیشنهاددهنده و مجری عوض می‌شود",
+      opening: x + " و " + y + " در بعضی موقعیت‌ها از فکر به عمل می‌رسند اما در موقعیتی که نقش آغازگر و پاسخ‌دهنده عوض شود همان سرعت ممکن است نتیجهٔ دیگری داشته باشد",
+      lead: "هماهنگی هنگام امتحان کردن یک ایده لزوماً هنگام رد یا اصلاح آن برقرار نمی‌ماند؛ فرق این دو موقعیت در این است که آیا هر دو هنوز امکان متوقف کردن تجربه را دارند.",
+      roles: ordered(side, "در یک موقعیت مجری و در موقعیت دیگر توضیح‌دهنده است.", "در یک موقعیت جهت آزمون را تعیین می‌کند و در موقعیت دیگر ممکن است بخواهد آن را سریع تمام کند."),
+      cycle: "ایده به آزمون تبدیل می‌شود؛ نتیجه نیاز به توضیح تازه دارد؛ اگر توقف آزمون ممکن نباشد گفت‌وگو به کشمکش بر سر پایان آن تبدیل می‌شود.",
+      situation: situation + "، روشی تازه برای انجام یک کار امتحان می‌کنید اما نتیجهٔ نخست مطلوب نیست.",
+      strength: "تغییر نقش‌ها می‌تواند فرصتی برای دیدن هر دو سوی تصمیم باشد.",
+      challenge: "شروع کردن با توافق، به معنای ادامه دادن با توافق نیست.",
+      step: "پیش از آغاز یک آزمون مشخص کنید هر دو چگونه می‌توانند درخواست توقف یا بازبینی آن را مطرح کنند.",
+      question: "کدام تجربه را شروع کردید اما هنگام تغییر نتیجه دربارهٔ ادامهٔ آن حرف نزدید؟",
+      experiment: "یک آزمون کوتاه با زمان بازبینی مشخص انجام دهید؛ نتیجه را با همان معیار اولیه بسنجید و جداگانه بررسی کنید آیا هر دو امکان توقف داشتید.",
+      next: ordered(side, "پایان آزمون را فرصت بازبینی بداند، نه شکست پیشنهاد.", "زمان بازبینی را بدون پایان دادن یک‌طرفه به گفت‌وگو رعایت کند."),
+    };
+  }
+  side = match(security, "moon", "saturn", "opposition");
+  if (side && match(attraction, "uranus", "venus", "sextile") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[1] = {
+      title: "تازگی وقتی بار تازه ایجاد نکند",
+      opening: "از کنار هم گذاشتن بخش مراقبت و بخش کشش می‌توان پرسید چه زمانی ابتکار " + x + " برای " + y + " فرصتی خوشایند است و چه زمانی به کاری دیگر برای مدیریت کردن بدل می‌شود",
+      lead: "ایدهٔ تازه ممکن است همان چیزی باشد که توجه را جلب می‌کند، اما اگر آماده‌سازی آن به نفر دیگر واگذار شود، هزینهٔ این لذت با خود تجربه یکسان تقسیم نمی‌شود.",
+      roles: ordered(side, "با ابتکار خود فرصت تجربه‌ای تازه فراهم می‌کند.", "می‌تواند لذت پیشنهاد را جدا از بار آماده‌سازی آن بسنجد."),
+      cycle: "پیشنهاد جذاب است؛ آماده‌سازی آن هزینه پیدا می‌کند؛ اگر هزینه دیده نشود، استقبال کمتر می‌شود و ممکن است پیشنهاددهنده علت را اشتباه بفهمد.",
+      situation: situation + "، یک گزینهٔ تازه نیاز به رزرو یا تهیهٔ وسایل دارد.",
+      strength: "ابتکار همراه با پذیرفتن بخشی از زحمت آن می‌تواند فضای بیشتری برای لذت ایجاد کند.",
+      challenge: "علاقه به ایده به معنی پذیرفتن تمام مقدمات آن نیست.",
+      step: "پیش از انتخاب گزینهٔ تازه، هزینهٔ زمانی و کار لازم برای آن را مشخص کنید.",
+      question: "کدام پیشنهاد خوشایند برای یکی از شما کار بیشتری ایجاد کرد؟",
+      experiment: "یک فعالیت تازه را با تقسیم مقدمات آن امتحان کنید.",
+      next: ordered(side, "سهمی از مقدمات ایدهٔ خودش را بپذیرد.", "پیش از موافقت، بار واقعی آن را بیان کند."),
+    };
+  }
+  side = match(security, "pluto", "moon", "conjunction");
+  if (side && match(attraction, "sun", "venus", "trine") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[1] = {
+      title: "همراهی بدون مسئولیتِ تغییر حال",
+      opening: "کنار توجه " + x + " به حال " + y + "، در این خوانش برای لذت بردن از حضور و علایق شخصی نیز جا هست و لازم نیست همهٔ زمان مشترک صرف بهتر کردن حال یک نفر شود",
+      lead: "وقتی یکی از دو نفر روز دشواری دارد، ممکن است دیگری سرگرمی مورد علاقه‌اش را هم کنار بگذارد تا کاملاً در دسترس باشد؛ تکرار این وضعیت می‌تواند حمایت را به تنها شکل با هم بودن تبدیل کند.",
+      roles: ordered(side, "می‌تواند مراقب حال دیگری باشد و همچنان بخشی از زندگی خودش را ادامه دهد.", "می‌تواند همراهی دریافت کند بی‌آنکه مسئول کنار گذاشتن علایق دیگری باشد."),
+      cycle: "یک روز دشوار به مراقبت می‌انجامد؛ همهٔ برنامه‌ها کنار می‌روند؛ تکرار این وضعیت فرصت تجربه‌های مستقل و خوشایند را کم می‌کند.",
+      situation: "در روزی که یکی از شما حوصلهٔ برنامهٔ قبلی را ندارد، دیگری هنوز علاقه‌مند به انجام بخشی از آن است.",
+      strength: "حمایت و حفظ علاقهٔ شخصی می‌توانند در یک روز کنار هم وجود داشته باشند.",
+      challenge: "رد کردن یک فعالیت از سوی یک نفر لزوماً درخواست لغو آن برای هر دو نیست.",
+      step: "یک بخش از برنامه را که انجام مستقلش مشکلی ایجاد نمی‌کند مشخص کنید.",
+      question: "کدام علاقهٔ شخصی را می‌توانید حفظ کنید حتی وقتی دیگری روز دشواری دارد؟",
+      experiment: "در یک روز دشوار یک زمان کوتاه برای حمایت و یک زمان مستقل در نظر بگیرید.",
+      next: ordered(side, "در کنار همراهی، یک علاقهٔ مستقل را حفظ کند.", "بدون احساس بدهکاری، همراهی لازم را مشخص کند."),
+    };
+  }
+  side = match(security, "moon", "venus", "conjunction");
+  if (side && match(attraction, "venus", "venus", "trine")) {
+    const x = names[side], y = names[opposite(side)];
+    draft[1] = {
+      title: "خوشایند بودن همیشه به معنای رسیدگی نیست",
+      opening: "هم‌خوانی سلیقه و توجه روزمره در تجربهٔ " + x + " و " + y + " ممکن است کنار هم قرار بگیرند، اما آنچه برای هر دو خوشایند است الزاماً همان چیزی نیست که یکی امروز برای احساس حمایت لازم دارد",
+      lead: "ممکن است یک برنامه برای هر دو لذت‌بخش باشد و در همان روز یکی ترجیح بدهد مدتی تنها بماند؛ انتخاب متفاوت در چنین لحظه‌ای به خودی خود نشانهٔ کم شدن علاقه به همراهی نیست.",
+      roles: ordered(side, "می‌تواند بین چیزی که معمولاً دوست دارد و نیاز امروز خود تفاوت بگذارد.", "می‌تواند پیشنهاد آشنای خوشایند را با توجه به وضعیت امروز تغییر دهد."),
+      cycle: "سلیقهٔ مشترک انتخاب را آسان می‌کند؛ انتخاب آشنا تکرار می‌شود؛ نیاز متفاوت امروز کمتر دیده می‌شود مگر اینکه هر دو امکان تغییر آن را داشته باشند.",
+      situation: "برنامه‌ای که معمولاً هر دو دوست دارید در روزی پیشنهاد می‌شود که یکی خسته است.",
+      strength: "تغییر یک برنامه می‌تواند با همان علاقه به تجربهٔ مشترک سازگار باشد.",
+      challenge: "خوش آمدن از یک فعالیت در گذشته به معنای آماده بودن برای آن در هر زمان نیست.",
+      step: "پیش از تکرار برنامهٔ آشنا، یک گزینهٔ کم‌زحمت‌تر هم در نظر بگیرید.",
+      question: "چه تجربه‌ای را هر دو دوست دارید ولی گاهی لازم است شکل سبک‌تری از آن را انتخاب کنید؟",
+      experiment: "یک برنامهٔ آشنا را با گزینهٔ ساده‌تر آن مقایسه کنید.",
+      next: ordered(side, "نیاز امروز را جدا از سلیقهٔ همیشگی بیان کند.", "تغییر برنامه را نشانهٔ رد شدن خودش نداند."),
+    };
+  }
+  side = match(attraction, "uranus", "venus", "sextile");
+  if (side && match(boundary, "venus", "saturn", "conjunction") === side) {
+    const x = names[side], y = names[opposite(side)];
+    draft[2] = {
+      title: "غافلگیری با جای امنی برای تغییر",
+      opening: "در انتخاب‌های خوشایند " + x + " و " + y + " هم امکان تجربهٔ تازه اهمیت دارد و هم اینکه برنامهٔ مشترک تا چه زمانی قابل تغییر است",
+      lead: "برای حفظ تازگی لازم نیست همهٔ اجزای برنامه تا آخر نامعلوم بمانند؛ می‌توان بخش‌هایی را از قبل قابل اتکا کرد و بخش دیگری را آزاد گذاشت.",
+      roles: ordered(side, "امکان تازه را در بخشی از برنامه که هنوز باز است پیدا کند.", "بخش‌هایی را که برای برنامه‌ریزی به ثبات نیاز دارند مشخص کند."),
+      cycle: "برنامه قطعی می‌شود؛ امکان تازه‌ای پیدا می‌شود؛ اگر هیچ جای تغییر نمانده باشد انتخاب بین لذت و اتکا سخت می‌شود.",
+      situation: situation + "، زمان و مقصد اصلی ثابت می‌مانند ولی فعالیت میان راه باز است.",
+      strength: "توافق می‌تواند برای نوآوری جا باز کند، نه اینکه همهٔ انتخاب‌ها را از قبل ببندد.",
+      challenge: "تغییر بخشی که دیگری بر آن حساب کرده با تغییر بخش باز تفاوت دارد.",
+      step: "در برنامهٔ بعدی فقط یک بخش باز و یک بخش قطعی تعریف کنید.",
+      question: "در یک برنامهٔ مشترک کدام بخش باید ثابت باشد تا بتوانید از تغییر بخش دیگر لذت ببرید؟",
+      experiment: "یک برنامه با بخش ثابت و باز بسازید و ببینید چه تغییری بدون هزینه برای دیگری ممکن شد.",
+      next: ordered(side, "تازگی را در بخش آزاد جست‌وجو کند.", "مرز بخش ثابت را از پیش روشن کند."),
+    };
+  }
+  side = match(attraction, "sun", "venus", "trine");
+  if (side && match(boundary, "saturn", "dsc", "conjunction") === side) {
+    draft[2] = {
+      title: "تحسین کسی، سپردن کار به او نیست",
+      opening: "در این پیوند می‌توان پسندیدن شیوهٔ حضور دیگری را از اعتماد به انجام یک مسئولیت جدا کرد؛ اولی ممکن است آسان‌تر شکل بگیرد اما دومی به تجربهٔ رفتار مشخص نیاز دارد",
+      lead: "اگر کسی در کاری توانمند به نظر برسد، ممکن است انجام کار مشابه در آینده هم بی‌آنکه درباره‌اش حرف زده باشید از او انتظار برود؛ تحسین در این نقطه می‌تواند ناخواسته به بار دائمی تبدیل شود.",
+      roles: ordered(side, "می‌تواند توانایی خود را نشان دهد بی‌آنکه هر بار عهده‌دار همان کار شود.", "می‌تواند توانایی را تحسین کند و برای مسئولیت بعدی توافق تازه بخواهد."),
+      cycle: "توانایی دیده می‌شود؛ کار به همان نفر واگذار می‌شود؛ تکرار واگذاری به نقش ثابت تبدیل می‌شود مگر اینکه قابل بازبینی بماند.",
+      situation: situation + "، یکی کاری را بهتر انجام می‌دهد ولی همیشه برای آن وقت ندارد.",
+      strength: "تقسیم کار می‌تواند از توانایی استفاده کند بدون اینکه اختیار تغییر نقش را بگیرد.",
+      challenge: "مهارت یک نفر دلیل کافی برای وظیفهٔ همیشگی او نیست.",
+      step: "یک کار را که معمولاً به یک نفر سپرده می‌شود برای نوبت بعد از نو تقسیم کنید.",
+      question: "کدام توانایی تحسین‌شده به مرور به وظیفهٔ ثابت یکی از شما تبدیل شده است؟",
+      experiment: "یک نوبت تقسیم متفاوت را امتحان کنید و کیفیت نتیجه و بار زمانی را جداگانه بسنجید.",
+      next: ordered(side, "ظرفیت واقعی خود را برای نوبت بعد بیان کند.", "مسئولیت را فقط پس از توافق دوباره واگذار کند."),
+    };
+  }
+
+  const patterns: ComparisonPrimaryPattern[] = draft.map((item, index) => {
+    const group = groups[index];
+    const contacts = group.contacts.filter((contact): contact is SynastryInterChartAspect => !!contact);
+    const evidence = uniqueEvidence(group.ids.flatMap(id => witness(id)
+      ? (chapters.find(chapter => chapter.id === id)?.block.evidence ?? []).slice(0, 1) : []));
+    return {
+      id: "pair-cycle-" + group.key, kind: index === 0 ? "tension" : "supportive",
+      title: item.title, titleFa: item.title, summaryFa: item.lead,
+      humanExperience: item.lead, personA: item.roles[0], personB: item.roles[1],
+      cycle: item.cycle, dailySituation: item.situation, strength: item.strength,
+      challenge: item.challenge, practicalStep: item.step, feelingOrReaction: item.challenge,
+      effect: item.strength, evidence, contactIds: contacts.map(contact => contact.id),
+      relevanceScore: contacts.length ? Math.max(...contacts.map(contact => contact.relevanceScore)) : 0,
+    };
+  });
+  const opening: [string, string] = [
+    draft[0].opening + ". " + draft[1].opening + ". " +
+      "در این خوانشِ " + contextName + "، پرسش مهم فقط این نیست که چه چیزی شما را به هم نزدیک می‌کند، بلکه این است که در گذر از یک موقعیت به موقعیت دیگر کدام امکان باقی می‌ماند و کدام نیاز به انتخاب دوباره دارد.",
+    draft[2].opening + ". " +
+      "در فصل‌های پیش رو هر موضوع جداگانه با شاهد خودش بررسی می‌شود و سه چرخه به شما کمک می‌کنند ارتباط میان آن موضوع‌ها را در زندگی روزمره پیدا کنید، بدون اینکه از یک تماس دربارهٔ سرنوشت پیوند نتیجه بگیریم. " +
+      "این تصویر را با تجربه‌های واقعی خود مقایسه کنید؛ اگر بخشی با تجربهٔ شما نمی‌خواند، قرار نیست برای درست جلوه دادن خوانش خودتان را تغییر دهید یا از روی یک نشانه دربارهٔ دیگری قضاوت کنید.",
+  ];
+  const cite = (indexes: number[]) => {
+    const ids = [...new Set(indexes.flatMap(index => patterns[index].contactIds.map(id => "contact:" + id)))];
+    return ids.length ? ids : ["report:pair-context"];
+  };
+  const openingEvidence = [
+    { sentenceId: "opening-p1-s1", paragraph: 1 as const, evidenceIds: cite([0]) },
+    { sentenceId: "opening-p1-s2", paragraph: 1 as const, evidenceIds: cite([1]) },
+    { sentenceId: "opening-p1-s3", paragraph: 1 as const, evidenceIds: cite([0, 1]) },
+    { sentenceId: "opening-p2-s1", paragraph: 2 as const, evidenceIds: cite([2]) },
+    { sentenceId: "opening-p2-s2", paragraph: 2 as const, evidenceIds: cite([0, 1, 2]) },
+    { sentenceId: "opening-p2-s3", paragraph: 2 as const, evidenceIds: ["report:pair-context"] },
+  ];
+  const questions: [string, string, string] = [draft[0].question, draft[1].question, draft[2].question];
+  const growth = {
+    personASkill: draft[0].next[0],
+    personBSkill: draft[0].next[1],
+    cycleToNotice: draft[0].cycle,
+    practicalStep: draft[0].experiment,
+    evidence: uniqueEvidence(patterns.flatMap(pattern => pattern.evidence)),
+  };
+  return { patterns, opening, openingEvidence, questions, growth };
 }
 
 function selectPrimaryPatterns(
@@ -1661,14 +1951,6 @@ function buildContactEvidence(
     detail: `این تماس ${formatDegree(contact.orb)} با زاویهٔ دقیق فاصله دارد و به همین دلیل در این خوانش پررنگ‌تر دیده شده است.`,
   };
   return [relationship, distance];
-}
-
-function buildGrowthSkill(
-  label: string,
-  first: HumanFirstDirectionalNarrativeBlock,
-  second: HumanFirstDirectionalNarrativeBlock,
-): string {
-  return `${label} با نام‌گذاری زودتر احساس و درخواست خودش، فرصت می‌دهد چرخه پیش از دفاع یا فاصله متوقف شود. ${first.practicalStep || second.practicalStep}`;
 }
 
 function buildReadingLimit(

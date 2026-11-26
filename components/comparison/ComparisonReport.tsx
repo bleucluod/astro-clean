@@ -393,7 +393,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             <div className={styles.sectionHeading}>
               <p className={styles.eyebrow}>سه الگوی اصلی میان شما</p>
               <h2 id="comparison-primary-patterns-title">سه چرخه‌ای که بهتر است زودتر بشناسید</h2>
-              <p>این سه الگو فقط همین‌جا کامل توضیح داده می‌شوند؛ فصل‌های بعدی تماس اصلی دیگری می‌گیرند یا به این بخش ارجاع کوتاه می‌دهند.</p>
+              <p>این سه چرخه از کنار هم گذاشتن یافته‌های فصل‌ها ساخته شده‌اند؛ هر فصل سپس موضوع خودش را جداگانه توضیح می‌دهد.</p>
             </div>
             <div className={styles.relationshipPatternList}>
               {reading.primaryPatterns.map((pattern, index) => (
