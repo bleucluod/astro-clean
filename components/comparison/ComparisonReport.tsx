@@ -46,6 +46,7 @@ import type {
   SynastryRelationshipContext,
 } from "@/types/synastry-engine";
 
+import { comparisonAspectNameFa } from "@/lib/comparison/comparison-full-interpretation";
 import styles from "./comparison.module.css";
 import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 
@@ -502,7 +503,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
                   {visibleTechnicalContacts.map((contact) => (
                     <article className={styles.contactCard} data-polarity={contact.polarity} key={contact.id}>
                       <div>
-                        <span>{contact.aspectLabel}</span>
+                        <span>{comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}</span>
                         <strong data-person-direction="true">{directionalAspectTitle(contact, labels)}</strong>
                         <small className={styles.contactDirection}>{contact.titleFa}</small>
                       </div>
@@ -1065,10 +1066,10 @@ function EvidenceDisclosure({ evidence }: { evidence: HumanFirstEvidence[] }) {
 
 
 function directionalAspectTitle(
-  contact: { pointA: { label: string; chartSide: "a" | "b" }; pointB: { label: string; chartSide: "a" | "b" }; aspectLabel: string },
+  contact: { pointA: { label: string; chartSide: "a" | "b" }; pointB: { label: string; chartSide: "a" | "b" }; aspectId: string; aspectLabel: string },
   labels: { a: string; b: string },
 ) {
-  return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${contact.aspectLabel} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
+  return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
 }
 
 function filterTechnicalContacts(
