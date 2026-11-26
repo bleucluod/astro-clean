@@ -148,11 +148,14 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     const reports = loadReports();
 
     async function resolveCanonicalNatal(reportId: string, snapshot: ComparisonRecord["report"]["chartA"]) {
-      // Direct-input natal data exists only within this private comparison.
-      if (reportId.startsWith("compare-natal-")) {
-        if (snapshot.chartId !== reportId || !snapshot.engineSnapshot) return null;
+      // V2 comparisons are self-contained for both new and saved natal inputs.
+      // Never reclaim or modify an individual report just to rebuild one.
+      if (snapshot.chartId !== reportId) return null;
+      if (snapshot.engineSnapshot) {
         return { input: { name: snapshot.label }, realEngine: snapshot.engineSnapshot };
       }
+      // Legacy records without full snapshots still need their original data.
+      if (reportId.startsWith("compare-natal-")) return null;
       const server = await getAccountReportRecord(reportId);
       if (server.reportRecord?.report) {
         return server.reportRecord.report;
@@ -198,7 +201,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     setAccountStatus(remoteSave.status);
     setRecord(rebuilt.record);
     setIsWorking(false);
-    setMessage("خوانش با اطلاعات فعلی دو چارت دوباره ساخته شد.");
+    setMessage("خوانش با داده‌های معتبر دو چارت دوباره ساخته شد.");
   }
 
   async function saveToAccount() {

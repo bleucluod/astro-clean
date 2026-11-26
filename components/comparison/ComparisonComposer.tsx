@@ -37,7 +37,6 @@ import {
 } from "@/lib/storage/account-report-read-client";
 import type { ReportRecordSummary } from "@/types/storage";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
-import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
 import type { ComparisonFormHandle } from "@/components/ChartForm";
 import type { ComparisonRecord } from "@/types/comparison-product";
@@ -504,8 +503,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         return;
       }
 
-      // New input is private to the comparison; existing saved charts keep
-      // the canonical-owner check required by the legacy rebuild path.
+      // Both fresh and previously selected natal data are used read-only.
+      // The private comparison stores its own engine snapshots for rebuilding.
       const calculated = await Promise.allSettled([
         chartA ? Promise.resolve(chartA) : prepared[0].value!.calculate(),
         chartB ? Promise.resolve(chartB) : prepared[1].value!.calculate(),
@@ -517,14 +516,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       }
       const natalA = calculated[0].value;
       const natalB = calculated[1].value;
-      const [serverChartA, serverChartB] = await Promise.all([
-        chartA ? ensureServerCanonicalReport(chartA) : Promise.resolve(true),
-        chartB ? ensureServerCanonicalReport(chartB) : Promise.resolve(true),
-      ]);
-      if (!serverChartA || !serverChartB) {
-        setMessage("ثبت یکی از چارت‌های انتخابی روی هالیوس کامل نشد؛ دوباره تلاش کن.");
-        return;
-      }
       const timeA = chartA ? chartATimeStatus : getDefaultComparisonBirthTimeStatus(natalA);
       const timeB = chartB ? chartBTimeStatus : getDefaultComparisonBirthTimeStatus(natalB);
       const signature = [natalA.id, natalB.id, timeA, timeB, relationshipContext].join("|");

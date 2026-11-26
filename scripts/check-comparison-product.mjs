@@ -165,11 +165,16 @@ requireMarkers("comparison direct natal entry", sources.composer, [
   'openDirectEntry("b")',
   "Promise.allSettled",
 ]);
-requireMarkers("comparison direct input reuses private snapshots", sources.report, [
-  'reportId.startsWith("compare-natal-")',
-  "snapshot.engineSnapshot",
+requireMarkers("comparison rebuild reuses private snapshots for both input modes", sources.report, [
+  "if (snapshot.chartId !== reportId) return null",
+  "if (snapshot.engineSnapshot)",
+  "realEngine: snapshot.engineSnapshot",
   "record.report.chartA",
   "record.report.chartB",
+]);
+forbidMarkers("comparison creation must not reclaim individual natal reports", sources.composer, [
+  "ensureServerCanonicalReport",
+  "claim_legacy_report",
 ]);
 requireMarkers("comparison deferred natal calculation", sources.chartForm, [
   "useImperativeHandle(comparisonFormRef",
