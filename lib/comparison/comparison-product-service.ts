@@ -334,6 +334,9 @@ function buildNarrativeChapters(
   const securityPlan = evidencePlan.chapterPlans.find(
     (chapter) => chapter.chapter === "emotional-security",
   );
+  const attractionPlan = evidencePlan.chapterPlans.find(
+    (chapter) => chapter.chapter === "attraction-intimacy",
+  );
   return specs.map((spec) => {
     if (spec.id === "communication") {
       const primary = report.contacts.find((contact) => contact.id === communicationPlan?.primary?.id);
@@ -361,6 +364,16 @@ function buildNarrativeChapters(
         ownerContactId: primary?.id ?? null,
         crossReferencePatternId: null, crossReferencePatternTitle: null,
         block: buildEmotionalSecurityChapter(primary, support, labels, securityPlan),
+      };
+    }
+    if (spec.id === "attraction-intimacy") {
+      const primary = report.contacts.find(item => item.id === attractionPlan?.primary?.id);
+      const support = report.contacts.find(item => item.id === attractionPlan?.support?.id);
+      return {
+        id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
+        ownerContactId: primary?.id ?? null,
+        crossReferencePatternId: null, crossReferencePatternTitle: null,
+        block: buildAttractionChapter(primary, support, labels, report.relationshipContext),
       };
     }
     const crossReference = contact
@@ -745,6 +758,119 @@ function buildEmotionalSecurityChapter(
     practicalStep: step, evidence,
     personA: roles.a ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
     personB: roles.b ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
+    feelingOrReaction: challenge, effect: strength, cycle: example,
+  };
+}
+
+/** The approved attraction evidence is separate from emotional care and promises. */
+function buildAttractionChapter(
+  primary: SynastryInterChartAspect | undefined,
+  support: SynastryInterChartAspect | undefined,
+  labels: { a: string; b: string },
+  relationship: RealSynastryReport["relationshipContext"],
+): HumanFirstDirectionalNarrativeBlock {
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" }
+    : labels;
+  const romantic = relationship === "romantic";
+  const side = (c: SynastryInterChartAspect, id: string): Side | null =>
+    c.pointA.id === id ? c.pointA.chartSide : c.pointB.id === id ? c.pointB.chartSide : null;
+  const owner = (c: SynastryInterChartAspect, id: string) => {
+    const value = side(c, id);
+    return value ? names[value] : null;
+  };
+  const aspects: Record<string, string> = {
+    conjunction: "هم‌نشینیِ", opposition: "مقابلهٔ", square: "مربعِ",
+    trine: "تثلیثِ", sextile: "سکستایلِ",
+  };
+  const pointLabel = (p: SynastryInterChartAspect["pointA"]) =>
+    p.label + (p.label.endsWith("ه") ? "ٔ" : p.label.endsWith("و") ? "ی" : "ِ");
+  const describe = (c: SynastryInterChartAspect) =>
+    `${aspects[c.aspectId] ?? c.aspectLabel} ${pointLabel(c.pointA)} ${names[c.pointA.chartSide]} با ${pointLabel(c.pointB)} ${names[c.pointB.chartSide]}`;
+  const evidence: HumanFirstEvidence[] = [];
+  const roles: Partial<Record<Side, string>> = {};
+  const assign = (c: SynastryInterChartAspect, point: string, role: string) => {
+    const s = side(c, point);
+    if (s) roles[s] = role;
+  };
+  const addEvidence = (c: SynastryInterChartAspect, label: string) =>
+    evidence.push({ id: c.id + "-attraction-intimacy", label, detail: describe(c) + "." });
+  let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
+  if (!primary) {
+    title = "ریتم نزدیکی هنوز روشن نیست";
+    lead = "شاهد اختصاصی کافی برای توصیف ریتم نزدیک شدن این دو نفر در دست نیست.";
+    example = "لذت از یک فعالیت مشترک و میل به تکرار آن می‌تواند نقطهٔ شروع مشاهده باشد، نه نتیجه‌ای دربارهٔ این رابطه.";
+    strength = "علاقه به وقت مشترک را از تجربهٔ واقعی هر دو نفر بشناسید.";
+    challenge = "کمبود شاهد به معنای نبود صمیمیت نیست.";
+    step = "فعالیتی را که هر دو واقعاً دوست دارید انتخاب کنید و ببینید کدام بخشش برای هر نفر خوشایند است.";
+  } else {
+    addEvidence(primary, "شاهد اصلی کشش و صمیمیت");
+    const venus = owner(primary, "venus");
+    const uranus = owner(primary, "uranus");
+    const sun = owner(primary, "sun");
+    const smooth = ["conjunction", "trine", "sextile"].includes(primary.aspectId);
+    if (venus && uranus && smooth) {
+      title = "تازگی در کنار آشنایی";
+      lead = romantic
+        ? `در یک عصر معمولی، ${uranus} پیشنهاد می‌دهد به جای پاتوق همیشگی، جایی تازه را کشف کنید. در تفسیر ${describe(primary)}، همین تغییر کوچک می‌تواند توجه ${venus} را دوباره به او جلب کند؛ کشش از غافلگیری دلپذیر جان می‌گیرد، نه از تکرار یک قرار آشنا.`
+        : `وقتی ${uranus} راه تازه‌ای برای گذراندن وقت یا انجام یک فعالیت مشترک پیشنهاد می‌کند، ${venus} می‌تواند از تغییر فضا لذت ببرد. ${describe(primary)} در تفسیر نجومی به همین پیوند تازگی و خوشایندی اشاره دارد.`;
+      example = `${venus} ممکن است برای یک عصر دونفره فضایی آشنا و دلنشین انتخاب کند؛ ${uranus} با یک جزئیات پیش‌بینی‌نشده، مثلاً مسیر پیاده‌روی متفاوت، تجربه را از حالت همیشگی خارج می‌کند.`;
+      strength = `تازگی لازم نیست بزرگ یا پرهزینه باشد. اگر ${uranus} یک سرگرمی تازه پیدا کرده، ${venus} می‌تواند با انتخاب چیزی که واقعاً دوست دارد آن را به تجربه‌ای مشترک تبدیل کند. این بار کشف کردن برای هر دو نفر خوشایند است.`;
+      challenge = `همهٔ تغییرها به یک اندازه جذاب نیستند. اگر ${venus} امروز از همان تجربهٔ آشنا لذت می‌برد، پیشنهاد تازهٔ ${uranus} نباید به آزمون میزان علاقه تبدیل شود. گاهی جذابیت در فرصت انتخاب است.`;
+      step = `یک بار ${venus} نوع فعالیت را انتخاب کند و ${uranus} جزئیات تازه‌ای به آن اضافه کند؛ پیش از اجرا مطمئن شوید هر دو واقعاً مشتاق امتحانش هستید.`;
+      assign(primary, "uranus", "با آوردن تازگی، توجه و کنجکاوی را برمی‌انگیزد.");
+      assign(primary, "venus", "با انتخاب آنچه خوشایند است، تازگی را به تجربهٔ مشترک تبدیل می‌کند.");
+    } else if (venus && sun && smooth) {
+      title = "جذابیتِ دیدن دیگری در حال درخشیدن";
+      lead = romantic
+        ? `وقتی ${sun} سرگرم کاری است که واقعاً دوست دارد، ${venus} می‌تواند بیشتر به شیوهٔ حضور و شوق او جذب شود. در تفسیر ${describe(primary)}، تحسینِ ویژگی‌های خودِ دیگری بخشی از کشش است؛ لازم نیست هر بار برنامه‌ای برای ایجاد حال عاشقانه تدارک دیده شود.`
+        : `وقتی ${sun} سرگرم کاری است که واقعاً دوست دارد، ${venus} می‌تواند از شور و شیوهٔ حضور او لذت ببرد. در تفسیر ${describe(primary)}، این تحسین به رغبت برای وقت مشترک کمک می‌کند.`;
+      example = `در یک جمع، ${sun} با اشتیاق موضوع مورد علاقه‌اش را دنبال می‌کند و ${venus} از دیدن او در همان موقعیت لذت می‌برد. بعدتر، فرصتی برای تجربهٔ مشترک چیزی که هر دو پسندیده‌اند پیدا می‌شود.`;
+      strength = `از طرف دیگر، سلیقهٔ ${venus} می‌تواند رنگ تازه‌ای به تجربه‌ای بدهد که ${sun} آغاز کرده است. مثلاً در انتخاب موسیقی برای یک مسیر، لازم نیست تمام توجه به انتخاب نفر آغازگر باشد.`;
+      challenge = `تحسین با نیاز دائمی به جلب توجه فرق دارد. اگر ${sun} سرگرم علاقهٔ خودش است، قرار نیست ${venus} همیشه تماشاگر باشد؛ تجربه‌ای که به هر دو نفر میدان می‌دهد دلپذیرتر است.`;
+      step = `در یک فعالیت مشترک، هر نفر بخشی را که واقعاً دوست دارد انتخاب کند؛ بعد از آن بگویید کدام لحظه برایتان بیشترین جذابیت را داشت.`;
+      assign(primary, "sun", "با دنبال کردن علایق خود و ابراز شوق، توجه را جلب می‌کند.");
+      assign(primary, "venus", "با تحسین و سلیقهٔ خود، به آن تجربه رنگ مشترک می‌دهد.");
+    } else if (primary.pointA.id === "venus" && primary.pointB.id === "venus" && smooth) {
+      const a = names[primary.pointA.chartSide], b = names[primary.pointB.chartSide];
+      title = "لذت مشترک از یک تجربه، نه دو برنامهٔ جدا";
+      lead = romantic
+        ? `در انتخاب یک قرار، ${a} و ${b} می‌توانند از چیزی شبیه به هم لذت ببرند، حتی اگر دربارهٔ جزئیات از قبل هماهنگ نکرده باشند. ${describe(primary)} در تفسیر نجومی به هم‌خوانی سلیقه و شیوهٔ ابراز علاقه اشاره دارد؛ خودِ وقت‌گذرانی کنار هم می‌تواند بخش مهمی از کشش باشد.`
+        : `در انتخاب یک سرگرمی یا فعالیت، ${a} و ${b} می‌توانند از چیزهای مشابه لذت ببرند. در تفسیر ${describe(primary)}، هم‌خوانی سلیقه می‌تواند همراهی را دلپذیرتر کند.`;
+      example = `هنگام انتخاب یک موسیقی یا فضای تفریحی، یکی چیزی را پیشنهاد می‌دهد و دیگری بی‌آنکه لازم باشد متقاعد شود، از همان انتخاب استقبال می‌کند. لذت هر دو به خودِ تجربه مربوط است.`;
+      strength = `این هماهنگی به هر دو نفر فرصت می‌دهد از یک فعالیت ساده برای ساختن لحظه‌ای خوشایند استفاده کنند؛ مثلاً در یک گردش کوتاه بیشتر از مقصد، از فضای تجربه و لحظه‌های میان راه لذت ببرند.`;
+      challenge = `شباهت سلیقه به معنای یکسان بودن شدت یا زمان علاقه نیست. ممکن است ${a} بخواهد همان لحظه تجربه را ادامه دهد و ${b} ترجیح بدهد آن را در نقطه‌ای خوشایند تمام کند؛ هیچ‌کدام از این دو انتخاب از پیش معلوم نیست.`;
+      step = `هر کدام یک فعالیت دلخواه پیشنهاد دهید و فقط یکی را که هر دو مشتاقش هستید انتخاب کنید. برای طولانی کردن تجربه به اشتیاق همان لحظهٔ هر دو توجه کنید.`;
+      roles[primary.pointA.chartSide] = "در ساختن فضای خوشایند مشترک سهم دارد.";
+      roles[primary.pointB.chartSide] = "در انتخاب تجربه‌ای که برای هر دو دلپذیر است سهم دارد.";
+    } else {
+      title = "سرنخی برای شناخت تجربهٔ مشترک";
+      lead = `${describe(primary)} شاهد تخصیص‌یافتهٔ این فصل است. برای تعیین شکل دقیق کشش یا نزدیکی در این ترکیب هنوز تفسیر اختصاصی کافی نداریم.`;
+      example = "در فعالیتی مشترک ببینید چه چیزی توجه هر نفر را به خود جلب می‌کند.";
+      strength = "لذت مشترک را از ترجیح واقعی هر دو نفر بشناسید.";
+      challenge = "از یک تماس نمی‌توان شدت علاقه یا میزان تمایل به نزدیکی را نتیجه گرفت.";
+      step = "فعالیتی را انتخاب کنید که هر دو به انجامش تمایل دارید.";
+    }
+    if (support && support.id !== primary.id && ["conjunction", "trine", "sextile"].includes(support.aspectId)) {
+      const secondarySun = owner(support, "sun");
+      const mars = owner(support, "mars");
+      const secondaryVenus = owner(support, "venus");
+      if (secondarySun && mars) {
+        strength += ` شاهد دوم، ${describe(support)}، از تبدیل شوق به یک تجربهٔ عملی حکایت دارد. وقتی ${secondarySun} از کاری هیجان‌زده است، ${mars} می‌تواند پیشنهاد مشخصی برای انجام آن بدهد؛ مثلاً به جای تعریف کردن از یک مسیر طبیعت‌گردی، زمانی را برای امتحان کردنش در نظر بگیرند.`;
+        addEvidence(support, "شاهد پشتیبان کشش و صمیمیت");
+      } else if (secondarySun && secondaryVenus) {
+        strength += ` در تفسیر ${describe(support)}، ${secondaryVenus} علاوه بر لذت مشترک می‌تواند به ویژگی شخصی ${secondarySun} توجه کند؛ مثلاً وقتی او سرگرم هنری است که به آن علاقه دارد، خودِ اشتیاق او نیز توجه دیگری را جلب کند.`;
+        addEvidence(support, "شاهد پشتیبان کشش و صمیمیت");
+      }
+    }
+  }
+  return {
+    id: primary ? "attraction-intimacy-" + primary.id : "attraction-intimacy-insufficient",
+    title, humanExperience: lead, dailySituation: example, strength, challenge,
+    practicalStep: step, evidence,
+    personA: roles.a ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
+    personB: roles.b ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
   };
 }
