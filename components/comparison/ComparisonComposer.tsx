@@ -845,7 +845,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
             <span>۲</span>
             <div>
               <h3>این دو نفر چه رابطه‌ای دارند؟</h3>
-              <p>زمینه‌ای را انتخاب کن که به رابطهٔ واقعی این دو نفر نزدیک‌تر است.</p>
+              <p>نوع رابطه تعیین می‌کند خوانش با چه مثال‌ها و زبانی نوشته شود.</p>
             </div>
           </div>          <fieldset className={styles.relationshipFieldset}>
             <legend>نوع رابطه</legend>
@@ -907,8 +907,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           <ProductLockedOffer
             productCode="relationship"
             title={`دسترسی به خوانش ${getComparisonChartLabel(chartA)} و ${getComparisonChartLabel(chartB)}`}
-            description="خوانش این دو چارت پنج موضوع رابطه را جدا بررسی می‌کند. برای ساخت گزارش در حالت دسترسی فعلی، اعتبار رابطه لازم است."
-            items={["تفاوت در بیان و شنیدن", "نیازهای عاطفی و ریتم نزدیکی", "معنای قول، مرز و مسئولیت", "مسیر اختلاف و راه ترمیم", "بازکردن نتیجهٔ ذخیره‌شده بدون مصرف اعتبار دیگر"]}
+            description="این گزارش به تفاوت‌های شما در پنج موضوع رابطه، دلیل نجومی هر برداشت و راه‌های مواجهه با آن می‌پردازد. برای ساخت گزارش در حالت دسترسی فعلی، اعتبار رابطه لازم است."
+            items={["چطور حرف یکدیگر را می‌شنوید", "چه چیزی برای هر نفر حمایت محسوب می‌شود", "چطور به هم نزدیک می‌شوید", "معنای قول، مرز و مسئولیت", "چطور اختلاف بالا می‌گیرد و چه راهی برای ترمیم هست"]}
             href="/pricing"
           />
         ) : null}
@@ -919,7 +919,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               <span>۵</span>
               <div>
                 <h3>اعتبار رابطه و ساخت تحلیل</h3>
-                <p>ساخت یک تحلیل تازه یک اعتبار رابطه مصرف می‌کند. بازکردن نتیجهٔ ذخیره‌شده اعتبار دیگری مصرف نمی‌کند.</p>
+                <p>برای ساخت هر تحلیل تازه یک اعتبار رابطه لازم است. اگر همان نتیجهٔ ذخیره‌شده را دوباره باز کنی، اعتبار دیگری مصرف نمی‌شود.</p>
               </div>
             </div>
             <div className={styles.creditWidget}><AccountProductAccessCard /></div>
