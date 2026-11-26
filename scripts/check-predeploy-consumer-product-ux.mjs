@@ -34,11 +34,18 @@ const importedClientNames = clientImport
   : [];
 assert(importedClientNames.some((name) => composer.includes(name)), "Compare must keep referencing the product-access client.");
 assert(!/\bfetch\s*\(/.test(composer), "Compare must not send second-person birth data through a direct fetch path.");
+for (const marker of [
+  'import("@/components/ChartForm")',
+  'mode="comparison"',
+  "onComparisonChartSaved",
+  "directReports",
+  "directEntryVersionRef",
+  'openDirectEntry("a")',
+  'openDirectEntry("b")',
+]) assert(composer.includes(marker), "Compare direct natal entry missing: " + marker);
 for (const retired of [
-  'import { ChartForm } from "@/components/ChartForm";',
   "chartCreationSlot",
   "inlineChartDialog",
-  "onComparisonChartSaved",
   'data-flow-step="consent"',
   "consentConfirmed",
   "compare_consent_completed",

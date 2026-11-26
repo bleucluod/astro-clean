@@ -154,12 +154,22 @@ forbidMarkers("comparison retired dashboard progress R12", sources.composer, [
 
 
 
-requireMarkers("comparison R21 empty picker chart-creation path", sources.composer, [
-  'href="/chart"',
-  'target="_blank"',
-  'rel="noreferrer noopener"',
+requireMarkers("comparison direct natal entry", sources.composer, [
+  'import("@/components/ChartForm")',
+  'mode="comparison"',
+  "onComparisonChartSaved",
+  "directReports",
+  "directEntryVersionRef",
+  'openDirectEntry("a")',
+  'openDirectEntry("b")',
+  "directEntry !== null",
+]);
+requireMarkers("comparison direct natal entry styles", sources.styles, [
+  ".directEntryPanel",
+  ".directEntryButton",
+]);
+forbidMarkers("comparison retired external creation prompt", sources.composer, [
   "اول چارت تولد را بساز و بعد به این صفحه برگرد.",
-  ">ساخت چارت تولد</Link>",
 ]);
 forbidMarkers("comparison R21 retired repetitive builder copy", sources.composer, [
   "چارت آماده نداری؟",
@@ -217,11 +227,9 @@ requireMarkers("comparison composer", sources.composer, [
   'href="/chart"',
   "ساعت تولد این چارت دقیق است",
 ]);
-forbidMarkers("comparison stored-chart-only journey R12", sources.composer, [
-  "ChartForm",
+forbidMarkers("comparison retired consent and duplicate flow", sources.composer, [
   "chartCreationSlot",
   "inlineChartDialog",
-  "onComparisonChartSaved",
   'data-flow-step="consent"',
   "consentConfirmed",
   "compare_consent_completed",
@@ -499,8 +507,8 @@ if (failures.length > 0) {
 
 console.log("Comparison product check passed.");
 console.log("- /compare uses a dedicated static dark landing with final metadata, schema, social image, and builder anchor");
-console.log("- /compare selects stored natal charts only; chart creation lives on /chart");
-console.log("- relationship context remains; the explicit consent gate and inline creation flow are removed");
+console.log("- /compare accepts direct natal entry through the existing ChartForm or stored natal charts");
+console.log("- relationship context remains; the retired explicit consent gate is not restored");
 console.log("- comparison records keep a private local copy and persist a private server copy for guest or authenticated account flows");
 console.log("- three patterns, support/friction, communication, emotional security, boundaries, repair, and bi-wheel remain visible");
 console.log("- history, delete, refresh, and retry flows remain present");

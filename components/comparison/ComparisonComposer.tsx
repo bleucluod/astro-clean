@@ -2,6 +2,7 @@
 
 import { HALLEUS_ANALYTICS_ACTION } from "@/lib/analytics/first-party";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { SupabaseAuthPanel } from "@/components/SupabaseAuthPanel";
 import { AccountProductAccessCard } from "@/components/monetization/ProductAccessCards";
 import { ProductLockedOffer } from "@/components/monetization/ProductAccessCards";
@@ -35,8 +36,6 @@ import {
   listAccountReportSummaries,
 } from "@/lib/storage/account-report-read-client";
 import type { ReportRecordSummary } from "@/types/storage";
-import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
-import { COMPARE_FIRST_CHART_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
 import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import type { AstrologyReport } from "@/types/astro";
@@ -47,6 +46,14 @@ import type {
 } from "@/types/synastry-engine";
 
 import styles from "./comparison.module.css";
+import chartStyles from "@/app/chart/chart-shell.module.css";
+
+const DirectChartForm = dynamic(
+  () => import("@/components/ChartForm").then((module) => module.ChartForm),
+  { ssr: false, loading: () => <p role="status">در حال آماده‌سازی فرم…</p> },
+);
+
+type DirectEntry = { slot: "a" | "b"; version: number };
 
 const RELATIONSHIP_OPTIONS: ReadonlyArray<{
   value: SynastryRelationshipContext;
@@ -93,7 +100,7 @@ type ComparisonChartOption = {
   birthDate: string;
   birthCity: string;
   createdAt: string;
-  source: "device" | "account";
+  source: "device" | "account" | "session";
   sourceLabel: string;
 };
 export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED" }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED" }) {
@@ -111,6 +118,12 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   const freeAllAccess =
     temporaryFreeRelationshipAccess || effectiveMonetizationMode === "FREE_ALL";
   const [reports, setReports] = useState<AstrologyReport[]>([]);
+  // Canonical guest reports are not written to the browser library. Keep the
+  // acknowledged reports in this composer even when the account refreshes.
+  const [directReports, setDirectReports] = useState<AstrologyReport[]>([]);
+  const [directEntry, setDirectEntry] = useState<DirectEntry | null>(null);
+  const directEntryVersionRef = useRef(0);
+  const directEntryHeadingRef = useRef<HTMLHeadingElement>(null);
   const [history, setHistory] = useState<ComparisonRecord[]>([]);
   const [chartAId, setChartAId] = useState("");
   const [chartBId, setChartBId] = useState("");
@@ -290,8 +303,10 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       }
     }
 
+    for (const report of directReports) byId.set(report.id, report);
+
     return [...byId.values()];
-  }, [accountReports, reports]);
+  }, [accountReports, directReports, reports]);
   const usableReports = useMemo(
     () => mergedReports.filter((report) => Boolean(report.realEngine)),
     [mergedReports],
@@ -314,6 +329,19 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       });
     }
 
+    for (const report of directReports) {
+      if (!report.realEngine) continue;
+      byId.set(report.id, {
+        id: report.id,
+        label: getComparisonChartLabel(report),
+        birthDate: report.input.birthDate,
+        birthCity: report.input.birthCity,
+        createdAt: report.createdAt,
+        source: "session",
+        sourceLabel: "این نشست",
+      });
+    }
+
     for (const summary of accountSummaries) {
       const existing = byId.get(summary.id);
       const accountLabel =
@@ -324,7 +352,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       if (existing) {
         byId.set(summary.id, {
           ...existing,
-          sourceLabel: "حساب و این دستگاه",
+          source: existing.source === "session" ? "account" : existing.source,
+          sourceLabel: existing.source === "session" ? "حساب هالیوس" : "حساب و این دستگاه",
         });
         continue;
       }
@@ -344,7 +373,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       (left, right) =>
         new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime(),
     );
-  }, [accountSummaries, reports]);
+  }, [accountSummaries, directReports, reports]);
   const chartA = useMemo(
     () => usableReports.find((report) => report.id === chartAId) ?? null,
     [chartAId, usableReports],
@@ -359,17 +388,57 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   }, []);
 
   useEffect(() => {
-    if (chartAId || usableReports.length !== 1) return;
+    if (chartAId || chartBId || directEntry || usableReports.length !== 1) return;
     const [onlyReport] = usableReports;
     const frame = window.requestAnimationFrame(() => {
       setChartAId(onlyReport.id);
       setChartATimeStatus(getDefaultComparisonBirthTimeStatus(onlyReport));
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [chartAId, usableReports]);
+  }, [chartAId, chartBId, directEntry, usableReports]);
+
+  useEffect(() => {
+    if (directEntry) directEntryHeadingRef.current?.focus();
+  }, [directEntry]);
+
+  function openDirectEntry(slot: DirectEntry["slot"]) {
+    if (isWorking || accountChartLoadingId !== null) return;
+    setMessage("");
+    setDirectEntry({ slot, version: ++directEntryVersionRef.current });
+  }
+
+  function closeDirectEntry() {
+    directEntryVersionRef.current += 1;
+    setDirectEntry(null);
+  }
+
+  function acceptDirectChart(entry: DirectEntry, report: AstrologyReport) {
+    // A cancelled or replaced form must not update either person later.
+    if (entry.version !== directEntryVersionRef.current) return;
+    closeDirectEntry();
+    const otherId = entry.slot === "a" ? chartBId : chartAId;
+    if (!report.realEngine || report.id === otherId) {
+      setMessage("برای هر نفر یک چارت محاسبه‌شده و جداگانه لازم است.");
+      return;
+    }
+    setDirectReports((current) => [...current.filter((item) => item.id !== report.id), report]);
+    const timeStatus = getDefaultComparisonBirthTimeStatus(report);
+    if (entry.slot === "a") {
+      setChartAId(report.id);
+      setChartATimeStatus(timeStatus);
+    } else {
+      setChartBId(report.id);
+      setChartBTimeStatus(timeStatus);
+    }
+    trackComparePublicAggregateEvent("compare_slot_completed");
+    setMessage("");
+  }
 
 
   async function resolveChartSelection(nextId: string) {
+    const directReport = directReports.find((report) => report.id === nextId && Boolean(report.realEngine));
+    if (directReport) return directReport;
+
     const localReport = reports.find(
       (report) => report.id === nextId && Boolean(report.realEngine),
     );
@@ -449,7 +518,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     setMessage("");
   }
   async function generateComparison() {
-    if (generationInFlightRef.current) return;
+    if (generationInFlightRef.current || directEntry) return;
     if (!chartA || !chartB) {
       setMessage("دو چارت محاسبه‌شده را انتخاب کن.");
       return;
@@ -564,6 +633,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     freeAllAccess || productAccess.access.balances.relationship >= 1;
   const generationDisabled =
     isWorking ||
+    directEntry !== null ||
     !chartA ||
     !chartB ||
     !accessResolved ||
@@ -575,8 +645,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   const selectedRelationship =
     RELATIONSHIP_OPTIONS.find((item) => item.value === relationshipContext) ??
     RELATIONSHIP_OPTIONS[0]!;
-  const showFirstChartStickyCta =
-    embedded && accountChartsState === "signed-out" && chartOptions.length === 0;
 
   return (
     <div
@@ -586,12 +654,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       data-app-like-builder="r11"
       data-builder-simplified="r12"
     >
-      {showFirstChartStickyCta ? (
-        <EditorialStickyCtaSequence
-          campaign={COMPARE_FIRST_CHART_STICKY_CTA_CAMPAIGN}
-          rootId="compare-public-landing"
-        />
-      ) : null}
       {!embedded ? <>
       <section className={styles.hero}>
         <div>
@@ -683,9 +745,9 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         <div className={styles.finalBuilderHeader}>
           <div>
             <p className={styles.eyebrow}>تحلیل رابطه</p>
-            <h2 id="comparison-builder-title">دو نفر را برای تحلیل انتخاب کن</h2>
+            <h2 id="comparison-builder-title">دو نفر را برای تحلیل آماده کن</h2>
             <p>
-              چارت خودت و نفر مقابل را انتخاب کن. نوع رابطه را هم مشخص کن تا مثال‌های خوانش به زمینهٔ آن مربوط باشند.
+              مشخصات تولد هر نفر را همین‌جا وارد کن یا چارت ذخیره‌شده‌اش را انتخاب کن.
             </p>
           </div>
 
@@ -693,6 +755,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
             className={styles.accountButton}
             data-state={accountChartsState}
             type="button"
+            disabled={directEntry !== null || isWorking}
             onClick={() => setIsAccountModalOpen(true)}
           >
             <span className={styles.accountButtonDot} aria-hidden="true" />
@@ -798,7 +861,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           <div className={styles.stepHeading}>
             <span>۱</span>
             <div>
-              <h3>دو چارت را انتخاب کن</h3>
+              <h3>مشخصات تولد دو نفر</h3>
             </div>
           </div>          <div className={styles.chartGrid}>
             <ChartPicker
@@ -810,6 +873,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               timeStatus={chartATimeStatus}
               onChange={selectChartA}
               onTimeStatusChange={setChartATimeStatus}
+              onDirectEntry={() => openDirectEntry("a")}
+              disabled={directEntry !== null || isWorking}
               isLoading={accountChartLoadingId !== null}
             />
 
@@ -835,9 +900,28 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               timeStatus={chartBTimeStatus}
               onChange={selectChartB}
               onTimeStatusChange={setChartBTimeStatus}
+              onDirectEntry={() => openDirectEntry("b")}
+              disabled={directEntry !== null || isWorking}
               isLoading={accountChartLoadingId !== null}
             />
           </div>
+          {directEntry ? (
+            <section className={`${styles.directEntryPanel} ${chartStyles.formPanel}`} aria-labelledby="compare-direct-entry-heading" data-direct-entry-slot={directEntry.slot}>
+              <div className={`${styles.directEntryHeader} ${chartStyles.formPanelHeading}`}>
+                <h4 id="compare-direct-entry-heading" ref={directEntryHeadingRef} tabIndex={-1}>
+                  مشخصات تولد {directEntry.slot === "a" ? "نفر اول" : "نفر دوم"}
+                </h4>
+                <button type="button" className={styles.directEntryButton} onClick={closeDirectEntry}>انصراف</button>
+              </div>
+              <DirectChartForm
+                key={directEntry.version}
+                mode="comparison"
+                comparisonHeadingId="compare-direct-entry-heading"
+                initialComparisonInput={directEntry.slot === "a" ? chartA?.input : chartB?.input}
+                onComparisonChartSaved={(report) => acceptDirectChart(directEntry, report)}
+              />
+            </section>
+          ) : null}
         </section>
 
         <section className={styles.flowStep} data-flow-step="relationship">
@@ -987,6 +1071,8 @@ function ChartPicker({
   timeStatus,
   onChange,
   onTimeStatusChange,
+  onDirectEntry,
+  disabled,
   isLoading,
 }: {
   label: string;
@@ -997,6 +1083,8 @@ function ChartPicker({
   timeStatus: SynastryBirthTimeStatus;
   onChange: (value: string) => void | Promise<void>;
   onTimeStatusChange: (value: SynastryBirthTimeStatus) => void;
+  onDirectEntry: () => void;
+  disabled: boolean;
   isLoading: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -1020,7 +1108,7 @@ function ChartPicker({
       .includes(normalizedQuery);
   });
   const deviceOptions = filteredOptions.filter(
-    (option) => option.source === "device",
+    (option) => option.source !== "account",
   );
   const accountOptions = filteredOptions.filter(
     (option) => option.source === "account",
@@ -1051,9 +1139,17 @@ function ChartPicker({
   }, [isOpen]);
 
   function chooseOption(optionId: string) {
+    if (disabled || isLoading) return;
     setIsOpen(false);
     setQuery("");
     void onChange(optionId);
+  }
+
+  function startDirectEntry() {
+    if (disabled || isLoading) return;
+    setIsOpen(false);
+    setQuery("");
+    onDirectEntry();
   }
 
   return (
@@ -1104,17 +1200,20 @@ function ChartPicker({
         </div>
       ) : (
         <div className={styles.personEmpty}>
-          <strong>یک چارت انتخاب کن</strong>
-          <span>از فهرست جست‌وجو کن و چارت مناسب این نفر را بردار.</span>
+          <strong>مشخصات تولد را وارد کن</strong>
+          <span>یا از میان چارت‌های ذخیره‌شده انتخاب کن.</span>
         </div>
       )}
 
+      <button className={styles.directEntryButton} type="button" disabled={disabled || isLoading} onClick={startDirectEntry}>
+        {selectedReport ? "ویرایش مشخصات تولد" : "ورود مشخصات تولد"}
+      </button>
       <div className={styles.chartPickerShell} ref={pickerRef}>
         <button
           aria-expanded={isOpen}
           aria-haspopup="dialog"
           className={styles.chartPickerTrigger}
-          disabled={isLoading}
+          disabled={disabled || isLoading}
           type="button"
           onClick={() => setIsOpen((current) => !current)}
         >
@@ -1131,14 +1230,10 @@ function ChartPicker({
               <div className={styles.chartPickerZeroState}>
                 <span className={styles.chartPickerZeroOrbit} aria-hidden="true" />
                 <strong>هنوز چارتی برای انتخاب نداری</strong>
-                <p>اول چارت تولد را بساز و بعد به این صفحه برگرد.</p>
-                <Link
-                  href="/chart"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  ساخت چارت تولد
-                </Link>
+                <p>مشخصات تولد این نفر را همین‌جا وارد کن.</p>
+                <button className={styles.directEntryButton} type="button" disabled={disabled || isLoading} onClick={startDirectEntry}>
+                  ورود مشخصات تولد
+                </button>
               </div>
             ) : (
               <>
@@ -1157,7 +1252,7 @@ function ChartPicker({
               {deviceOptions.length > 0 ? (
                 <section className={styles.chartPickerGroup}>
                   <header>
-                    <strong>روی این دستگاه</strong>
+                    <strong>در این نشست یا دستگاه</strong>
                     <span>{deviceOptions.length.toLocaleString("fa-IR")}</span>
                   </header>
                   <div>
@@ -1224,7 +1319,8 @@ function ChartPicker({
         <label className={styles.timeAccuracyChoice}>
           <input
             type="checkbox"
-            checked={timeStatus === "exact"}
+            disabled={disabled || isLoading || getDefaultComparisonBirthTimeStatus(selectedReport) === "unknown"}
+            checked={timeStatus === "exact" && getDefaultComparisonBirthTimeStatus(selectedReport) === "exact"}
             onChange={(event: ChangeEvent<HTMLInputElement>) =>
               onTimeStatusChange(event.target.checked ? "exact" : "unknown")
             }

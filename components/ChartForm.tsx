@@ -530,22 +530,38 @@ export type ChartFormMode = "standalone" | "comparison";
 export function ChartForm({
   mode = "standalone",
   onComparisonChartSaved,
+  comparisonHeadingId,
+  initialComparisonInput,
 }: {
   mode?: ChartFormMode;
   onComparisonChartSaved?: (report: AstrologyReport) => void;
+  comparisonHeadingId?: string;
+  initialComparisonInput?: BirthInput;
 } = {}) {
   const router = useRouter();
   const comparisonMode = mode === "comparison";
-  const [form, setForm] = useState<BirthInput>(initialForm);
-  const [dateMode, setDateMode] = useState<BirthDateMode>("jalali");
+  // Only the selected natal fields are restored when editing a comparison slot.
+  // Do not carry residence, transit or previous engine fields into a fresh chart.
+  const savedInput = comparisonMode ? initialComparisonInput : undefined;
+  const savedDate = savedInput?.birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/u);
+  const savedTime = savedInput?.birthTimeAccuracy === "known"
+    ? savedInput.birthTime.match(/^([01]\d|2[0-3]):([0-5]\d)$/u) : null;
+  const [form, setForm] = useState<BirthInput>(() => savedInput ? {
+    ...initialForm,
+    name: sanitizePersianName(savedInput.name ?? ""),
+    birthCity: savedInput.birthCity,
+    birthCountry: savedInput.birthCountry,
+    birthTime: savedTime ? savedTime[0] : "",
+  } : initialForm);
+  const [dateMode, setDateMode] = useState<BirthDateMode>(savedDate ? "gregorian" : "jalali");
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
     initialJalaliBirthDateParts,
   );
   const [gregorianBirthDateParts, setGregorianBirthDateParts] =
-    useState<JalaliBirthDateParts>(initialJalaliBirthDateParts);
-  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("known");
+    useState<JalaliBirthDateParts>(savedDate ? { year: savedDate[1], month: savedDate[2], day: savedDate[3] } : initialJalaliBirthDateParts);
+  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>(savedInput && !savedTime ? "unknown" : "known");
   const [birthTimeParts, setBirthTimeParts] =
-    useState<BirthTimeParts>(initialBirthTimeParts);
+    useState<BirthTimeParts>(savedTime ? { hour: savedTime[1], minute: savedTime[2] } : initialBirthTimeParts);
   const [showAccountPanel, setShowAccountPanel] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
@@ -564,7 +580,7 @@ export function ChartForm({
   const [currentResidenceCity, setCurrentResidenceCity] = useState("");
   // Current residence is optional, but when supplied it enables a personal transit reading.
   const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());
-  const [selectedBirthCityId, setSelectedBirthCityId] = useState("");
+  const [selectedBirthCityId, setSelectedBirthCityId] = useState(savedInput?.birthCityId ?? "");
   const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
     useState("");
 
@@ -594,7 +610,7 @@ export function ChartForm({
 
   useEffect(() => {
     const restoreFrame = window.requestAnimationFrame(() => {
-      const savedLocation = loadLastStudyLocation();
+      const savedLocation = comparisonMode ? null : loadLastStudyLocation();
 
       if (savedLocation) {
         setSelectedCurrentResidenceCityId(savedLocation.cityId);
@@ -716,13 +732,13 @@ export function ChartForm({
   ]);
 
   function isCollapsedStep(stepId: ChartJourneyStepId) {
-    // Keep date/time wheels visible on the standalone /chart mobile journey.
-    if (!comparisonMode && (stepId === "date" || stepId === "time")) return false;
+    // Keep date/time wheels visible in both mobile form modes.
+    if (stepId === "date" || stepId === "time") return false;
     const step = chartProgress.steps.find((entry) => entry.id === stepId);
     const errorKey: ChartFieldId = stepId === "date" ? "birthDate"
       : stepId === "time" ? "birthTime"
       : stepId === "city" ? "birthCity" : "name";
-    return Boolean(!comparisonMode && step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
+    return Boolean(step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
   }
 
   function openJourneyStep(stepId: ChartJourneyStepId) {
@@ -1201,20 +1217,19 @@ export function ChartForm({
   }
 
   return (
-    <section className={comparisonMode ? "chart-reference-page" : "chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم ساخت چارت تولد">
+    <section className={"chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم ساخت چارت تولد">
       <div className="chart-reference-shell">
         <div className="chart-reference-content">
           <form
             className="chart-reference-form"
             id="chart-birth-data-form"
-            aria-labelledby="birth-data-heading"
+            aria-labelledby={comparisonMode ? comparisonHeadingId : "birth-data-heading"}
             onSubmit={handleSubmit}
             ref={formRef}
           >
-            {!comparisonMode ? (
               <div className={journeyStyles.journeyProgress} aria-live="polite">
                 <div className={journeyStyles.progressHeading}>
-                  <span>آسمان تو در حال شکل‌گرفتنه</span>
+                  <span>{comparisonMode ? "مشخصات تولد" : "آسمان تو در حال شکل‌گرفتنه"}</span>
                   <strong>{chartProgress.completed.toLocaleString("fa-IR")} از ۴</strong>
                 </div>
                 <div className={journeyStyles.orbitTrack}>
@@ -1237,7 +1252,6 @@ export function ChartForm({
                     : "هر اطلاعاتی که تکمیل کنی، یک نقطه از آسمانت روشن می‌شه."}
                 </p>
               </div>
-            ) : null}
             <div className="chart-form-progress" aria-live="polite">
               <div className="chart-form-progress-header">
                 <span>پیشرفت اطلاعات ضروری</span>
@@ -1292,7 +1306,7 @@ export function ChartForm({
                 <input
                   required
                   aria-required="true"
-                  autoComplete="name"
+                  autoComplete={comparisonMode ? "off" : "name"}
                   dir="rtl"
                   lang="fa"
                   value={form.name}
@@ -1303,7 +1317,7 @@ export function ChartForm({
                       sanitizePersianName(event.target.value),
                     );
                   }}
-                  placeholder="نام خود را به فارسی وارد کنید"
+                  placeholder={comparisonMode ? "نام را به فارسی وارد کنید" : "نام خود را به فارسی وارد کنید"}
                 />
                 <FieldError message={fieldErrors.name} />
               </label>
@@ -1359,7 +1373,6 @@ export function ChartForm({
                   </div>
                 </div>
 
-                {!comparisonMode ? (
                   <MobileBirthDatePicker
                     mode={dateMode}
                     value={dateMode === "jalali" ? birthDateParts : gregorianBirthDateParts}
@@ -1367,7 +1380,6 @@ export function ChartForm({
                     monthOptions={dateMode === "jalali" ? JALALI_MONTH_OPTIONS : GREGORIAN_MONTH_OPTIONS}
                     onConfirm={applyMobileBirthDate}
                   />
-                ) : null}
 
                                 {dateMode === "jalali" ? (
                   <div
@@ -1499,7 +1511,7 @@ export function ChartForm({
                   </label>
                 </div>
 
-                {!comparisonMode && birthTimeMode === "known" ? (
+                {birthTimeMode === "known" ? (
                   <DeferredMobileBirthTimePicker value={birthTimeParts} onConfirm={applyMobileBirthTime} />
                 ) : null}
 

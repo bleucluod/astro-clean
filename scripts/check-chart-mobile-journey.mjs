@@ -52,10 +52,10 @@ for (const marker of [
 }
 
 expect(
-  form.includes('comparisonMode ? "chart-reference-page"') &&
+  form.includes('className={"chart-reference-page " + journeyStyles.journeyRoot}') &&
     /\{!comparisonMode\s*\?\s*\(\s*<ChartStickyPortal>/.test(form) &&
     form.includes("return ready ? createPortal(children, document.body) : null;"),
-  "Comparison mode must not mount the standalone journey",
+  "Both modes share the journey; comparison must not mount the standalone sticky action",
 );
 expect(
   form.includes('const [showStickyAction, setShowStickyAction] = useState(false);') &&
@@ -83,7 +83,7 @@ expect(
   routeCss.includes(".formPanel :global(.birth-date-picker-grid),") &&
   routeCss.includes(".formPanel :global(.birth-time-picker-grid) {") &&
   routeCss.includes("display: none !important;"),
-  "Legacy birth dropdown grids must be hidden only on /chart mobile",
+  "Legacy birth dropdown grids must be hidden in shared mobile form styling",
 );
 for (const marker of [
   "MobileBirthDatePicker",
@@ -93,9 +93,9 @@ for (const marker of [
   "type MobileDateParts",
   "type MobileTimeParts",
   ".wheelViewport, .chart-native-select, .chart-select-trigger",
-  '!comparisonMode && birthTimeMode === "known"',
+  'birthTimeMode === "known" ? (',
 ]) {
-  expect(form.includes(marker), "New chart-only picker bridge missing: " + marker);
+  expect(form.includes(marker), "Shared picker bridge missing: " + marker);
 }
 for (const marker of [
   "HALLEUS_CHART_ALWAYS_VISIBLE_BIRTH_WHEELS_20261114",
@@ -177,7 +177,7 @@ expect(
   picker.includes('label="دقیقه"'),
   "Three date wheels and two time wheels must be directly mounted");
 expect(
-  form.includes('if (!comparisonMode && (stepId === "date" || stepId === "time")) return false;') &&
+  form.includes('if (stepId === "date" || stepId === "time") return false;') &&
   form.includes('parts.hour && parts.minute ? parts.hour + ":" + parts.minute : ""') &&
   form.includes('onConfirm={applyMobileBirthDate}') &&
   form.includes('onConfirm={applyMobileBirthTime}') &&
@@ -193,10 +193,10 @@ expect(
 expect(
   !form.includes("chartDefaultJalaliBirthDateParts") &&
   !form.includes("chartDefaultBirthTimeParts") &&
-  form.includes("useState<BirthInput>(initialForm)") &&
+  form.includes("} : initialForm);") &&
   form.includes("useState<JalaliBirthDateParts>(") &&
   form.includes("initialJalaliBirthDateParts,") &&
-  form.includes("useState<BirthTimeParts>(initialBirthTimeParts)") &&
+  form.includes(" : initialBirthTimeParts);") &&
   ["روز", "ماه", "سال", "ساعت", "دقیقه"].every((label) =>
     picker.includes('value: "", label: "' + label + '"')) &&
   !picker.includes('value: "", label: "—"'),
@@ -233,7 +233,7 @@ expect(form.includes("chart-residence-location") &&
   form.indexOf('chart-residence-location " + journeyStyles.residenceField') < form.indexOf('className="chart-form-actions"') &&
   form.includes("if (includeTransitReading)"), "Optional current-residence city must be visible after birth city and transit behavior preserved");
 expect(
-  form.includes('placeholder="نام خود را به فارسی وارد کنید"') &&
+  form.includes(' : "نام خود را به فارسی وارد کنید"}') &&
   !form.includes('placeholder="نام فارسی خود را وارد کنید"') &&
   form.includes('const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());') &&
   form.includes("if (includeTransitReading)") &&

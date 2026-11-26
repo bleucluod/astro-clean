@@ -4986,3 +4986,43 @@
   }
 }
 /* END HALLEUS_COMPARE_EMPTY_PICKER_PHONE_R21 */
+
+/* Direct natal entry: one existing chart form, embedded below the pair. */
+.directEntryButton {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid rgba(190, 203, 232, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font: inherit;
+  cursor: pointer;
+}
+.directEntryButton:disabled { opacity: 0.5; cursor: not-allowed; }
+.directEntryButton:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.directEntryPanel {
+  min-width: 0;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(190, 203, 232, 0.24);
+  border-radius: 16px;
+}
+.directEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.directEntryPanel {
+  --chart-bg: #030406;
+  --chart-border: rgba(255, 255, 255, 0.09);
+}
+.directEntryPanel .directEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.directEntryPanel :global(.chart-form-actions::after) { content: none !important; }
