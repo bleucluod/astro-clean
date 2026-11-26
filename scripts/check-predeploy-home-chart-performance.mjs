@@ -13,7 +13,9 @@ for (const marker of [
   'import("@/components/SupabaseAuthPanel")',
   'import("@/lib/storage/account-report-save-client")',
   "saveGeneratedReportWithAccountFallback",
-  'onComparisonChartSaved?.(saveResult.accountRecord.report)',
+  "useImperativeHandle(comparisonFormRef",
+  "comparisonCalculationRef",
+  'if (comparisonMode) return;',
   'const realEngineResult = await requestRealEngineReportData(normalizedForm, engineCity)',
 ]) {
   if (!chart.includes(marker)) failures.push("ChartForm missing deferred-runtime marker: " + marker);

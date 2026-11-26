@@ -147,7 +147,12 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     setMessage("");
     const reports = loadReports();
 
-    async function resolveCanonicalNatal(reportId: string) {
+    async function resolveCanonicalNatal(reportId: string, snapshot: ComparisonRecord["report"]["chartA"]) {
+      // Direct-input natal data exists only within this private comparison.
+      if (reportId.startsWith("compare-natal-")) {
+        if (snapshot.chartId !== reportId || !snapshot.engineSnapshot) return null;
+        return { input: { name: snapshot.label }, realEngine: snapshot.engineSnapshot };
+      }
       const server = await getAccountReportRecord(reportId);
       if (server.reportRecord?.report) {
         return server.reportRecord.report;
@@ -163,8 +168,8 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     }
 
     const [chartA, chartB] = await Promise.all([
-      resolveCanonicalNatal(record.chartAId),
-      resolveCanonicalNatal(record.chartBId),
+      resolveCanonicalNatal(record.chartAId, record.report.chartA),
+      resolveCanonicalNatal(record.chartBId, record.report.chartB),
     ]);
 
     if (!chartA || !chartB) {

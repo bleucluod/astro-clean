@@ -157,12 +157,30 @@ forbidMarkers("comparison retired dashboard progress R12", sources.composer, [
 requireMarkers("comparison direct natal entry", sources.composer, [
   'import("@/components/ChartForm")',
   'mode="comparison"',
-  "onComparisonChartSaved",
-  "directReports",
-  "directEntryVersionRef",
+  "comparisonFormRef",
+  "formARef",
+  "formBRef",
+  "onComparisonReadyChange",
   'openDirectEntry("a")',
   'openDirectEntry("b")',
-  "directEntry !== null",
+  "Promise.allSettled",
+]);
+requireMarkers("comparison direct input reuses private snapshots", sources.report, [
+  'reportId.startsWith("compare-natal-")',
+  "snapshot.engineSnapshot",
+  "record.report.chartA",
+  "record.report.chartB",
+]);
+requireMarkers("comparison deferred natal calculation", sources.chartForm, [
+  "useImperativeHandle(comparisonFormRef",
+  "normalizeBirthForm(await ensureCityDirectory())",
+  "comparisonCalculationRef",
+  'if (comparisonMode) return;',
+  "compare-natal-",
+]);
+forbidMarkers("comparison retired personal report submission", sources.chartForm, [
+  "onComparisonChartSaved",
+  "ساخت چارت برای مقایسه",
 ]);
 requireMarkers("comparison direct natal entry styles", sources.styles, [
   ".directEntryPanel",

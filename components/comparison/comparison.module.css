@@ -5026,3 +5026,26 @@
   flex-wrap: wrap;
 }
 .directEntryPanel :global(.chart-form-actions::after) { content: none !important; }
+
+/* Direct comparison uses the same full-width natal form as /chart. */
+.directPeopleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+.directPeopleGrid > .directEntryPanel {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.directPeopleGrid .directEntryHeader {
+  margin-bottom: 0;
+}
+.optionalChartPicker {
+  min-width: 0;
+  margin: 0 16px 14px;
+}
+.directPeopleGrid .personCard {
+  margin: 0 16px 16px;
+}

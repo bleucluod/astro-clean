@@ -30,9 +30,13 @@ import type {
 const EMOTIONAL_POINT_IDS = new Set(["moon", "venus", "saturn"]);
 const BOUNDARY_POINT_IDS = new Set(["saturn", "uranus", "pluto"]);
 
+type ComparisonNatalSource = Pick<AstrologyReport, "realEngine"> & {
+  input: Pick<AstrologyReport["input"], "name">;
+};
+
 export function createPrivateComparison(
-  chartAReport: AstrologyReport,
-  chartBReport: AstrologyReport,
+  chartAReport: ComparisonNatalSource,
+  chartBReport: ComparisonNatalSource,
   input: CreateComparisonInput,
 ): CreateComparisonResult {
 
@@ -124,8 +128,8 @@ export function createPrivateComparison(
 
 export function rebuildPrivateComparison(
   existing: ComparisonRecord,
-  chartAReport: AstrologyReport,
-  chartBReport: AstrologyReport,
+  chartAReport: ComparisonNatalSource,
+  chartBReport: ComparisonNatalSource,
 ): CreateComparisonResult {
   const rebuilt = createPrivateComparison(chartAReport, chartBReport, {
     chartAId: existing.chartAId,
@@ -164,7 +168,7 @@ export function getDefaultComparisonBirthTimeStatus(
   return "exact";
 }
 export function getComparisonChartLabel(
-  report: AstrologyReport,
+  report: ComparisonNatalSource,
   fallback = "چارت بدون نام",
 ): string {
   return report.input.name?.trim() || fallback;
@@ -2051,7 +2055,7 @@ function humanizeComparisonText(value: string): string {
 
 function normalizeLabel(
   explicitLabel: string | null | undefined,
-  report: AstrologyReport,
+  report: ComparisonNatalSource,
   fallback: string,
 ): string {
   return explicitLabel?.trim() || getComparisonChartLabel(report, fallback);

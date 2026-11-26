@@ -37,11 +37,13 @@ assert(!/\bfetch\s*\(/.test(composer), "Compare must not send second-person birt
 for (const marker of [
   'import("@/components/ChartForm")',
   'mode="comparison"',
-  "onComparisonChartSaved",
-  "directReports",
-  "directEntryVersionRef",
+  "comparisonFormRef",
+  "formARef",
+  "formBRef",
+  "onComparisonReadyChange",
   'openDirectEntry("a")',
   'openDirectEntry("b")',
+  "Promise.allSettled",
 ]) assert(composer.includes(marker), "Compare direct natal entry missing: " + marker);
 for (const retired of [
   "chartCreationSlot",
