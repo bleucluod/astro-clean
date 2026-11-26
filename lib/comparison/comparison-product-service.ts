@@ -337,6 +337,9 @@ function buildNarrativeChapters(
   const attractionPlan = evidencePlan.chapterPlans.find(
     (chapter) => chapter.chapter === "attraction-intimacy",
   );
+  const boundaryPlan = evidencePlan.chapterPlans.find(
+    (chapter) => chapter.chapter === "boundaries-commitment",
+  );
   return specs.map((spec) => {
     if (spec.id === "communication") {
       const primary = report.contacts.find((contact) => contact.id === communicationPlan?.primary?.id);
@@ -374,6 +377,16 @@ function buildNarrativeChapters(
         ownerContactId: primary?.id ?? null,
         crossReferencePatternId: null, crossReferencePatternTitle: null,
         block: buildAttractionChapter(primary, support, labels, report.relationshipContext, attractionPlan),
+      };
+    }
+    if (spec.id === "boundaries-commitment") {
+      const primary = report.contacts.find(item => item.id === boundaryPlan?.primary?.id);
+      const support = report.contacts.find(item => item.id === boundaryPlan?.support?.id);
+      return {
+        id: spec.id, eyebrow: spec.eyebrow, title: spec.title,
+        ownerContactId: primary?.id ?? null,
+        crossReferencePatternId: null, crossReferencePatternTitle: null,
+        block: buildBoundaryChapter(primary, support, labels, report.relationshipContext, boundaryPlan),
       };
     }
     const crossReference = contact
@@ -957,6 +970,115 @@ function buildAttractionChapter(
     practicalStep: step, evidence,
     personA: roles.a ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
     personB: roles.b ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
+    feelingOrReaction: challenge, effect: strength, cycle: example,
+  };
+}
+
+/** Keep expectations and agreements separate from closeness and conflict repair. */
+function buildBoundaryChapter(
+  primary: SynastryInterChartAspect | undefined,
+  support: SynastryInterChartAspect | undefined,
+  labels: { a: string; b: string },
+  relationship: RealSynastryReport["relationshipContext"],
+  plan: ReturnType<typeof buildComparisonEvidencePlan>["chapterPlans"][number] | undefined,
+): HumanFirstDirectionalNarrativeBlock {
+  type Side = "a" | "b";
+  const names = labels.a === labels.b
+    ? { a: labels.a + " (نفر اول)", b: labels.b + " (نفر دوم)" } : labels;
+  const roles: Partial<Record<Side, string>> = {};
+  const evidence: HumanFirstEvidence[] = [];
+  const side = (c: SynastryInterChartAspect, id: string) =>
+    c.pointA.id === id ? c.pointA.chartSide : c.pointB.id === id ? c.pointB.chartSide : null;
+  const owner = (c: SynastryInterChartAspect, id: string) => {
+    const s = side(c, id);
+    return s ? names[s] : null;
+  };
+  const assign = (c: SynastryInterChartAspect, id: string, role: string) => {
+    const s = side(c, id);
+    if (s) roles[s] = role;
+  };
+  const aspects: Record<string, string> = {
+    conjunction: "هم‌نشینیِ", opposition: "مقابلهٔ", square: "مربعِ",
+    trine: "تثلیثِ", sextile: "سکستایلِ",
+  };
+  const pointName = (p: SynastryInterChartAspect["pointA"]) =>
+    ({ dsc: "دیسندنت", asc: "اسندنت", ic: "آی‌سی", mc: "ام‌سی" } as Record<string, string>)[p.id] ?? p.label;
+  const withEzafe = (p: SynastryInterChartAspect["pointA"]) => {
+    const name = pointName(p);
+    return name + (name.endsWith("ه") ? "ٔ" : name.endsWith("و") || name.endsWith("ی") ? "ی" : "ِ");
+  };
+  const describe = (c: SynastryInterChartAspect) =>
+    `${aspects[c.aspectId] ?? c.aspectLabel} ${withEzafe(c.pointA)} ${names[c.pointA.chartSide]} با ${withEzafe(c.pointB)} ${names[c.pointB.chartSide]}`;
+  const addEvidence = (c: SynastryInterChartAspect, label: string) => {
+    if (!evidence.some(e => e.id === c.id + "-boundaries-commitment"))
+      evidence.push({ id: c.id + "-boundaries-commitment", label, detail: describe(c) + "." });
+  };
+  const planWord = { romantic: "برنامهٔ آخر هفته", friendship: "دورهمی آخر هفته", family: "دیدار خانوادگی", work: "زمان تحویل یک کار", general: "برنامهٔ مشترک" }[relationship];
+  const obligation = { romantic: "زمان دیدار", friendship: "زمان دورهمی", family: "زمان دیدار خانوادگی", work: "موعد تحویل", general: "زمان برنامه" }[relationship];
+  let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
+  if (!primary || plan?.status !== "supported") {
+    title = "تعریف قول هنوز از چارت روشن نیست";
+    lead = primary
+      ? `${describe(primary)} در نقشهٔ این فصل ثبت شده است، اما تماس سیاره‌های کند به‌تنهایی نشان نمی‌دهد کدام نفر چه انتظاری از تعهد یا استقلال دارد.`
+      : "شاهد اختصاصی کافی برای توصیف انتظار این دو نفر از قول و مسئولیت در دست نیست.";
+    if (primary) addEvidence(primary, "شاهد محدود مرز و تعهد");
+    example = `برای نمونه، در تعیین ${planWord} ممکن است یک زمان صرفاً پیشنهاد باشد یا قول قطعی؛ چارت حاضر تعیین نمی‌کند کدام برداشت متعلق به کدام نفر است.`;
+    strength = "این تمایز را باید از توافق واقعی دو نفر شناخت، نه از شباهت یک جایگاه نجومی.";
+    challenge = "کمبود شاهد نه نشانهٔ بی‌تعهدی است و نه تضمین دوام.";
+    step = "پیش از قطعی کردن برنامه، هر نفر مشخص کند چه بخشی را پذیرفته و چه بخشی هنوز قابل تغییر است.";
+  } else {
+    addEvidence(primary, "شاهد اصلی مرز و تعهد");
+    const saturn = owner(primary, "saturn");
+    const venus = owner(primary, "venus");
+    const dsc = owner(primary, "dsc");
+    const hard = primary.aspectId === "square" || primary.aspectId === "opposition";
+    if (saturn && venus) {
+      title = "وقتی یک انتخاب به قول تبدیل می‌شود";
+      lead = `${venus} برای ${planWord} پیشنهادی می‌دهد؛ ${saturn} می‌خواهد بداند آیا می‌توان روی آن حساب کرد. ${describe(primary)} در خوانش نجومی پیوند میان خواست شخصی و معیار پایبندی را برجسته می‌کند${hard ? "؛ این دو همیشه به یک معنا نیستند." : "."}`;
+      example = `${saturn} بر اساس زمان مورد توافق بقیهٔ روزش را تنظیم می‌کند. اگر ${venus} هنوز منتظر مشخص شدن برنامهٔ خودش باشد، بهتر است همان ابتدا معلوم شود کدام ساعت قطعی است و کدام فقط احتمال دارد.`;
+      strength = `وقتی انتخاب به عهدهٔ ${venus} و امکان اجرای آن هم روشن باشد، ${saturn} می‌تواند سهم خودش را از هماهنگی بپذیرد. مسئولیت مشترک از یک قول مشخص آغاز می‌شود، نه از رضایت دادن به همهٔ خواسته‌ها.`;
+      challenge = `موافقت با اصل ${obligation} به معنای واگذاری تمام وقت آزاد نیست. هر نفر باید بتواند بدون شکستن قول، برای زمان باقی‌ماندهٔ خودش تصمیم بگیرد.`;
+      step = `برای برنامهٔ بعدی ابتدا زمان قطعی، سپس بخش قابل تغییر و در نهایت زمان مستقل هر نفر را مشخص کنید.`;
+      assign(primary, "saturn", "پیشنهاد را از نظر قابل اتکا بودن و مسئولیت می‌سنجد.");
+      assign(primary, "venus", "خواست و ترجیح شخصی را وارد تصمیم مشترک می‌کند.");
+      if (support && owner(support, "saturn") && owner(support, "venus") &&
+          side(support, "saturn") !== side(primary, "saturn")) {
+        const otherSaturn = owner(support, "saturn");
+        const otherVenus = owner(support, "venus");
+        strength += ` نقش‌ها ثابت نیستند: ${describe(support)} نشان می‌دهد همین پرسش از سمت دیگر هم مطرح می‌شود. اگر ${otherVenus} برای کاری شخصی زمانی کنار بگذارد، ${otherSaturn} ممکن است بخواهد سهم کار مشترک از قبل معلوم باشد. معیار پایبندی فقط متعلق به یک نفر نیست.`;
+        addEvidence(support, "شاهد پشتیبان مرز و تعهد");
+      }
+    } else if (saturn && dsc) {
+      title = "از همراهی تا پذیرفتن مسئولیت";
+      lead = `در تنظیم ${planWord}، ${saturn} مشخص می‌کند کدام بخش را خودش بر عهده می‌گیرد؛ برای ${dsc} این رفتار می‌تواند معیاری برای شناخت همکاری باشد. ${describe(primary)} در تفسیر نجومی زحل را به محور شراکت نفر مقابل پیوند می‌دهد.`;
+      example = `فرض کنید کاری باید پیش از ${obligation} انجام شود. وقتی ${saturn} مسئولیت رزرو یا آماده‌سازی را می‌پذیرد، ${dsc} می‌تواند روی همان بخش برنامه‌ریزی کند؛ اما این توافق، مسئولیت همهٔ دفعات بعد را تعیین نمی‌کند.`;
+      strength = `${saturn} و ${dsc} می‌توانند با تقسیم دقیق کار، انتظاری را که تا امروز ضمنی بوده به توافقی قابل بررسی تبدیل کنند. یک بار مشخص کنید چه کسی تصمیم می‌گیرد و چه کسی اجرا می‌کند.`;
+      challenge = "پذیرفتن یک مسئولیت با پذیرفتن حق تصمیم‌گیری به جای دیگری فرق دارد. یک توافق مشخص را به قاعدهٔ همیشگی تبدیل نکنید.";
+      step = "یک کار تکرارشونده را انتخاب کنید و مسئول، مهلت و مواردی را که به تصمیم هر دو نفر نیاز دارند از قبل مشخص کنید.";
+      assign(primary, "saturn", "معیار مسئولیت و امکان اتکا را وارد توافق می‌کند.");
+      assign(primary, "dsc", "از رفتار مشخص طرف مقابل معنای شراکت را می‌سنجد.");
+      if (support && owner(support, "saturn") && owner(support, "ic")) {
+        const privateSide = owner(support, "ic");
+        const dutySide = owner(support, "saturn");
+        const setting = relationship === "work" ? "خارج از ساعت کار" : "در فضای شخصی یا خانه";
+        challenge += ` ${describe(support)} در خوانش نجومی زاویهٔ دیگری را نشان می‌دهد: قواعدی که ${dutySide} برای مسئولیت مشترک مطرح می‌کند ممکن است با حریم خصوصی ${privateSide} تداخل پیدا کند. مثلاً درخواست انجام کاری ${setting} باید جداگانه پذیرفته شود؛ سهم مشترک به معنای دسترسی نامحدود به وقت شخصی نیست.`;
+        addEvidence(support, "شاهد پشتیبان مرز و تعهد");
+      }
+    } else {
+      title = "حدود یک توافق مشترک";
+      lead = `${describe(primary)} شاهد تخصیص‌یافتهٔ این فصل است. در تفسیر نجومی می‌توان آن را از زاویهٔ حدود اختیار و مسئولیت بررسی کرد، اما شکل دقیق قول یا ترجیح هر نفر به شاهد اختصاصی‌تر نیاز دارد.`;
+      example = `هنگام تعیین ${planWord}، فرق پیشنهاد و توافق قطعی را مشخص کنید.`;
+      strength = "توافق می‌تواند فقط همان مسئولیتی را شامل شود که هر دو پذیرفته‌اند.";
+      challenge = "از این تماس به‌تنهایی نمی‌توان میزان وفاداری، کنترل‌گری یا دوام رابطه را نتیجه گرفت.";
+      step = "مسئولیت پذیرفته‌شده و بخش قابل تغییر برنامه را جداگانه بنویسید.";
+    }
+  }
+  const unknownRole = "انتظار اختصاصی او دربارهٔ قول یا استقلال از این شاهد روشن نیست.";
+  return {
+    id: primary ? "boundaries-commitment-" + primary.id : "boundaries-commitment-insufficient",
+    title, humanExperience: lead, dailySituation: example, strength, challenge,
+    practicalStep: step, evidence,
+    personA: roles.a ?? unknownRole, personB: roles.b ?? unknownRole,
     feelingOrReaction: challenge, effect: strength, cycle: example,
   };
 }
