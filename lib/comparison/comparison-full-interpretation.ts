@@ -125,7 +125,7 @@ const POINT_INQUIRIES_FA: Record<string, LayerInquiry> = {
   "north-node": ["کدام تجربهٔ تازه را می‌خواهد با انتخاب خودش امتحان کند؟", "تازگی را به تکلیف طرف مقابل برای تغییرکردن تبدیل نکند."],
   "south-node": ["کدام مهارت آشنا واقعاً مفید است و کدام عادت فقط از سر عادت تکرار می‌شود؟", "راحتی یک روش دلیل مناسب‌بودن آن در همهٔ موقعیت‌ها نیست."],
   "black-moon-lilith": ["کدام حد شخصی را ترجیح می‌دهد صریح اعلام کند، حتی اگر دیگری همان سلیقه را نداشته باشد؟", "نه گفتنِ خود یا دیگری را نشانهٔ دشمنی یا نیت پنهان نداند."],
-  chiron: ["وقتی موضوعی حساس است، چه نوع کمک را خودش درخواست می‌کند؟", "از این نماد وجود زخم روانی یا مسئولیت درمان دیگری استنباط نشود."],
+  chiron: ["وقتی موضوعی حساس است، چه نوع کمک را خودش درخواست می‌کند؟", "این جایگاه وجود زخم روانی یا مسئولیت درمان نفر مقابل را نشان نمی‌دهد."],
   "part-of-fortune": ["کدام شرایط ملموس انجام یک کار را برایش راحت‌تر می‌کند؟", "آسانی یک موقعیت را تضمین موفقیت یا خوشبختی نخواند."],
   vertex: ["در برخوردهای پیش‌بینی‌نشده، کدام انتخاب هنوز در اختیار خودش است؟", "از ورتکس، ملاقات مقدر یا ناگزیر بودن رابطه نتیجه نگیرد."],
   ceres: ["کدام شکل مراقبت را واقعاً نیاز دارد و کدام را فقط از روی عادت ارائه می‌دهد؟", "رسیدگی را با تصمیم‌گرفتن به جای دیگری یکی نکند."],
@@ -134,7 +134,7 @@ const POINT_INQUIRIES_FA: Record<string, LayerInquiry> = {
   vesta: ["برای تمرکز بر یک کار یا علاقه چه زمانی را لازم دارد؟", "اختصاص وقت به یک موضوع را معیار وفاداری دیگری قرار ندهد."],
   eris: ["در کدام موقعیت می‌خواهد مخالفتش شنیده شود؟", "اختلاف را به مسابقه‌ای برای اثبات حقانیت تبدیل نکند."],
   pholus: ["کدام تغییر کوچک در تجربهٔ خودش پیامدهای بیشتری داشته است؟", "یک محرک کوچک را پیش‌بینی قطعی بحران بعدی نداند."],
-  nessus: ["کدام رفتار تکرارشونده را می‌تواند متوقف یا اصلاح کند؟", "از این نقطه سوءرفتار، قربانی‌بودن یا نیت آسیب‌رسان را استنباط نکند."],
+  nessus: ["کدام رفتار تکرارشونده را می‌تواند متوقف یا اصلاح کند؟", "این نقطه دلیلی بر سوءرفتار، قربانی‌بودن یا نیت آسیب‌رسان هیچ‌یک از دو نفر نیست."],
 };
 const LOT_INQUIRIES_FA: Record<string, LayerInquiry> = {
   fortune: POINT_INQUIRIES_FA["part-of-fortune"],
@@ -146,19 +146,19 @@ const LOT_INQUIRIES_FA: Record<string, LayerInquiry> = {
   nemesis: ["کدام پیامد واقعی نشان می‌دهد لازم است رویهٔ خودش را عوض کند؟", "از این سهم مجازات حتمی یا سزاوار بودن رنج استنباط نکند."],
 };
 const HOUSE_INQUIRY_SCOPE_FA: Record<number, string> = {
-  1: "نحوهٔ معرفی و حضور خودش", 2: "انتخاب‌های مالی و ارزش‌های شخصی",
-  3: "گفت‌وگو و یادگیری روزمره", 4: "زندگی خصوصی و فضای خانه",
-  5: "سرگرمی و آفرینش شخصی", 6: "برنامه و وظایف روزانه",
-  7: "توافق و شراکت", 8: "مرز اعتماد و منابع مشترک",
-  9: "باورها و تجربه‌های یادگیری", 10: "هدف و مسئولیت اجتماعی",
-  11: "دوستان و فعالیت جمعی", 12: "خلوت و زمان شخصی",
+  1: "هنگام معرفی خود به یک جمع تازه", 2: "هنگام تصمیم دربارهٔ خرید یا پس‌انداز",
+  3: "در یک گفت‌وگوی روزمره یا آموختن مهارتی نزدیک به زندگی", 4: "در تصمیمی دربارهٔ فضای خانه یا زندگی خصوصی",
+  5: "هنگام انتخاب یک سرگرمی یا فعالیت خلاقانه", 6: "وقتی برنامهٔ روزانه یا تقسیم وظایف تغییر می‌کند",
+  7: "هنگام مذاکره دربارهٔ یک توافق مشترک", 8: "وقتی حدود دسترسی به اطلاعات یا منابع مشترک مطرح است",
+  9: "هنگام روبه‌رو شدن با یک دیدگاه یا تجربهٔ آموزشی تازه", 10: "هنگام انتخاب هدف کاری یا پذیرش مسئولیت",
+  11: "در برنامه‌ریزی یک فعالیت با دوستان یا گروه", 12: "هنگام تعیین زمانی برای استراحت و خلوت",
 };
 function layerInquiryText(inquiry: LayerInquiry | undefined, label: string, house: number | null | undefined): { supportive: string; stress: string } {
   if (!inquiry) return { supportive: "این داده را فقط در محدودهٔ معنای ثبت‌شده بررسی کنید.", stress: "بدون شاهد مستقل، نتیجهٔ رابطه‌ای از این جایگاه ساخته نمی‌شود." };
   const scope = house ? HOUSE_INQUIRY_SCOPE_FA[house] : undefined;
   return {
-    supportive: `پرسش فردی برای ${label}${scope ? ` در زمینهٔ ${scope}` : ""}: ${inquiry[0]}`,
-    stress: `${label} در خواندن این نماد، ${inquiry[1]}`,
+    supportive: `برای ${label}: ${scope ? `${scope}، ` : ""}${inquiry[0]}`,
+    stress: `نکتهٔ احتیاط برای ${label}: ${inquiry[1]}`,
   };
 }
 
@@ -439,8 +439,8 @@ function buildContactInterpretation(
     evidenceIds: uniqueStrings([
       contact.id,
       ...relatedOverlays.map((item) => item.id),
-      ...findNatalAspectEvidence(report.chartA, contact.pointA.id),
-      ...findNatalAspectEvidence(report.chartB, contact.pointB.id),
+      ...(hasInterpretiveData ? findNatalAspectEvidence(report.chartA, contact.pointA.id, "a", birthTime.a) : []),
+      ...(hasInterpretiveData ? findNatalAspectEvidence(report.chartB, contact.pointB.id, "b", birthTime.b) : []),
     ]),
   };
 }
@@ -625,7 +625,7 @@ function buildNodeItems(
       }),
     );
   }
-  return [buildDeferredLayerItem(`node:${side}:deferred`, `نودهای ماه ${label}`, nodes.limitation ?? "نودهای ماه در این داده قابل تفسیر نیستند.", [`engine:${side}:lunarNodes`])];
+  return [buildDeferredLayerItem(`node:${side}:deferred`, `گره‌های ماه ${label}`, nodes.limitation ?? "گره‌های ماه در این داده قابل تفسیر نیستند.", [`engine:${side}:lunarNodes`])];
 }
 
 function buildLilithItems(
@@ -725,9 +725,9 @@ function buildTraditionalLotItems(
     id: `lot:${side}:${lot.id}`,
     titleFa: `${lot.labelFa} ${label}`,
     meaningFa: sharedFortune ? "سهم بخت همان فورچون ثبت‌شده در بخش نقاط ویژه است؛ اینجا روش محاسبهٔ سنتی آن توضیح داده می‌شود، نه یک شاهد دوم." : LOT_MEANING_FA[lot.id] ?? "این سهم سنتی یک نقطهٔ محاسبه‌شده بر پایهٔ فرمول ثبت‌شدهٔ موتور است.",
-    relationshipExpressionFa: `${lot.labelFa} در چارت ${label}: ${SIGN_LABELS_FA[lot.signId] ?? lot.signId}، خانهٔ ${lot.house?.toLocaleString("fa-IR") ?? "نامشخص"}. این جایگاه در خوانش ${CONTEXT_LABELS_FA[context]} فقط به پرسش فردی زیر جهت می‌دهد.`,
-    supportiveExpressionFa: sharedFortune ? "پرسش کاربردی در بخش فورچون همین فرد آمده است؛ آن را دوباره به‌عنوان یافتهٔ تازه نشمارید." : inquiry.supportive,
-    stressExpressionFa: sharedFortune ? "تکرار همین مقدار در دو فهرست، وزن شواهد را افزایش نمی‌دهد." : inquiry.stress,
+    relationshipExpressionFa: `${lot.labelFa} در چارت ${label}: ${SIGN_LABELS_FA[lot.signId] ?? lot.signId}، خانهٔ ${lot.house?.toLocaleString("fa-IR") ?? "نامشخص"}. ${sharedFortune ? "این همان مقدار ثبت‌شده در بخش نقاط ویژه است." : `در خوانش ${CONTEXT_LABELS_FA[context]} فقط زمینه‌ای برای پرسش فردی است.`}`,
+    supportiveExpressionFa: sharedFortune ? "پرسش کاربردی در بخش فورچون همین فرد آمده است. این ردیف فقط روش محاسبه را تکمیل می‌کند." : inquiry.supportive,
+    stressExpressionFa: sharedFortune ? "ثبت یک مقدار در دو فهرست، شاهد مستقل دیگری به دست نمی‌دهد." : inquiry.stress,
     contextualExpressionFa: `فرمول ثبت‌شده: ${lot.formulaId}؛ چارت ${lot.sect === "day" ? "روز" : lot.sect === "night" ? "شب" : lot.sect}؛ ${lot.dayNightBehavior === "sect-reversing" ? "ترتیب فرمول بر اساس روز یا شب تولد تغییر می‌کند" : lot.dayNightBehavior}.`,
     confidenceFa: `شمارهٔ خانه، جایگاه محاسبه‌شده در پلاسیدوس است؛ تفسیر خانه بر اساس سیستم نشان کامل در اینجا اعمال نشده است.`,
     evidenceIds: [`engine:${side}:specialistAstrology.traditionalLots`, `lot:${side}:${lot.id}`],
@@ -754,7 +754,7 @@ function buildRetrogradeItems(
       relationshipExpressionFa: `پس در ${CONTEXT_LABELS_FA[context]} توضیح تکمیلی بازگشتی برای سیاره‌های اصلی ${label} به روایت اضافه نمی‌شود.`,
       supportiveExpressionFa: "این وضعیت به‌خودی‌خود امتیاز مثبت یا منفی نیست.",
       stressExpressionFa: "نبود حرکت بازگشتی نباید به سادگی یا بی‌چالشی رابطه تعبیر شود.",
-      contextualExpressionFa: `روش محاسبه: ${retrogrades.method ?? "ثبت نشده"}.`,
+      contextualExpressionFa: `روش محاسبه: ${localizeTechnicalReason(retrogrades.method ?? "ثبت نشده")}.`,
       confidenceFa: "این توضیح فقط وضعیت محاسبه‌شدهٔ دادهٔ تولد را گزارش می‌کند.",
       evidenceIds: [`engine:${side}:retrogrades`],
     }];
@@ -766,7 +766,7 @@ function buildRetrogradeItems(
     relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]}، موضوع فردی ${planetLabel(planetId)} را می‌توان در موقعیت «${pointObservation(planetId)[0]}» بررسی کرد؛ وضعیت بازگشتی وجود هیچ واکنش خاصی را ثابت نمی‌کند.`,
     supportiveExpressionFa: `یک راه بررسی سازنده این است که ${label} ${pointObservation(planetId)[1]}.`,
     stressExpressionFa: `اگر ${label} ${pointObservation(planetId)[2]}، ابتدا رفتار واقعی را بررسی کنید؛ حرکت بازگشتی علت اثبات‌شدهٔ آن نیست.`,
-    contextualExpressionFa: `روش ثبت‌شده: ${retrogrades.method ?? "نامشخص"}.`,
+    contextualExpressionFa: `روش ثبت‌شده: ${localizeTechnicalReason(retrogrades.method ?? "نامشخص")}.`,
     confidenceFa: "این وضعیت از محاسبهٔ حرکت ظاهری می‌آید و حکم مستقل دربارهٔ شخصیت یا رابطه نیست.",
     evidenceIds: [`engine:${side}:retrogrades`, `retrograde:${side}:${planetId}`],
   }));
@@ -783,12 +783,12 @@ function buildSignatureItems(
   return [{
     id: `signature:${side}`,
     titleFa: `امضای چارت ${label}`,
-    meaningFa: `گرایش غالب این چارت از نظر عنصر ${signatureLabel(signature.dominantElement)}، کیفیت ${signatureLabel(signature.dominantModality)} و بیان ${signatureLabel(signature.dominantExpression)} ثبت شده است.`,
-    relationshipExpressionFa: `در ${CONTEXT_LABELS_FA[context]} این ترکیب به توضیح سرعت واکنش، شیوهٔ اقدام و نحوهٔ تنظیم انرژی ${label} کمک می‌کند.`,
-    supportiveExpressionFa: `شناخت این ریتم کمک می‌کند تفاوت سبک با بی‌علاقگی یا فشار اشتباه گرفته نشود.`,
+    meaningFa: `در شمارش جایگاه‌های اصلی، عنصر: ${signatureLabel(signature.dominantElement)}؛ کیفیت: ${signatureLabel(signature.dominantModality)}؛ شیوهٔ بیان: ${signatureLabel(signature.dominantExpression)}.`,
+    relationshipExpressionFa: `در خوانش ${CONTEXT_LABELS_FA[context]}، این شمارش صرفاً زمینهٔ نمادین چارت ${label} است، نه اندازه‌گیری رفتار او.`,
+    supportiveExpressionFa: `برای سنجش تفاوت سبک‌ها، به شیوهٔ واقعی تصمیم‌گیری و پاسخ‌دادن هر نفر توجه کنید؛ شمارش عناصر جای مشاهده را نمی‌گیرد.`,
     stressExpressionFa: `کم بودن یک دسته در توزیع جایگاه‌ها به معنی نداشتن یک توانایی یا ویژگی شخصیتی نیست.`,
     contextualExpressionFa: `کمبودها: عنصر ${signature.lowElements.map(signatureLabel).join("، ") || "ندارد"}؛ کیفیت ${signature.lowModalities.map(signatureLabel).join("، ") || "ندارد"}؛ بیان ${signature.lowExpressions.map(signatureLabel).join("، ") || "ندارد"}.`,
-    confidenceFa: `این امضای چارت با روش ${signature.method} و شواهد ${signature.evidence.length.toLocaleString("fa-IR")} جایگاه اصلی ساخته شده است.`,
+    confidenceFa: `روش شمارش: ${localizeTechnicalReason(signature.method)}؛ تعداد جایگاه‌های اصلی لحاظ‌شده: ${signature.evidence.length.toLocaleString("fa-IR")}.`,
     evidenceIds: [`engine:${side}:chartSignature`, ...signature.evidence.map((item) => `placement:${side}:${item.placementId}`)],
   }];
 }
@@ -810,6 +810,18 @@ function buildNatalAspectItems(
     confidenceFa: `اورب تولد ثبت‌شده ${aspect.orb.toFixed(2)} درجه است و این داده مستقیماً از دادهٔ تولد ${label} می‌آید.`,
     evidenceIds: [`engine:${side}:aspects`, `natal-aspect:${side}:${aspect.id}`],
   }));
+}
+
+function localizeTechnicalReason(reason: string): string {
+  const known: Record<string, string> = {
+    "Calculated locally from Astronomy Engine GeoMoonState as an instantaneous lunar orbital plane node; no external API or Swiss runtime dependency is used.": "گرهٔ شمالی از صفحهٔ لحظه‌ای مدار ماه در موتور نجومی محلی محاسبه شده است؛ به سرویس بیرونی یا اجرای سوئیس اپمریس وابسته نیست.",
+    "Derived as the exact opposition of the selected local True/Osculating North Lunar Node.": "گرهٔ جنوبی دقیقاً در نقطهٔ مقابل گرهٔ شمالی واقعی/نوسانی محاسبه شده است.",
+    "Calculated locally from the validated True/Osculating Black Moon Lilith adapter. Natal-report interpretation is enabled; transit, chart-wheel and public SEO expansion remain separately gated.": "لیلیت واقعی/نوسانی از روش محلی اعتبارسنجی‌شده به دست آمده است. خوانش گزارش تولد مجاز است؛ ترانزیت، چرخ چارت و گسترش محتوای عمومی مجوز جداگانه می‌خواهند.",
+    "Advanced ephemeris provider blocked: missing-ephemeris-files": "فایل‌های محاسبات نجومی پیشرفته در دسترس نیستند؛ این نقطه فعلاً محاسبه و تفسیر نمی‌شود (missing-ephemeris-files).",
+    "astronomy-engine-geocentric-ecliptic-daily-motion": "تغییر روزانهٔ طول دایرةالبروجی زمین‌مرکزی در موتور نجومی",
+    "equal-weight-major-planets": "وزن برابر برای سیاره‌های اصلی",
+  };
+  return known[reason] ?? reason;
 }
 
 function buildPointLayerItem(input: {
@@ -836,7 +848,7 @@ function buildPointLayerItem(input: {
     supportiveExpressionFa: inquiry.supportive,
     stressExpressionFa: inquiry.stress,
     contextualExpressionFa: "برای این گروه از نقاط هنوز قاعدهٔ تأییدشدهٔ جنبه‌های میان دو چارت وجود ندارد؛ جایگاه فردی با جنبهٔ دونفره یکی نیست.",
-    confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability === "calculated" ? "محاسبه‌شده" : input.reliability === "derived" ? "استخراج‌شده از محاسبهٔ دیگر" : input.reliability}. ` : ""}${input.limitation ?? "محدودیت ویژه‌ای در دادهٔ محاسبه‌شده ثبت نشده است."}`,
+    confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability === "calculated" ? "محاسبه‌شده" : input.reliability === "derived" ? "استخراج‌شده از محاسبهٔ دیگر" : input.reliability}. ` : ""}${input.limitation ? localizeTechnicalReason(input.limitation) : "محدودیت ویژه‌ای در دادهٔ محاسبه‌شده ثبت نشده است."}`,
     evidenceIds: input.evidenceIds,
   };
 }
@@ -854,7 +866,7 @@ function buildDeferredLayerItem(
     relationshipExpressionFa: "در این گزارش از این مورد برای تفسیر رابطه استفاده نمی‌شود.",
     supportiveExpressionFa: "اگر دادهٔ لازم فراهم شود، می‌توان این بخش را دوباره بررسی کرد.",
     stressExpressionFa: "نباید از نبود داده نتیجهٔ مثبت یا منفی دربارهٔ رابطه ساخته شود.",
-    contextualExpressionFa: reasonFa,
+    contextualExpressionFa: localizeTechnicalReason(reasonFa),
     confidenceFa: "DEFERRED_WITH_REASON",
     evidenceIds,
   };
@@ -978,9 +990,9 @@ function buildInterpretationCoverage(
       chartADataState: aEntry?.dataState ?? "unavailable",
       chartBDataState: bEntry?.dataState ?? "unavailable",
       reasonFa: bothUnavailable
-        ? `فیلد ${field} در هیچ‌یک از دو engine snapshot موجود نیست و از نبود آن معنای تفسیری ساخته نمی‌شود.`
+        ? `فیلد ${field} در دادهٔ ثبت‌شدهٔ موتور هیچ‌یک از دو چارت موجود نیست و از نبود آن معنای تفسیری ساخته نمی‌شود.`
         : status === "technically-explained"
-          ? `فیلد ${field} برای روش، provenance یا کیفیت محاسبه توضیح داده می‌شود و معنای روان‌شناختی جعلی نمی‌گیرد.`
+          ? `فیلد ${field} برای توضیح روش، منشأ داده یا کیفیت محاسبه نگه داشته شده است؛ به‌خودی‌خود معنای روان‌شناختی ندارد.`
           : `فیلد ${field} در لایهٔ خوانش، تماس‌ها، هم‌پوشانی‌ها یا زمینهٔ تولد استفاده شده است.`,
       evidenceIds,
     };
@@ -1085,12 +1097,11 @@ function formatDegree(value: number): string {
   return `${value.toFixed(2)}°`;
 }
 
-function findNatalAspectEvidence(snapshot: SynastryNatalSnapshot, pointId: string): string[] {
-  const side = snapshot === undefined ? "?" : snapshot.chartId;
-  return (snapshot.engineSnapshot?.aspects ?? [])
-    .filter((aspect) => aspect.firstPlanetId === pointId || aspect.secondPlanetId === pointId)
-    .slice(0, 3)
-    .map((aspect) => `natal-aspect:${side}:${aspect.id}`);
+function findNatalAspectEvidence(snapshot: SynastryNatalSnapshot, pointId: string, side: "a" | "b", time: SynastryBirthTimeStatus): string[] {
+  if (time !== "exact") return [];
+  // Reference only the first natal aspect actually described by describeNatalModifier.
+  const aspect = snapshot.engineSnapshot?.aspects.find((item) => item.firstPlanetId === pointId || item.secondPlanetId === pointId);
+  return aspect ? [`natal-aspect:${side}:${aspect.id}`] : [];
 }
 
 function openingEvidenceIds(
