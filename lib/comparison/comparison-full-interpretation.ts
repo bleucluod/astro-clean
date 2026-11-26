@@ -119,6 +119,49 @@ const LOT_MEANING_FA: Record<string, string> = {
   nemesis: "سهم نمسیس محدودیت، پیامد و نقطه‌ای را برجسته می‌کند که افراط می‌تواند با بازخورد روبه‌رو شود.",
 };
 
+// Each prompt addresses a different symbolic question, not an additional calculated contact.
+type LayerInquiry = [question: string, caution: string];
+const POINT_INQUIRIES_FA: Record<string, LayerInquiry> = {
+  "north-node": ["کدام تجربهٔ تازه را می‌خواهد با انتخاب خودش امتحان کند؟", "تازگی را به تکلیف طرف مقابل برای تغییرکردن تبدیل نکند."],
+  "south-node": ["کدام مهارت آشنا واقعاً مفید است و کدام عادت فقط از سر عادت تکرار می‌شود؟", "راحتی یک روش دلیل مناسب‌بودن آن در همهٔ موقعیت‌ها نیست."],
+  "black-moon-lilith": ["کدام حد شخصی را ترجیح می‌دهد صریح اعلام کند، حتی اگر دیگری همان سلیقه را نداشته باشد؟", "نه گفتنِ خود یا دیگری را نشانهٔ دشمنی یا نیت پنهان نداند."],
+  chiron: ["وقتی موضوعی حساس است، چه نوع کمک را خودش درخواست می‌کند؟", "از این نماد وجود زخم روانی یا مسئولیت درمان دیگری استنباط نشود."],
+  "part-of-fortune": ["کدام شرایط ملموس انجام یک کار را برایش راحت‌تر می‌کند؟", "آسانی یک موقعیت را تضمین موفقیت یا خوشبختی نخواند."],
+  vertex: ["در برخوردهای پیش‌بینی‌نشده، کدام انتخاب هنوز در اختیار خودش است؟", "از ورتکس، ملاقات مقدر یا ناگزیر بودن رابطه نتیجه نگیرد."],
+  ceres: ["کدام شکل مراقبت را واقعاً نیاز دارد و کدام را فقط از روی عادت ارائه می‌دهد؟", "رسیدگی را با تصمیم‌گرفتن به جای دیگری یکی نکند."],
+  pallas: ["برای حل یک مسئله کدام الگو را در تجربهٔ خودش تشخیص می‌دهد؟", "تشخیص یک الگو جای شنیدن توضیح تازه را نگیرد."],
+  juno: ["کدام انتظار را باید پیش از توافق به زبان بیاورد؟", "خواستهٔ فردی را قرارداد پذیرفته‌شدهٔ دو نفر فرض نکند."],
+  vesta: ["برای تمرکز بر یک کار یا علاقه چه زمانی را لازم دارد؟", "اختصاص وقت به یک موضوع را معیار وفاداری دیگری قرار ندهد."],
+  eris: ["در کدام موقعیت می‌خواهد مخالفتش شنیده شود؟", "اختلاف را به مسابقه‌ای برای اثبات حقانیت تبدیل نکند."],
+  pholus: ["کدام تغییر کوچک در تجربهٔ خودش پیامدهای بیشتری داشته است؟", "یک محرک کوچک را پیش‌بینی قطعی بحران بعدی نداند."],
+  nessus: ["کدام رفتار تکرارشونده را می‌تواند متوقف یا اصلاح کند؟", "از این نقطه سوءرفتار، قربانی‌بودن یا نیت آسیب‌رسان را استنباط نکند."],
+};
+const LOT_INQUIRIES_FA: Record<string, LayerInquiry> = {
+  fortune: POINT_INQUIRIES_FA["part-of-fortune"],
+  spirit: ["اگر انتخاب با خودش باشد، کدام هدف را دنبال می‌کند و چرا؟", "هدف شخصی را وظیفهٔ نفر مقابل قرار ندهد."],
+  eros: ["کدام علاقه را با میل خودش دنبال می‌کند، نه برای گرفتن تأیید؟", "از میل فردی، کشش متقابل یا رضایت دیگری نتیجه نگیرد."],
+  necessity: ["کدام محدودیت واقعاً بیرونی است و کدام تعهد هنوز قابل مذاکره است؟", "فشار فعلی را به تقدیر تغییرناپذیر تعبیر نکند."],
+  courage: ["در کدام تصمیم حاضر است قدمی حساب‌شده بردارد؟", "ریسک‌کردن را شرط ارزشمندی یا شجاعت دیگری نکند."],
+  victory: ["پیشرفت را با کدام نتیجهٔ قابل مشاهده می‌سنجد؟", "موفقیت فردی را پیروزی بر طرف مقابل نداند."],
+  nemesis: ["کدام پیامد واقعی نشان می‌دهد لازم است رویهٔ خودش را عوض کند؟", "از این سهم مجازات حتمی یا سزاوار بودن رنج استنباط نکند."],
+};
+const HOUSE_INQUIRY_SCOPE_FA: Record<number, string> = {
+  1: "نحوهٔ معرفی و حضور خودش", 2: "انتخاب‌های مالی و ارزش‌های شخصی",
+  3: "گفت‌وگو و یادگیری روزمره", 4: "زندگی خصوصی و فضای خانه",
+  5: "سرگرمی و آفرینش شخصی", 6: "برنامه و وظایف روزانه",
+  7: "توافق و شراکت", 8: "مرز اعتماد و منابع مشترک",
+  9: "باورها و تجربه‌های یادگیری", 10: "هدف و مسئولیت اجتماعی",
+  11: "دوستان و فعالیت جمعی", 12: "خلوت و زمان شخصی",
+};
+function layerInquiryText(inquiry: LayerInquiry | undefined, label: string, house: number | null | undefined): { supportive: string; stress: string } {
+  if (!inquiry) return { supportive: "این داده را فقط در محدودهٔ معنای ثبت‌شده بررسی کنید.", stress: "بدون شاهد مستقل، نتیجهٔ رابطه‌ای از این جایگاه ساخته نمی‌شود." };
+  const scope = house ? HOUSE_INQUIRY_SCOPE_FA[house] : undefined;
+  return {
+    supportive: `پرسش فردی برای ${label}${scope ? ` در زمینهٔ ${scope}` : ""}: ${inquiry[0]}`,
+    stress: `${label} در خواندن این نماد، ${inquiry[1]}`,
+  };
+}
+
 export function buildFullComparisonInterpretation(
   report: RealSynastryReport,
   input: {
@@ -390,7 +433,7 @@ function buildContactInterpretation(
     contextFa: hasInterpretiveData ? (observation.example ?? describeRelationshipContextForContact(report.relationshipContext, theme) + ` برای نمونه، موقعیت «${pointObservation(contact.pointA.id)[0]}» را در کنار «${pointObservation(contact.pointB.id)[0]}» بررسی کنید.`) + " این‌ها مثال‌اند، نه رویدادهای ثبت‌شده." : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
     natalContextFa: hasInterpretiveData ? `${natalA} ${natalB}` : "شواهد فردی ثبت‌شده جایگزین اعتبار تماس میان دو نفر نمی‌شوند.",
     overlayContextFa: relatedOverlays.length > 0
-      ? relatedOverlays.map((item) => item.contextFa).join(" ")
+      ? `برای بررسی جداگانهٔ حوزه‌های زندگی، به این موارد در بخش هم‌پوشانی خانه‌ها مراجعه کنید: ${relatedOverlays.map((item) => item.titleFa).join("؛ ")}. قرارگرفتن یک نقطه در خانه، جنبهٔ تازه یا تأیید مستقل همهٔ برداشت‌های این تماس نیست.`
       : `شاهد خانه‌ای مستقلی برای این تماس در دست نیست.`,
     confidenceFa,
     evidenceIds: uniqueStrings([
@@ -674,17 +717,22 @@ function buildTraditionalLotItems(
 ): ComparisonDeepLayerItem[] {
   const lots = snapshot.engineSnapshot?.specialistAstrology?.traditionalLots;
   if (!lots) return [];
-  return lots.lots.map((lot) => ({
+  return lots.lots.map((lot) => {
+    const inquiry = layerInquiryText(LOT_INQUIRIES_FA[lot.id], label, lot.house);
+    const fortunePoint = snapshot.engineSnapshot?.specialPoints?.find((point) => point.id === "part-of-fortune" && point.status === "calculated");
+    const sharedFortune = lot.id === "fortune" && fortunePoint?.status === "calculated" && fortunePoint.longitude === lot.longitude;
+    return ({
     id: `lot:${side}:${lot.id}`,
     titleFa: `${lot.labelFa} ${label}`,
-    meaningFa: LOT_MEANING_FA[lot.id] ?? "این سهم سنتی یک نقطهٔ محاسبه‌شده بر پایهٔ فرمول ثبت‌شدهٔ موتور است.",
-    relationshipExpressionFa: `برای ${label} این سهم در ${SIGN_LABELS_FA[lot.signId] ?? lot.signId} و خانهٔ ${lot.house?.toLocaleString("fa-IR") ?? "نامشخص"} قرار دارد و به‌عنوان زمینهٔ فردی وارد خوانش ${CONTEXT_LABELS_FA[context]} می‌شود.`,
-    supportiveExpressionFa: `وقتی موضوع این سهم با تماس‌ها یا هم‌پوشانی‌های مستقل تکرار شود، می‌تواند به فهم دقیق‌تر همان محور کمک کند.`,
-    stressExpressionFa: `این سهم نباید جای تماس‌های واقعی بین دو چارت را بگیرد یا به‌تنهایی به حکم دربارهٔ آیندهٔ رابطه تبدیل شود.`,
-    contextualExpressionFa: `فرمول ${lot.formulaId}، sect ${lot.sect} و رفتار ${lot.dayNightBehavior} در دادهٔ محاسبه‌شده ثبت شده‌اند.`,
+    meaningFa: sharedFortune ? "سهم بخت همان فورچون ثبت‌شده در بخش نقاط ویژه است؛ اینجا روش محاسبهٔ سنتی آن توضیح داده می‌شود، نه یک شاهد دوم." : LOT_MEANING_FA[lot.id] ?? "این سهم سنتی یک نقطهٔ محاسبه‌شده بر پایهٔ فرمول ثبت‌شدهٔ موتور است.",
+    relationshipExpressionFa: `${lot.labelFa} در چارت ${label}: ${SIGN_LABELS_FA[lot.signId] ?? lot.signId}، خانهٔ ${lot.house?.toLocaleString("fa-IR") ?? "نامشخص"}. این جایگاه در خوانش ${CONTEXT_LABELS_FA[context]} فقط به پرسش فردی زیر جهت می‌دهد.`,
+    supportiveExpressionFa: sharedFortune ? "پرسش کاربردی در بخش فورچون همین فرد آمده است؛ آن را دوباره به‌عنوان یافتهٔ تازه نشمارید." : inquiry.supportive,
+    stressExpressionFa: sharedFortune ? "تکرار همین مقدار در دو فهرست، وزن شواهد را افزایش نمی‌دهد." : inquiry.stress,
+    contextualExpressionFa: `فرمول ثبت‌شده: ${lot.formulaId}؛ چارت ${lot.sect === "day" ? "روز" : lot.sect === "night" ? "شب" : lot.sect}؛ ${lot.dayNightBehavior === "sect-reversing" ? "ترتیب فرمول بر اساس روز یا شب تولد تغییر می‌کند" : lot.dayNightBehavior}.`,
     confidenceFa: `شمارهٔ خانه، جایگاه محاسبه‌شده در پلاسیدوس است؛ تفسیر خانه بر اساس سیستم نشان کامل در اینجا اعمال نشده است.`,
     evidenceIds: [`engine:${side}:specialistAstrology.traditionalLots`, `lot:${side}:${lot.id}`],
-  }));
+  });
+  });
 }
 
 function buildRetrogradeItems(
@@ -778,16 +826,17 @@ function buildPointLayerItem(input: {
   limitation: string | null;
 }): ComparisonDeepLayerItem {
   const meaning = POINT_MEANING_FA[input.pointId] ?? "این نقطه یک لایهٔ محاسبه‌شدهٔ تکمیلی در چارت تولد است.";
+  const inquiry = layerInquiryText(POINT_INQUIRIES_FA[input.pointId], input.label, input.house);
   const placement = `${SIGN_LABELS_FA[input.signId] ?? input.signId} ${input.degreeInSign.toFixed(1)}°${input.house ? `، خانهٔ ${input.house.toLocaleString("fa-IR")}` : ""}`;
   return {
     id: input.id,
     titleFa: input.titleFa,
     meaningFa: meaning,
-    relationshipExpressionFa: `${input.titleFa} در ${placement} قرار دارد و در ${CONTEXT_LABELS_FA[input.context]} به‌عنوان زمینهٔ واکنش ${input.label} و در صورت وجود، هم‌پوشانی خانه‌ای معتبر استفاده می‌شود.`,
-    supportiveExpressionFa: "در حالت سازنده، آگاهی از این نقطه کمک می‌کند موضوع آن به زبان روشن و قابل مذاکره وارد رابطه شود.",
-    stressExpressionFa: "زیر فشار، موضوع این نقطه می‌تواند به واکنش دفاعی یا تکرار یک الگوی آشنا تبدیل شود؛ تفسیر آن باید با شواهد مستقل دیگر سنجیده شود.",
+    relationshipExpressionFa: `${input.titleFa} در ${placement} قرار دارد؛ برای خوانش ${CONTEXT_LABELS_FA[input.context]}، این داده به چارت خود ${input.label} تعلق دارد، نه رفتار نفر مقابل.`,
+    supportiveExpressionFa: inquiry.supportive,
+    stressExpressionFa: inquiry.stress,
     contextualExpressionFa: "برای این گروه از نقاط هنوز قاعدهٔ تأییدشدهٔ جنبه‌های میان دو چارت وجود ندارد؛ جایگاه فردی با جنبهٔ دونفره یکی نیست.",
-    confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability}. ` : ""}${input.limitation ?? "محدودیت ویژه‌ای در دادهٔ محاسبه‌شده ثبت نشده است."}`,
+    confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability === "calculated" ? "محاسبه‌شده" : input.reliability === "derived" ? "استخراج‌شده از محاسبهٔ دیگر" : input.reliability}. ` : ""}${input.limitation ?? "محدودیت ویژه‌ای در دادهٔ محاسبه‌شده ثبت نشده است."}`,
     evidenceIds: input.evidenceIds,
   };
 }
@@ -865,13 +914,13 @@ function buildCalculationExplanation(
     }
     methodNotesFa.push(`${entry.label}: نسخهٔ ${engine.version}، شهر ${engine.cityLabel}، ${entry.time === "exact" ? "زمان جهانی تولد" : "زمان جهانی مرجع محاسبه، نه ساعت تولد"} ${engine.utcIso}.`);
     if (engine.houseContext) {
-      methodNotesFa.push(`${entry.label}: سیستم خانه ${engine.houseContext.appliedSystem} ، وضعیت ${engine.houseContext.confidence}${entry.time === "exact" ? "" : "؛ دادهٔ خام، برای خوانش رابطه معتبر نیست"}.`);
+      methodNotesFa.push(`${entry.label}: سیستم خانه ${engine.houseContext.appliedSystem === "placidus" ? "پلاسیدوس" : engine.houseContext.appliedSystem}، وضعیت ${engine.houseContext.confidence === "calculated-cusps" ? "مرز خانه‌ها محاسبه شده‌اند" : engine.houseContext.confidence}${entry.time === "exact" ? "" : "؛ دادهٔ خام، برای خوانش رابطه معتبر نیست"}.`);
     }
     if (engine.lunarNodes) {
-      methodNotesFa.push(`${entry.label}: روش محاسبهٔ گره‌های ماه ${engine.lunarNodes.method ?? "نامشخص"}.`);
+      methodNotesFa.push(`${entry.label}: روش محاسبهٔ گره‌های ماه ${engine.lunarNodes.method === "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date" ? "صفحهٔ لحظه‌ای مدار ماه (Astronomy Engine)" : engine.lunarNodes.method ?? "نامشخص"}.`);
     }
     if (engine.lilith && engine.lilith.status === "calculated" && "validationStatus" in engine.lilith) {
-      methodNotesFa.push(`${entry.label}: لیلیت ${engine.lilith.validationStatus} ؛ مجوز نمایش در گزارش: ${engine.lilith.approvedForReportOutput ? "دارد" : "ندارد"}.`);
+      methodNotesFa.push(`${entry.label}: لیلیت؛ ${engine.lilith.validationStatus === "independent-reference-fixtures-passed" ? "آزمون‌های مرجع مستقل موفق" : engine.lilith.validationStatus}؛ مجوز نمایش در گزارش: ${engine.lilith.approvedForReportOutput ? "دارد" : "ندارد"}.`);
     }
     if (engine.specialistAstrology?.fixedStars) {
       const fixed = engine.specialistAstrology.fixedStars;
@@ -881,7 +930,7 @@ function buildCalculationExplanation(
       methodNotesFa.push(`${entry.label}: مجموعه فرمول سهم‌ها ${engine.specialistAstrology.traditionalLots.formulaSetVersion}.`);
     }
     if (engine.specialistAstrology?.asteroidLab) {
-      methodNotesFa.push(`${entry.label}: آزمایش اجرام کوچک؛ سطح ثبت‌شده ${engine.specialistAstrology.asteroidLab.surface}، وضعیت ورود به گزارش اصلی ${engine.specialistAstrology.asteroidLab.mainReportPromotion}.`);
+      methodNotesFa.push(`${entry.label}: آزمایش اجرام کوچک؛ ${engine.specialistAstrology.asteroidLab.surface === "separate-search" ? "جست‌وجوی جداگانه" : engine.specialistAstrology.asteroidLab.surface}، ورود به گزارش اصلی: ${engine.specialistAstrology.asteroidLab.mainReportPromotion === "not-automatic" ? "خودکار نیست" : engine.specialistAstrology.asteroidLab.mainReportPromotion}.`);
     }
     warningsFa.push(...(engine.calculationQuality?.warnings ?? []).map((item) => `${entry.label}: ${item}`));
     warningsFa.push(...(engine.calculationQuality?.limitations ?? []).map((item) => `${entry.label}: ${item}`));
