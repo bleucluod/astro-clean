@@ -396,11 +396,10 @@ function buildCommunicationChapter(
   const sun = owner(primary, "sun");
   const moon = owner(primary, "moon");
   const mars = owner(primary, "mars");
-  const jupiter = owner(primary, "jupiter");
   const smooth = primary.aspectId === "trine" || primary.aspectId === "sextile";
   const hard = primary.aspectId === "opposition" || primary.aspectId === "square";
   const relationship = (contact: SynastryInterChartAspect) =>
-    `${contact.pointA.label} و ${contact.pointB.label} در جنبهٔ ${contact.aspectLabel}`;
+    `${contact.pointA.label} ${labels.a} و ${contact.pointB.label} ${labels.b} در جنبهٔ ${contact.aspectLabel}`;
   const evidenceFor = (contact: SynastryInterChartAspect, label: string): HumanFirstEvidence => ({
     id: contact.id + "-communication", label,
     detail: relationship(contact) + ".",
