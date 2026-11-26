@@ -7,7 +7,7 @@ import type {
 } from "@/types/synastry-engine";
 
 /** Review policy v1. It does not change the customer-facing writer or access. */
-export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v3";
+export const COMPARISON_EVIDENCE_PLAN_VERSION = "compare-evidence-plan-v4";
 const PERSONAL = new Set(["sun", "moon", "mercury", "venus", "mars"]);
 const CONTEXT = new Set([...PERSONAL, "jupiter", "saturn"]);
 const ANGLES = new Set(["asc", "dsc", "mc", "ic"]);
@@ -218,37 +218,91 @@ export function buildComparisonEvidencePlan(report: RealSynastryReport) {
     return Boolean(a && b && eligiblePoint(contact.pointA, a) && eligiblePoint(contact.pointB, b) &&
       (report.quality.angleContactsAvailable || ![contact.pointA, contact.pointB].some(point => point.kind === "angle")));
   });
-  const used = new Set<string>();
-  function choose(chapter: EvidenceChapterId, support: boolean, main?: SynastryInterChartAspect) {
-    return contacts.map(contact => ({ contact, score: rank(chapter, contact) }))
-      .filter((item): item is { contact: SynastryInterChartAspect; score: number } =>
-        item.score !== null && !used.has(axisKey(item.contact)) &&
-        (!support || (item.contact.orb <= 3.5 && item.contact.relevanceScore >= 60 &&
-          // When commitment is anchored in Saturn, keep its corroboration distinct
-          // from Pluto/Mars/Venus escalation and attraction narratives.
-          (chapter !== "boundaries-commitment" || !main ||
-            ![main.pointA.id, main.pointB.id].includes("saturn") ||
-            [item.contact.pointA.id, item.contact.pointB.id].includes("saturn")))))
-      .sort((a, b) => b.score - a.score || a.contact.orb - b.contact.orb ||
-        a.contact.canonicalKey.localeCompare(b.contact.canonicalKey))[0]?.contact ?? null;
+  // Allocate distinct axis groups jointly: a locally stronger contact must not
+  // deprive another chapter of its only usable evidence.
+  type Pick = { contact: SynastryInterChartAspect; score: number; limited: boolean };
+  type State = { picks: (Pick | null)[]; supported: number; count: number; score: number };
+  function isLimited(chapter: EvidenceChapterId, contact: SynastryInterChartAspect) {
+    return chapter === "boundaries-commitment" &&
+      ![contact.pointA.id, contact.pointB.id].some(id => PERSONAL.has(id) || ANGLES.has(id));
   }
-  const primary = new Map<EvidenceChapterId, SynastryInterChartAspect>();
-  for (const chapter of PRIORITY) {
-    const main = choose(chapter, false);
-    if (main) {
-      primary.set(chapter, main);
-      used.add(axisKey(main));
+  function comparePick(a: Pick, b: Pick) {
+    return Number(a.limited) - Number(b.limited) || b.score - a.score ||
+      a.contact.orb - b.contact.orb || a.contact.canonicalKey.localeCompare(b.contact.canonicalKey);
+  }
+  function better(a: State, b: State | undefined) {
+    if (!b) return true;
+    if (a.supported !== b.supported) return a.supported > b.supported;
+    if (a.count !== b.count) return a.count > b.count;
+    if (a.score !== b.score) return a.score > b.score;
+    for (let i = 0; i < PRIORITY.length; i++) {
+      const left = a.picks[i], right = b.picks[i];
+      if (!left && right) return false;
+      if (left && !right) return true;
+      if (left && right) {
+        const order = comparePick(left, right);
+        if (order) return order < 0;
+      }
     }
+    return false;
   }
+  function allocate(occupied: Set<string>, scoreFor: (chapter: EvidenceChapterId, contact: SynastryInterChartAspect) => number | null) {
+    const groups = new Map<string, SynastryInterChartAspect[]>();
+    for (const contact of contacts) {
+      const key = axisKey(contact);
+      if (occupied.has(key)) continue;
+      const group = groups.get(key) ?? [];
+      group.push(contact);
+      groups.set(key, group);
+    }
+    let states = new Map<number, State>([[0, {
+      picks: PRIORITY.map(() => null), supported: 0, count: 0, score: 0,
+    }]]);
+    for (const key of [...groups.keys()].sort()) {
+      const candidates = PRIORITY.map(chapter => groups.get(key)!.flatMap(contact => {
+        const score = scoreFor(chapter, contact);
+        return score === null ? [] : [{ contact, score, limited: isLimited(chapter, contact) }];
+      }).sort(comparePick)[0] ?? null);
+      const next = new Map(states);
+      for (const [mask, state] of states) {
+        candidates.forEach((pick, i) => {
+          if (!pick || (mask & (1 << i))) return;
+          const picks = [...state.picks];
+          picks[i] = pick;
+          const candidate = { picks, supported: state.supported + Number(!pick.limited),
+            count: state.count + 1, score: state.score + pick.score };
+          const nextMask = mask | (1 << i);
+          if (better(candidate, next.get(nextMask))) next.set(nextMask, candidate);
+        });
+      }
+      states = next;
+    }
+    let best: State | undefined;
+    for (const state of states.values()) if (better(state, best)) best = state;
+    const selected = new Map<EvidenceChapterId, SynastryInterChartAspect>();
+    best?.picks.forEach((pick, i) => {
+      if (pick) selected.set(PRIORITY[i], pick.contact);
+    });
+    return selected;
+  }
+  const primary = allocate(new Set<string>(), rank);
+  const occupied = new Set([...primary.values()].map(axisKey));
+  const secondary = allocate(occupied, (chapter, contact) => {
+    const main = primary.get(chapter);
+    if (!main || isLimited(chapter, main) || isLimited(chapter, contact) ||
+        contact.orb > 3.5 || contact.relevanceScore < 60) return null;
+    if (chapter === "boundaries-commitment" &&
+        [main.pointA.id, main.pointB.id].includes("saturn") &&
+        ![contact.pointA.id, contact.pointB.id].includes("saturn")) return null;
+    return rank(chapter, contact);
+  });
   const chartFeatures = charts.map(extractChartFeatures);
   const usedNatal = new Set<string>();
   const usedOverlays = new Set<string>();
   const chapterPlans = ORDER.map(chapter => {
     const main = primary.get(chapter) ?? null;
-    const limited = main && chapter === "boundaries-commitment" &&
-      ![main.pointA.id, main.pointB.id].some(id => PERSONAL.has(id) || ANGLES.has(id));
-    const support = main && !limited ? choose(chapter, true, main) : null;
-    if (support) used.add(axisKey(support));
+    const limited = main && isLimited(chapter, main);
+    const support = secondary.get(chapter) ?? null;
     const primaryWitness = main ? witness(main) : null;
     const endpoints = main ? [main.pointA, main.pointB, ...(support ? [support.pointA, support.pointB] : [])] : [];
     const context = [...new Map(endpoints.map(point => {
