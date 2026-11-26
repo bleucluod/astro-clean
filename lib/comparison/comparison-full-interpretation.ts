@@ -57,15 +57,6 @@ export function comparisonAspectNameFa(id: string, fallback: string): string {
   return names[id] ?? fallback;
 }
 
-const POINT_ROLES_FA: Record<string, string> = {
-  sun: "بیان خواسته و هویت", moon: "بیان نیاز عاطفی", mercury: "طرح سؤال و توضیح نظر",
-  venus: "بیان علاقه و سلیقه", mars: "اقدام و ابراز مخالفت", jupiter: "گسترش گزینه‌ها و تشویق",
-  saturn: "تعیین حدود و مسئولیت", uranus: "آزمودن راه متفاوت", neptune: "تصور امکان‌ها و انتظارها",
-  pluto: "توجه به قدرت و تغییر عمیق", asc: "نحوهٔ حضور", dsc: "انتظار از طرف مقابل",
-  mc: "جهت اجتماعی و هدف", ic: "احساس تعلق و حریم خصوصی",
-};
-function pointRole(id: string): string { return POINT_ROLES_FA[id] ?? "موضوع نمادین این نقطه"; }
-
 const CONTEXT_LABELS_FA: Record<SynastryRelationshipContext, string> = {
   romantic: "رابطهٔ عاطفی",
   friendship: "دوستی",
@@ -289,7 +280,58 @@ const POINT_OBSERVATIONS_FA: Record<string, [string, string, string]> = {
 function pointObservation(id: string): [string, string, string] {
   return POINT_OBSERVATIONS_FA[id] ?? ["یک موضوع مشترک", "نظرش را صریح بیان کند", "از یک برداشت اولیه نتیجهٔ قطعی بگیرد"];
 }
-function contactObservation(contact: SynastryInterChartAspect, first: string, second: string): { healthy: string; stress: string } {
+function contactObservation(contact: SynastryInterChartAspect, first: string, second: string, context: SynastryRelationshipContext): { healthy: string; stress: string; example?: string } {
+  const owner = (id: string) => contact.pointA.id === id ? first : second;
+  const has = (a: string, b: string) => [contact.pointA.id, contact.pointB.id].includes(a) && [contact.pointA.id, contact.pointB.id].includes(b);
+  const kind = contact.aspectId;
+  if (has("moon", "mercury") && kind === "sextile") {
+    const moon = owner("moon"), mercury = owner("mercury");
+    return {
+      healthy: `در تسدیس ماه و عطارد، ${moon} می‌تواند احساسی را که هنوز برایش واژهٔ دقیقی ندارد بیان کند و ${mercury} با یک سؤال کوتاه به روشن‌شدن نیاز کمک کند.`,
+      stress: `اگر ${mercury} به‌جای پرسیدن، پاسخ را از پیش معلوم بداند، ممکن است ${moon} برای اصلاح برداشت او ناچار به توضیح دوباره شود.`,
+      example: context === "work" ? "مثلاً پس از تغییر ناگهانی شیفت، یکی ناراحتی‌اش را می‌گوید و دیگری می‌پرسد مشکل زمان‌بندی بود یا نحوهٔ اطلاع‌رسانی؟" : "مثلاً پس از یک روز شلوغ، یکی تنها می‌گوید خسته است و دیگری می‌پرسد الان شنیدن حرف‌ها کمک می‌کند یا کمی سکوت؟",
+    };
+  }
+  if (has("sun", "mercury") && kind === "opposition") {
+    const sun = owner("sun"), mercury = owner("mercury");
+    return {
+      healthy: `در مقابلهٔ خورشید و عطارد، ${sun} می‌تواند بگوید کدام بخش تصمیم برایش شخصی است و ${mercury} سؤال را به جزئیات قابل تغییر محدود کند؛ نقد ایده از نقد فرد جدا می‌ماند.`,
+      stress: `اگر هر پرسش به دفاع از انتخاب تبدیل شود، ${mercury} ممکن است برای توضیح منطقش بیشتر اصرار کند و ${sun} کمتر احساس کند اصل خواسته‌اش شنیده شده است.`,
+      example: context === "work" ? "مثلاً هنگام بازبینی طرح، نقد یک جزئیات اجرایی با نفی هدف یا صلاحیت طراح یکی نیست." : "مثلاً وقتی یکی مقصد یک گردش را دوست دارد و دیگری دربارهٔ هزینه می‌پرسد، می‌توان سلیقه را پذیرفت و بودجه را جدا بررسی کرد.",
+    };
+  }
+  if (has("moon", "pluto") && kind === "conjunction") {
+    const moon = owner("moon"), pluto = owner("pluto");
+    return {
+      healthy: `در هم‌نشینی ماه و پلوتو، ${pluto} می‌تواند برای حرفی که ${moon} گفتنش را دشوار می‌داند جا باز کند، بدون اینکه از او توضیح بیشتری بخواهد تا وقتی خودش آماده باشد.`,
+      stress: `اگر ${pluto} سکوت را نشانهٔ پنهان‌کاری بداند و برای گرفتن توضیح اصرار کند، ${moon} ممکن است گفتن موضوع را دشوارتر ببیند؛ این فرض را با رفتار واقعی بسنجید.`,
+      example: context === "work" ? "مثلاً دربارهٔ یک نگرانی خصوصی در محیط کار، حمایت به معنی دسترسی به همهٔ جزئیات نیست." : "مثلاً پس از دریافت یک خبر ناراحت‌کننده، پرسیدن اینکه «می‌خواهی حرف بزنی؟» با بازجویی دربارهٔ جزئیات فرق دارد.",
+    };
+  }
+  if (has("moon", "saturn") && kind === "square") {
+    const moon = owner("moon"), saturn = owner("saturn");
+    return {
+      healthy: `در مربع ماه و زحل، ${moon} می‌تواند نیاز به همراهی را بیان کند و ${saturn} دربارهٔ زمانی که واقعاً در اختیار دارد صادق باشد؛ محدودیت عملی لزوماً رد نیاز نیست.`,
+      stress: `اگر ${saturn} برای حل فوری مسئله فقط به قاعده و وظیفه اشاره کند، ممکن است ${moon} پیش از شنیده‌شدن ناچار به دفاع از نیازش شود.`,
+      example: context === "work" ? "مثلاً درخواست کمک نزدیک موعد تحویل می‌تواند با پاسخ روشن دربارهٔ زمان و حجم کاری همراه شود." : "مثلاً وقتی یکی روز سختی داشته و دیگری هنوز کاری دارد، می‌توان زمانی مشخص برای گفت‌وگو تعیین کرد، نه اینکه نیاز را بی‌اهمیت دانست.",
+    };
+  }
+  if (has("moon", "venus") && kind === "conjunction") {
+    const moon = owner("moon"), venus = owner("venus");
+    return {
+      healthy: `در هم‌نشینی ماه و زهره، ${venus} می‌تواند علاقه را در شکلی نشان دهد که ${moon} واقعاً از آن احساس همراهی می‌کند، نه صرفاً شکلی که خودش دوست دارد.`,
+      stress: `اگر ${venus} هدیه یا سرگرمی را برای هر حالتی کافی بداند، نیاز ${moon} به شنیده‌شدن ممکن است همچنان بی‌پاسخ بماند.`,
+      example: context === "work" ? "مثلاً برای همکار خسته، تشکر عملی یا کمک کوتاه با تعارف صرف تفاوت دارد." : "مثلاً پس از یک روز سخت، انتخاب یک خوراکی دلخواه می‌تواند خوشایند باشد؛ اما پرسیدن حال طرف مقابل هنوز اهمیت دارد.",
+    };
+  }
+  if (has("mars", "mercury") && kind === "trine") {
+    const mars = owner("mars"), mercury = owner("mercury");
+    return {
+      healthy: `در تثلیث مریخ و عطارد، ${mercury} می‌تواند پیشنهادی را روشن توضیح دهد و ${mars} به تبدیل آن به آزمایشی کوچک و قابل بازگشت کمک کند.`,
+      stress: `اگر ${mars} هر فکر تازه را تصمیم نهایی بداند، ${mercury} ممکن است برای ادامهٔ فکر کردن مجبور شود ابتدا جلوی اجرای ایده را بگیرد.`,
+      example: context === "work" ? "مثلاً یک راه تازه برای مرتب‌کردن پرونده‌ها ابتدا روی یک پرونده امتحان می‌شود، نه همهٔ فایل‌ها." : "مثلاً یکی راه متفاوتی برای چیدن وسایل پیشنهاد می‌دهد و دیگری ابتدا همان تغییر کوچک را با اجازهٔ او امتحان می‌کند.",
+    };
+  }
   const a = pointObservation(contact.pointA.id);
   const b = pointObservation(contact.pointB.id);
   const roles = `${first} می‌تواند ${a[1]} و ${second} می‌تواند ${b[1]}.`;
@@ -324,7 +366,7 @@ function buildContactInterpretation(
   const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b, birthTime.b);
   const hasInterpretiveData = comparisonContactHasInterpretiveData(contact, birthTime);
   const confidenceFa = hasInterpretiveData ? buildContactConfidence(contact, birthTime) : "این تماس فقط ثبت محاسباتی است؛ به دلیل محدودیت داده، شاهد معتبر برای تفسیر رابطه نیست.";
-  const observation = contactObservation(contact, first, second);
+  const observation = contactObservation(contact, first, second, report.relationshipContext);
   const tightness = contact.allowedOrb > 0 ? Math.max(0, 1 - contact.orb / contact.allowedOrb) : 0;
   const importanceFa = contact.relevanceScore >= 80 || tightness >= 0.8
     ? `در رتبه‌بندی موتور، این تماس پررنگ است (امتیاز ${contact.relevanceScore.toLocaleString("fa-IR")})؛ نزدیکی به زاویهٔ دقیق نیز در رتبه اثر دارد. این امتیاز درصد سازگاری نیست.`
@@ -345,7 +387,7 @@ function buildContactInterpretation(
     stressFa: !hasInterpretiveData
       ? "از این ثبت خام، تنش یا ضعف رابطه استنباط نمی‌شود."
       : observation.stress,
-    contextFa: hasInterpretiveData ? describeRelationshipContextForContact(report.relationshipContext, theme) + ` برای نمونه، موقعیت «${pointObservation(contact.pointA.id)[0]}» را در کنار «${pointObservation(contact.pointB.id)[0]}» بررسی کنید؛ این‌ها مثال‌اند، نه رویدادهای ثبت‌شده.` : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
+    contextFa: hasInterpretiveData ? (observation.example ?? describeRelationshipContextForContact(report.relationshipContext, theme) + ` برای نمونه، موقعیت «${pointObservation(contact.pointA.id)[0]}» را در کنار «${pointObservation(contact.pointB.id)[0]}» بررسی کنید.`) + " این‌ها مثال‌اند، نه رویدادهای ثبت‌شده." : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
     natalContextFa: hasInterpretiveData ? `${natalA} ${natalB}` : "شواهد فردی ثبت‌شده جایگزین اعتبار تماس میان دو نفر نمی‌شوند.",
     overlayContextFa: relatedOverlays.length > 0
       ? relatedOverlays.map((item) => item.contextFa).join(" ")
@@ -358,6 +400,15 @@ function buildContactInterpretation(
       ...findNatalAspectEvidence(report.chartB, contact.pointB.id),
     ]),
   };
+}
+
+function specificOverlayObservation(pointId: string, house: number, source: string, target: string): string | undefined {
+  if (pointId === "moon" && house === 5) return `برای نمونه، اگر ${target} سرگرمی تازه‌ای را برای لذت خودش انتخاب کرده، ${source} می‌تواند با همراهی یا توجه به حال او فضا را دلپذیرتر کند؛ لازم نیست سرگرمی همیشه مشترک باشد.`;
+  if (pointId === "moon" && house === 4) return `برای نمونه، ${source} می‌تواند در دیدار یا تماس با ${target} به این توجه کند که او چه زمانی خلوت می‌خواهد و چه زمانی همراهی؛ آسایش در فضای شخصی را صاحب آن تعریف می‌کند.`;
+  if (pointId === "moon" && house === 11) return `برای نمونه، در یک دورهمی که ${target} میزبان یا عضو جمع دوستان است، ${source} می‌تواند حال او را بپرسد بی‌آنکه نیاز به همراهی را شرط حضور در جمع کند.`;
+  if (pointId === "sun" && house === 11) return `برای نمونه، وقتی ${target} برای گروه یا شبکهٔ دوستانش ایده‌ای دارد، ${source} می‌تواند به روشن‌تر شدن هدف کمک کند، نه اینکه جهت آن جمع را از طرف صاحب خانه تعیین کند.`;
+  if (pointId === "venus" && house === 7) return `برای نمونه، ${source} سلیقهٔ خود را در یک انتخاب مشترک مطرح کند و ${target} هم فرصت پیشنهاد و مخالفت داشته باشد؛ رضایت هر دو بخش توافق است.`;
+  return undefined;
 }
 
 function buildOverlayInterpretation(
@@ -380,7 +431,7 @@ function buildOverlayInterpretation(
     directionFa: `${sourceLabel} → زندگی ${targetLabel}`,
     titleFa: `${overlay.sourcePointLabel} ${sourceLabel} در خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} ${targetLabel}`,
     meaningFa: `در این هم‌پوشانی، ${overlay.sourcePointLabel} متعلق به ${sourceLabel} است و خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} متعلق به ${targetLabel}؛ موضوع خانه «${theme}» است.`,
-    contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel) + ` از میان موقعیت‌ها، «${pointObservation(overlay.sourcePointId)[0]}» نمونه‌ای برای بررسی نقش این نقطه است.`,
+    contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel) + " " + (specificOverlayObservation(overlay.sourcePointId, overlay.targetHouse, sourceLabel, targetLabel) ?? `از میان موقعیت‌ها، «${pointObservation(overlay.sourcePointId)[0]}» نمونه‌ای برای بررسی نقش این نقطه است.`),
     supportiveFa: `در موضوع «${theme}»، ${sourceLabel} می‌تواند ${pointObservation(overlay.sourcePointId)[1]}. ${targetLabel} مشخص کند آیا این مشارکت در حوزهٔ زندگی خودش به کار می‌آید یا نه.`,
     stressFa: `در همین حوزه، اگر ${sourceLabel} ${pointObservation(overlay.sourcePointId)[2]}، ${targetLabel} می‌تواند حدود مشارکت را دوباره مشخص کند. این جایگاه به‌تنهایی وجود چنین رفتاری را ثابت نمی‌کند.`,
     confidenceFa: `این هم‌پوشانی فقط چون هر دو چارت دادهٔ خانه‌ای قابل استفاده دارند محاسبه شده است؛ با تغییر معنی‌دار ساعت تولد، جایگاه خانه می‌تواند تغییر کند.`,
