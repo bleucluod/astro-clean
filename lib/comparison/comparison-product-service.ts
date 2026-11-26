@@ -1064,11 +1064,11 @@ function buildBoundaryChapter(
   if (!primary || plan?.status !== "supported") {
     title = "کدام پیشنهاد واقعاً قول است؟";
     lead = primary
-      ? `${describe(primary)} تماسی میان دو سیارهٔ کند است. در این خوانش، چنین شاهدی برای شناخت انتظار شخصی هر نفر از قول و استقلال کافی نیست.`
+      ? `${describe(primary)} از جنس تماس میان جایگاه‌های سیاره‌ای کند است. در این خوانش، چنین شاهدی برای شناخت انتظار شخصی هر نفر از قول و استقلال کافی نیست.`
       : "شاهد اختصاصی کافی برای توصیف انتظار این دو نفر از قول و مسئولیت در دست نیست.";
     if (primary) addEvidence(primary, "شاهد محدود مرز و تعهد");
-    example = `در تصمیم دربارهٔ ${scenes.uncertain}، ${terms.limited}.`;
-    strength = "پیش از پاسخ، مشخص کنید چه اطلاعاتی هنوز کم است؛ مثلاً زمان آزاد یا هزینهٔ نهایی. مثلاً پیش از خرید یا تعیین موعد، گزینهٔ قابل‌لغو را از گزینهٔ قطعی جدا کنید.";
+    example = `برای ${scenes.uncertain}، ${terms.limited}.`;
+    strength = "پیش از پاسخ، مشخص کنید چه اطلاعاتی هنوز کم است؛ مثلاً زمان آزاد یا هزینهٔ نهایی. اگر اطلاعات لازم تا موعد پاسخ آماده نشد، می‌توانید زمان دیگری برای تصمیم پیشنهاد کنید.";
     challenge = "اگر تا موعد پاسخ نرسید، سکوت را موافقت فرض نکنید.";
     step = `یک توافق کوتاه برای همین موقعیت: «${terms.limit}». این یک پیشنهاد عمومی برای روشن‌کردن توافق است.`;
   } else {
@@ -1090,7 +1090,7 @@ function buildBoundaryChapter(
           side(support, "saturn") !== side(primary, "saturn")) {
         const otherSaturn = owner(support, "saturn");
         const otherVenus = owner(support, "venus");
-        strength += ` در تماس دوم، ${describe(support)}، این بار ${otherSaturn} است که روی تعهد حساب می‌کند${support.aspectId === "square" || support.aspectId === "opposition" ? " و انتخاب شخصی نفر دیگر ممکن است با قرار قبلی جور درنیاید" : ""}. فرض کنید ${otherVenus} برای ${scenes.personal} وقت گذاشته و ${concrete.clash}. اگر ${otherVenus} بتواند سهم مشترک را در ساعتی دیگر انجام دهد، ${otherSaturn} می‌تواند دربارهٔ تغییر سهم مشترک نظر بدهد، نه دربارهٔ ارزش برنامهٔ شخصی او.`;
+        strength += ` در تماس دوم، ${describe(support)}، این بار ${otherSaturn} است که روی تعهد حساب می‌کند${support.aspectId === "square" || support.aspectId === "opposition" ? " و انتخاب شخصی نفر دیگر ممکن است با قرار قبلی جور درنیاید" : ""}. فرض کنید ${otherVenus} برای ${scenes.personal} وقت گذاشته و ${concrete.clash}. اگر ${otherVenus} بتواند سهم مشترک را در ساعتی دیگر انجام دهد، ${otherSaturn} می‌تواند دربارهٔ زمان جایگزین نظر بدهد، نه دربارهٔ ارزش برنامهٔ شخصی او.`;
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     } else if (saturn && dsc) {
@@ -1098,14 +1098,14 @@ function buildBoundaryChapter(
       lead = `در ${scenes.duty}، برای ${dsc} مهم است بداند کدام بخش را می‌تواند به ${saturn} بسپارد. ${describe(primary)} در خوانش نجومی مسئولیت را به نقطهٔ شراکت در چارت ${dsc} پیوند می‌دهد. اینجا معیار اعتماد، انجام کاری است که دیگری پذیرفته، نه تعداد کارهایی که به عهده گرفته است.`;
       example = `مثلاً ${saturn} مسئولیت ${scenes.handoff} را می‌پذیرد. به جای اینکه ${dsc} هر مرحله را دوباره پیگیری کند، می‌توانند از پیش تعیین کنند ${saturn} چه زمانی نتیجه را به ${dsc} اطلاع دهد. سپس دربارهٔ ${concrete.next} با هم تصمیم می‌گیرند.`;
       strength = `${terms.review}. این سقف اختیار را پیشاپیش تعیین کنید تا ${saturn} برای تصمیم‌های کوچک منتظر نماند و ${dsc} در تصمیم‌های مهم غافلگیر نشود. اگر کار تازه‌ای پیش آمد، ابتدا روشن کنید داخل همین سهم است یا باید جداگانه پذیرفته شود.`;
-      challenge = "گاهی یک توافق کاری یا اجرایی از محدودهٔ خودش فراتر می‌رود.";
+      challenge = "گاهی از یک توافق مشخص، انتظار تازه‌ای شکل می‌گیرد.";
       step = "برای یک کار تکراری، پایان دورهٔ آزمایشی تعیین کنید؛ آن روز بررسی کنید تقسیم کار هنوز برای هر دو مناسب است یا باید عوض شود.";
       assign(primary, "saturn", "معیار مسئولیت و امکان اتکا را وارد توافق می‌کند.");
       assign(primary, "dsc", "از رفتار مشخص طرف مقابل معنای شراکت را می‌سنجد.");
       if (support && owner(support, "saturn") && owner(support, "ic")) {
         const privateSide = owner(support, "ic");
         const dutySide = owner(support, "saturn");
-        challenge += ` ${describe(support)} در خوانش نجومی ${support.aspectId === "square" || support.aspectId === "opposition" ? "تفاوت میان انتظار از مسئولیت و اختیار در زندگی خصوصی را برجسته می‌کند" : "رابطهٔ مسئولیت مشترک با حریم زندگی خصوصی را برجسته می‌کند"}. آی‌سی به حریم خانه و زندگی خصوصی مربوط است. فرض کنید ${dutySide} بخواهد ${concrete.privacy(privateSide)}. در این موقعیت ${privateSide} می‌تواند درخواست تازه را رد کند، بدون اینکه تعهد قبلی‌اش لغو شود.`;
+        challenge += ` ${describe(support)} در خوانش نجومی ${support.aspectId === "square" || support.aspectId === "opposition" ? "تفاوت میان انتظار از مسئولیت و نیاز به حفظ اختیار شخصی را برجسته می‌کند" : "پیوند مسئولیت مشترک با حفظ اختیار شخصی را برجسته می‌کند"}. آی‌سی به حریم خانه و زندگی خصوصی مربوط است. فرض کنید ${dutySide} بخواهد ${concrete.privacy(privateSide)}. در این موقعیت ${privateSide} می‌تواند درخواست تازه را رد کند، بدون اینکه تعهد قبلی‌اش لغو شود.`;
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     } else if (saturn && ["sun", "asc", "ic", "mc"].some(id => owner(primary, id))) {
