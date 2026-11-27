@@ -47,6 +47,7 @@ import type {
 } from "@/types/synastry-engine";
 
 import { comparisonAspectNameFa, comparisonContactHasInterpretiveData } from "@/lib/comparison/comparison-full-interpretation";
+import { comparisonDemoRequest, initComparisonDemo, type DemoReport, type DemoInvoice } from "@/lib/comparison/comparison-demo-client";
 import styles from "./comparison.module.css";
 import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 
@@ -79,11 +80,12 @@ const ComparisonBiWheel = dynamic(
 
 type ComparisonReportProps = {
   comparisonId: string;
+  localDemo?: boolean;
 };
 
 type ComparisonMode = "reading" | "technical";
 
-export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
+export function ComparisonReport({ comparisonId, localDemo = false }: ComparisonReportProps) {
   const router = useRouter();
   const [record, setRecord] = useState<ComparisonRecord | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -98,9 +100,25 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     useState<ComparisonAccountStatus>("in-progress");
   const [accountFavorite, setAccountFavorite] = useState(false);
   const [accountNote, setAccountNote] = useState("");
+  const [demoReport, setDemoReport] = useState<DemoReport | null>(null);
+  const [demoAccount, setDemoAccount] = useState(false);
+  const [demoInvoice, setDemoInvoice] = useState<DemoInvoice | null>(null);
 
 
   const loadRecord = useCallback(async () => {
+    if (localDemo) {
+      try {
+        const library = await initComparisonDemo();
+        setDemoAccount(library.account);
+        const result = await comparisonDemoRequest<DemoReport>("read", {reportId: comparisonId});
+        setDemoReport(result);
+        setRecord(result.paid ? result.record ?? null : null);
+      } catch(error) {
+        setDemoReport(null); setRecord(null);
+        setMessage(error instanceof Error ? error.message : "گزارش آزمایشی در دسترس نیست.");
+      } finally { setIsReady(true); }
+      return;
+    }
     const account = await getAccountComparisonRecord(comparisonId);
     setAccountStatus(account.status);
     setAccountFavorite(account.favorite);
@@ -115,13 +133,13 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     const legacyLocal = getPrivateComparison(comparisonId);
     setRecord(legacyLocal);
     setIsReady(true);
-  }, [comparisonId]);
+  }, [comparisonId, localDemo]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       void loadRecord();
     });
-    const unsubscribe = subscribeToPrivateComparisons(() => {
+    const unsubscribe = localDemo ? () => {} : subscribeToPrivateComparisons(() => {
       void loadRecord();
     });
 
@@ -129,16 +147,17 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
       window.cancelAnimationFrame(frame);
       unsubscribe();
     };
-  }, [loadRecord]);
+  }, [loadRecord, localDemo]);
   const reading = useMemo(() => {
     if (!record) return null;
+    if (localDemo) return record.reading;
     return buildHumanFirstComparisonReading(record.report, {
       chartALabel: record.chartALabel,
       chartBLabel: record.chartBLabel,
       chartABirthTimeStatus: record.chartABirthTimeStatus,
       chartBBirthTimeStatus: record.chartBBirthTimeStatus,
     });
-  }, [record]);
+  }, [record, localDemo]);
 
   async function regenerate() {
     if (!record) return;
@@ -264,6 +283,26 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     router.push("/compare");
   }
 
+  async function demoAction(action: "login" | "checkout" | "verified" | "cancelled") {
+    if (isWorking || !localDemo) return;
+    setIsWorking(true); setMessage("");
+    try {
+      if (action === "login") {
+        await comparisonDemoRequest("login");
+        setDemoAccount(true);
+      } else if (action === "checkout") {
+        const invoice = await comparisonDemoRequest<DemoInvoice>("checkout", {reportId: comparisonId});
+        if (invoice.status === "verified") { await loadRecord(); setDemoInvoice(null); }
+        else setDemoInvoice(invoice);
+      } else if (demoInvoice) {
+        const result = await comparisonDemoRequest<DemoReport>("settle", {reportId:comparisonId, invoiceId:demoInvoice.invoiceId,outcome:action});
+        setDemoReport(result); setRecord(result.paid ? result.record ?? null : null); setDemoInvoice(null);
+        if (action === "cancelled") setMessage("پرداخت لغو شد؛ می‌توانی دوباره تلاش کنی.");
+      }
+    } catch(error) { setMessage(error instanceof Error ? error.message : "عملیات آزمایشی کامل نشد."); }
+    finally { setIsWorking(false); }
+  }
+
   if (!isReady) {
     return (
       <div className={styles.product}>
@@ -274,11 +313,51 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
     );
   }
 
+  if (localDemo && demoReport && !demoReport.paid) {
+    return (
+      <div className={`${styles.product} ${styles.humanFirstProduct}`} data-comparison-reading="human-first">
+        <section className={`${styles.reportHero} ${styles.humanReportHero}`}>
+          <div>
+            <p className={styles.eyebrow}>{formatRelationshipContext(demoReport.summary.relationshipContext)}</p>
+            <h1>این رابطه از چه داستانی می‌گوید؟</h1>
+            <p className={styles.heroLead}>پیش‌نمایش پنج فصل را بخوان؛ با خرید گزارش، ادامهٔ همهٔ فصل‌ها و جزئیات نجومی باز می‌شود.</p>
+            <p className={styles.privateNote}>محیط آزمایشی محلی؛ هیچ وجهی دریافت نمی‌شود.</p>
+          </div>
+          <aside className={styles.pairCard} aria-label="دو نفر این مقایسه"><span>{demoReport.summary.chartALabel}</span><b aria-hidden="true">↔</b><span>{demoReport.summary.chartBLabel}</span></aside>
+        </section>
+        <div className={styles.readingFlow}>
+          <div className={styles.chapterSequence}>
+            {demoReport.preview.chapters.map(chapter => (
+              <section className={styles.relationshipChapter} key={chapter.id}>
+                <div className={styles.sectionHeading}><h2>{chapter.title}</h2></div>
+                <article className={styles.chapterStory}>
+                  <p className={styles.storyLead}>{chapter.excerptFa ?? "برای این فصل پیش‌نمایش معتبر کافی نیست."}</p>
+                  <p>ادامهٔ فصل پس از خرید باز می‌شود.</p>
+                </article>
+              </section>
+            ))}
+          </div>
+          <section className={styles.relationshipChapter} aria-label="خرید گزارش کامل">
+            <div className={styles.sectionHeading}><h2>گزارش کامل رابطه</h2><p>۵۰۰٬۰۰۰ تومان برای هر پنج فصل و جزئیات نجومی</p></div>
+            {!demoAccount ? <button className={styles.primaryButton} type="button" disabled={isWorking} onClick={() => void demoAction("login")}>ورود به حساب آزمایشی</button> : <button className={styles.primaryButton} type="button" disabled={isWorking || !!demoInvoice} onClick={() => void demoAction("checkout")}>خرید آزمایشی گزارش</button>}
+            {demoInvoice && <div className={styles.practiceLine} role="group" aria-label="درگاه آزمایشی">
+              <p>پرداخت شبیه‌سازی‌شده — {demoInvoice.amountToman.toLocaleString("fa-IR")} تومان</p>
+              <button className={styles.primaryButton} type="button" disabled={isWorking} onClick={() => void demoAction("verified")}>پرداخت موفق</button>
+              <button className={styles.secondaryButton} type="button" disabled={isWorking} onClick={() => void demoAction("cancelled")}>انصراف</button>
+            </div>}
+            {message && <p className={styles.statusMessage} role="status">{message}</p>}
+          </section>
+        </div>
+        <section className={styles.reportActions}><Link className={styles.secondaryButton} href="/compare">برگشت به تاریخچه</Link></section>
+      </div>
+    );
+  }
+
   if (!record || !reading) {
     return (
       <div className={styles.product}>
         <div className={styles.emptyState}>
-          <strong>این مقایسه روی این دستگاه پیدا نشد.</strong>
+          <strong>{localDemo && message ? message : "این مقایسه روی این دستگاه پیدا نشد."}</strong>
           <p>ممکن است پاک شده باشد یا در مرورگر دیگری ساخته شده باشد.</p>
           <Link className={styles.primaryButton} href="/compare">
             برگشت به مقایسه‌ها
@@ -346,7 +425,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
           <p className={styles.privateNote}>
-            {accountStatus === "saved"
+            {localDemo ? "گزارش کامل در حساب آزمایشی باز شده است؛ پرداخت واقعی انجام نشده است." : accountStatus === "saved"
               ? "این خوانش خصوصی در حساب تو و روی همین دستگاه در دسترس است."
               : "این خوانش خصوصی روی همین دستگاه می‌ماند؛ اگر وارد حساب باشی می‌توانی همان نسخه را در حساب خصوصی‌ات هم نگه داری."}
           </p>
@@ -417,7 +496,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
               ))}
             </div>
           </section>
-          <SurfaceShowcaseSlot surface="synastry" slot="after-patterns" />
+          {!localDemo && <SurfaceShowcaseSlot surface="synastry" slot="after-patterns" />}
 
           <div className={styles.chapterSequence}>
             {reading.chapters.map((chapter) => (
@@ -425,7 +504,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
 
-          <SurfaceShowcaseSlot surface="synastry" slot="after-chapters" />
+          {!localDemo && <SurfaceShowcaseSlot surface="synastry" slot="after-chapters" />}
           <FullInterpretationReading full={reading.fullInterpretation} />
 
           <section className={styles.relationshipChapter} id="comparison-growth">
@@ -449,7 +528,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             </div>
           </section>
 
-          <SurfaceShowcaseSlot surface="synastry" slot="after-growth" />
+          {!localDemo && <SurfaceShowcaseSlot surface="synastry" slot="after-growth" />}
           <section className={styles.limitationsCard}>
             <p className={styles.eyebrow}>حدود این خوانش</p>
             <p>{reading.readingLimitFa}</p>
@@ -638,6 +717,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
         <Link className={styles.secondaryButton} href="/compare">
           برگشت به تاریخچه
         </Link>
+        {!localDemo && <>
         <button
           className={styles.secondaryButton}
           type="button"
@@ -680,6 +760,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
         >
           حذف این مقایسه
         </button>
+        </>}
       </section>
     </div>
   );

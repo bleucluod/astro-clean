@@ -28,6 +28,7 @@ export type ProductAccessState = {
 
 export function useProductAccess(
   reportId: string | null = null,
+  disabled = false,
 ): ProductAccessState {
   const [state, setState] = useState<{
     status: ProductAccessState["status"];
@@ -38,6 +39,7 @@ export function useProductAccess(
   });
 
   const load = useCallback(async () => {
+    if (disabled) return;
     const authClient = getSupabaseBrowserAuthClient();
     let token: string | undefined;
     if (authClient) {
@@ -72,9 +74,10 @@ export function useProductAccess(
     } catch {
       setState({ status: "unavailable", access: EMPTY_ACCESS });
     }
-  }, [reportId]);
+  }, [reportId, disabled]);
 
   useEffect(() => {
+    if (disabled) return;
     let active = true;
     const authClient = getSupabaseBrowserAuthClient();
     const run = () => {
@@ -89,12 +92,13 @@ export function useProductAccess(
       window.clearTimeout(timer);
       subscription?.data.subscription.unsubscribe();
     };
-  }, [load]);
+  }, [load, disabled]);
 
   const post = useCallback(
     async (
       body: Record<string, unknown>,
     ): Promise<{ ok: boolean; error?: string }> => {
+      if (disabled) return { ok: false, error: "Local demo" };
       const authClient = getSupabaseBrowserAuthClient();
       const session = authClient
         ? await authClient.auth.getSession()
@@ -135,7 +139,7 @@ export function useProductAccess(
         };
       }
     },
-    [load],
+    [load, disabled],
   );
 
   return {

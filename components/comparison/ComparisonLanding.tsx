@@ -72,8 +72,8 @@ function jsonLd(value: unknown) {
 
 // HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
 export async function ComparisonLanding() {
-  const accessPolicy = await getPublicReportAccessPolicy();
-  const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";
+  const localDemo = process.env.NODE_ENV === "development" && process.env.HALLEUS_COMPARE_LOCAL_DEMO === "1";
+  const freeAllAccess = !localDemo && (await getPublicReportAccessPolicy()).monetizationMode === "FREE_ALL";
   const effectiveFaqItems = freeAllAccess
     ? faqItems
     : faqItems.filter(
@@ -191,7 +191,7 @@ export async function ComparisonLanding() {
         tabIndex={-1}
       >
         <h2 className={styles.builderTitle}>دو چارت را انتخاب کن</h2>
-        <ComparisonComposer embedded />
+        <ComparisonComposer embedded localDemo={localDemo} />
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="دو چارت را انتخاب کن" />
       </section>
 

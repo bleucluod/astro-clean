@@ -39,12 +39,12 @@ import type { ReportRecordSummary } from "@/types/storage";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
 import type { AstrologyReport, BirthInput } from "@/types/astro";
 import type { ComparisonFormHandle } from "@/components/ChartForm";
-import type { ComparisonRecord } from "@/types/comparison-product";
 import type {
   SynastryBirthTimeStatus,
   SynastryRelationshipContext,
 } from "@/types/synastry-engine";
 
+import { comparisonDemoRequest, initComparisonDemo, type DemoSummary, type DemoReport } from "@/lib/comparison/comparison-demo-client";
 import styles from "./comparison.module.css";
 import chartStyles from "@/app/chart/chart-shell.module.css";
 
@@ -95,9 +95,9 @@ type ComparisonChartOption = {
   source: "device" | "account" | "session";
   sourceLabel: string;
 };
-export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED" }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED" }) {
+export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED", localDemo = false }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED"; localDemo?: boolean }) {
   const router = useRouter();
-  const productAccess = useProductAccess();
+  const productAccess = useProductAccess(null, localDemo);
   // HALLEUS_FREE_ALL_RELATIONSHIP_BATCH1_R1
   const effectiveMonetizationMode =
     productAccess.status === "loading"
@@ -116,7 +116,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   const [initialInputB, setInitialInputB] = useState<BirthInput>();
   const [readyA, setReadyA] = useState(false);
   const [readyB, setReadyB] = useState(false);
-  const [history, setHistory] = useState<ComparisonRecord[]>([]);
+  const [history, setHistory] = useState<DemoSummary[]>([]);
   const [chartAId, setChartAId] = useState("");
   const [chartBId, setChartBId] = useState("");
   const [chartATimeStatus, setChartATimeStatus] =
@@ -146,14 +146,24 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   );
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
   const refreshLibrary = useCallback(() => {
+    if (localDemo) return;
     setReports(loadReports());
     setHistory(loadPrivateComparisons());
-  }, []);
+  }, [localDemo]);
 
   const refreshAccountLibrary = useCallback(async () => {
     setAccountChartsState("checking");
     setAccountChartsMessage("در حال بررسی چارت‌های حساب…");
 
+    if (localDemo) {
+      try {
+        const library = await initComparisonDemo();
+        setReports(library.charts);
+        setHistory(library.reports);
+        setAccountChartsState(library.account ? "ready" : "signed-out");
+      } catch { setAccountChartsState("failed"); }
+      return;
+    }
     const firstPage = await listAccountReportSummaries(1);
 
     if (firstPage.status === "not-authenticated") {
@@ -224,7 +234,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         ? `${natalSummaries.length.toLocaleString("fa-IR")} چارت حساب بارگذاری شد، اما بخشی از کتابخانه در دسترس نبود.`
         : `${natalSummaries.length.toLocaleString("fa-IR")} چارت تولد از حساب هالیوس آمادهٔ انتخاب است.`,
     );
-  }, []);
+  }, [localDemo]);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(refreshLibrary);
@@ -242,6 +252,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
 
   // HALLEUS_COMPARE_ACCOUNT_AUTH_SYNC_R11
   useEffect(() => {
+    if (localDemo) { void refreshAccountLibrary(); return; }
     let disposed = false;
     const client = getSupabaseBrowserAuthClient();
 
@@ -261,7 +272,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       window.clearTimeout(initialTimer);
       subscription?.unsubscribe();
     };
-  }, [refreshAccountLibrary]);
+  }, [refreshAccountLibrary, localDemo]);
 
   // HALLEUS_COMPARE_ACCOUNT_MODAL_R17
   useEffect(() => {
@@ -359,8 +370,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     [chartBId, usableReports],
   );
   useEffect(() => {
-    trackComparePublicAggregateEvent("compare_landing_view");
-  }, []);
+    if (!localDemo) trackComparePublicAggregateEvent("compare_landing_view");
+  }, [localDemo]);
 
   function openDirectEntry(slot: "a" | "b") {
     if (isWorking || accountChartLoadingId !== null) return;
@@ -441,7 +452,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     if (!report) return;
 
     setChartAId(report.id);
-    trackComparePublicAggregateEvent("compare_slot_completed");
+    if (!localDemo) trackComparePublicAggregateEvent("compare_slot_completed");
     setChartATimeStatus(getDefaultComparisonBirthTimeStatus(report));
     setMessage("");
   }
@@ -458,7 +469,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     if (!report) return;
 
     setChartBId(report.id);
-    trackComparePublicAggregateEvent("compare_slot_completed");
+    if (!localDemo) trackComparePublicAggregateEvent("compare_slot_completed");
     setChartBTimeStatus(getDefaultComparisonBirthTimeStatus(report));
     setMessage("");
   }
@@ -479,8 +490,10 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     }
 
     generationInFlightRef.current = true;
-    trackComparePublicAggregateEvent("compare_generation_started");
-    window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "compare_start" }));
+    if (!localDemo) {
+      trackComparePublicAggregateEvent("compare_generation_started");
+      window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "compare_start" }));
+    }
     setProductLocked(false);
     setIsWorking(true);
     setMessage("");
@@ -494,6 +507,36 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       const prepared = await Promise.allSettled([prepareA, prepareB]);
       if (prepared[0].status !== "fulfilled" || prepared[1].status !== "fulfilled") {
         setMessage("مشخصات تولد هر دو نفر را بررسی کن و دوباره تلاش کن.");
+        return;
+      }
+
+      if (localDemo) {
+        await initComparisonDemo();
+        let natalA = chartA;
+        let natalB = chartB;
+        if (!natalA) {
+          natalA = (await comparisonDemoRequest<{chart:AstrologyReport}>("save-chart", {input:prepared[0].value!.birthInput})).chart;
+          const saved = natalA;
+          setReports(current => [...current.filter(item => item.id !== saved.id), saved]);
+          setChartAId(saved.id);
+          setChartATimeStatus(getDefaultComparisonBirthTimeStatus(saved));
+        }
+        if (!natalB) {
+          natalB = (await comparisonDemoRequest<{chart:AstrologyReport}>("save-chart", {input:prepared[1].value!.birthInput})).chart;
+          const saved = natalB;
+          setReports(current => [...current.filter(item => item.id !== saved.id), saved]);
+          setChartBId(saved.id);
+          setChartBTimeStatus(getDefaultComparisonBirthTimeStatus(saved));
+        }
+        const timeA = chartA ? chartATimeStatus : getDefaultComparisonBirthTimeStatus(natalA);
+        const timeB = chartB ? chartBTimeStatus : getDefaultComparisonBirthTimeStatus(natalB);
+        const signature = [natalA.id,natalB.id,timeA,timeB,relationshipContext].join("|");
+        const pending = pendingGenerationRef.current?.signature === signature ? pendingGenerationRef.current : {signature,recordId:crypto.randomUUID()};
+        pendingGenerationRef.current = pending;
+        const result = await comparisonDemoRequest<DemoReport>("create",{input:{chartAId:natalA.id,chartBId:natalB.id,chartABirthTimeStatus:timeA,chartBBirthTimeStatus:timeB,relationshipContext,retryKey:pending.recordId}});
+        pendingGenerationRef.current = null;
+        router.push(`/compare/${encodeURIComponent(result.reportId)}`);
+        navigated = true;
         return;
       }
 
@@ -584,6 +627,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
   const hasRelationshipCredit =
     freeAllAccess || productAccess.access.balances.relationship >= 1;
   const generationDisabled =
+    (localDemo && accountChartsState === "checking") ||
     isWorking ||
     accountChartLoadingId !== null ||
     !accessResolved ||
@@ -687,6 +731,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
         data-premium-pair-builder="r18" data-account-motion="r11" data-final-product-builder="r17"
         data-pair-ready={pairReady ? "true" : "false"}
       >
+        {localDemo && <p role="status">محیط آزمایشی محلی؛ فقط اطلاعات ساختگی وارد کن.</p>}
         <div className={styles.finalBuilderHeader}>
           <div>
             <p className={styles.eyebrow}>تحلیل رابطه</p>
@@ -765,7 +810,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
               </header>
 
               <div className={styles.accountModalPanel}>
-                <SupabaseAuthPanel compact />
+                {localDemo ? <button className={styles.primaryButton} type="button" onClick={() => void (async () => {try {await initComparisonDemo(); await comparisonDemoRequest("login"); await refreshAccountLibrary(); setIsAccountModalOpen(false);} catch(error) {setMessage(error instanceof Error ? error.message : "ورود آزمایشی انجام نشد.");}})()}>ورود به حساب آزمایشی</button> : <SupabaseAuthPanel compact />}
               </div>
 
               <footer className={styles.accountModalStatus} data-state={accountChartsState}>
@@ -947,13 +992,13 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
                   <Link className={styles.secondaryButton} href={`/compare/${record.id}`}>
                     باز کردن
                   </Link>
-                  <button
+                  {!localDemo && <button
                     className={styles.dangerButton}
                     type="button"
                     onClick={() => removeComparison(record.id)}
                   >
                     حذف
-                  </button>
+                  </button>}
                 </div>
               </article>
             ))}
