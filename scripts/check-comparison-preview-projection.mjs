@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { projectComparisonChapterPreview as project } from "../lib/comparison/comparison-preview-projection.mjs";
+import { projectComparisonChapterPreview as project, refreshStoredComparisonChapterPreview as refresh } from "../lib/comparison/comparison-preview-projection.mjs";
 
 const ids = ["communication", "emotional-security", "attraction-intimacy", "boundaries-commitment", "friction-repair"];
 const build = () => ({
@@ -22,7 +22,7 @@ const build = () => ({
 const run = () => { const {reading, plan} = build(); return project(reading, plan); };
 const result = run();
 assert.deepEqual(Object.keys(result), ["version", "chapters"]);
-assert.equal(result.version, "comparison-chapter-preview-v1");
+assert.equal(result.version, "comparison-chapter-preview-v2");
 assert.deepEqual(result.chapters.map(c => c.id), ids);
 for (const chapter of result.chapters) {
   assert.deepEqual(Object.keys(chapter), ["id", "title", "evidenceStatus", "excerptFa"]);
@@ -54,17 +54,26 @@ for (const change of [
 }
 {
   const {reading, plan} = build();
-  reading.chapters[0].block.humanExperience = "یک دو سه چهار پنج شش هفت";
-  assert.equal(project(reading, plan).chapters[0].excerptFa, null);
-  plan.chapterPlans[0].status = "limited";
-  assert.equal(project(reading, plan).chapters[0].excerptFa, reading.chapters[0].block.humanExperience);
-  reading.chapters[0].block.humanExperience = "یک دو سه چهار پنج شش هفت هشت نه";
-  assert.equal(project(reading, plan).chapters[0].excerptFa, null);
-  reading.chapters[0].block.humanExperience = "کوتاه";
-  assert.equal(project(reading, plan).chapters[0].excerptFa, null);
+  for (const lead of ["یک دو سه چهار پنج شش هفت", "یک دو سه چهار پنج شش هفت هشت نه", "کوتاه", "این بند کامل شاهد و برداشت و محدودیت را بدون بریدن جمله توضیح می‌دهد. ".repeat(12)]) {
+    reading.chapters[0].block.humanExperience = lead;
+    for (const status of ["supported", "limited"]) {
+      plan.chapterPlans[0].status = status;
+      assert.equal(project(reading, plan).chapters[0].excerptFa, lead);
+    }
+  }
   plan.chapterPlans[0].status = "insufficient";
   plan.chapterPlans[0].primary = null;
   reading.chapters[0].ownerContactId = null;
-  assert.equal(project(reading, plan).chapters[0].excerptFa, null);
+  reading.chapters[0].block.humanExperience = "از اطلاعات موجود نمی‌توان دربارهٔ الگوی گفت‌وگوی این دو نفر نتیجه گرفت.";
+  const result = project(reading, plan);
+  assert.equal(result.chapters[0].excerptFa, reading.chapters[0].block.humanExperience);
+  assert.equal(result.chapters[0].evidenceStatus, "insufficient");
+  const old = {version:"comparison-chapter-preview-v1",chapters:result.chapters.map((c,i)=>({...c,excerptFa:i===3?c.excerptFa:null}))};
+  assert.deepEqual(refresh(reading, old), result);
+  assert.deepEqual(refresh(reading, result), result);
+  assert.equal(JSON.stringify(refresh(reading, old)).includes("_PRIVATE"), false);
+  assert.throws(()=>refresh(reading,{...old,chapters:old.chapters.slice(1)}),/COMPARISON_PREVIEW_INVALID/);
+  assert.throws(()=>refresh(reading,{...old,chapters:old.chapters.map((c,i)=>i===0?{...c,evidenceStatus:"supported"}:c)}),/COMPARISON_PREVIEW_INVALID/);
+  assert.throws(()=>refresh(reading,{...old,chapters:old.chapters.map((c,i)=>i===0?{...c,title:"wrong"}:c)}),/COMPARISON_PREVIEW_INVALID/);
 }
-console.log("PASS comparison preview projection synthetic contract");
+console.log("PASS comparison preview projection and stored-preview refresh");

@@ -3,7 +3,7 @@ import type { AstrologyReport } from "@/types/astro";
 import type { ComparisonRecord } from "@/types/comparison-product";
 export type DemoSummary = Pick<ComparisonRecord,"id"|"chartALabel"|"chartBLabel"|"relationshipContext"|"updatedAt">;
 export type DemoLibrary = {account:boolean;charts:AstrologyReport[];reports:DemoSummary[]};
-export type DemoReport = {reportId:string;paid:boolean;summary:DemoSummary;preview:{chapters:{id:string;title:string;excerptFa:string|null}[]};record?:ComparisonRecord};
+export type DemoReport = {reportId:string;paid:boolean;summary:DemoSummary;preview:{chapters:{id:string;title:string;excerptFa:string}[]};record?:ComparisonRecord};
 export type DemoInvoice = {invoiceId:string;status:"pending"|"verified";amountToman:number};
 const messages:Record<string,string> = {
   CHART_UNAVAILABLE:"چارت انتخاب‌شده در دسترس نیست.",

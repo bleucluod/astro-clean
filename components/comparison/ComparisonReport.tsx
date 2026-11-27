@@ -331,7 +331,7 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
               <section className={styles.relationshipChapter} key={chapter.id}>
                 <div className={styles.sectionHeading}><h2>{chapter.title}</h2></div>
                 <article className={styles.chapterStory}>
-                  <p className={styles.storyLead}>{chapter.excerptFa ?? "برای این فصل پیش‌نمایش معتبر کافی نیست."}</p>
+                  <p className={styles.storyLead}>{chapter.excerptFa}</p>
                   <p>ادامهٔ فصل پس از خرید باز می‌شود.</p>
                 </article>
               </section>
