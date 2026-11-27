@@ -123,8 +123,7 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
     useState<SynastryBirthTimeStatus>("unknown");
   const [chartBTimeStatus, setChartBTimeStatus] =
     useState<SynastryBirthTimeStatus>("unknown");
-  const [relationshipContext, setRelationshipContext] =
-    useState<SynastryRelationshipContext>("romantic");
+  const relationshipContext: SynastryRelationshipContext = "romantic";
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
   const [productLocked, setProductLocked] = useState(false);
@@ -663,13 +662,8 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
           <p className={styles.eyebrow}>چارت سیناستری آنلاین</p>
           <h2 id="synastry-overview-title">سیناستری چه چیزی را کنار هم می‌گذارد؟</h2>
           <p>
-            سیناستری جایگاه‌های دو چارت تولد را با هم می‌خواند تا الگوهای تماس، تفاوت و هم‌راهی روشن‌تر شوند. این خوانش برای رابطهٔ عاطفی، دوستی، خانواده، همکاری یا یک رابطهٔ عمومی قابل استفاده است؛ اما موفقیت یا شکست رابطه را پیش‌بینی نمی‌کند.
+            سیناستری جایگاه‌های دو چارت تولد را با هم می‌خواند تا الگوهای تماس، تفاوت و هم‌راهی روشن‌تر شوند. این خوانش برای رابطهٔ عاطفی است؛ اما موفقیت یا شکست رابطه را پیش‌بینی نمی‌کند.
           </p>
-        </div>
-        <div className={styles.useCaseList} aria-label="کاربردهای تحلیل رابطه">
-          {RELATIONSHIP_OPTIONS.map((option) => (
-            <span key={option.value}>{option.label}</span>
-          ))}
         </div>
       </section>
 
@@ -901,37 +895,6 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
             </section>
           </div>
         </section>
-
-        <section className={styles.flowStep} data-flow-step="relationship">
-          <fieldset className={styles.relationshipFieldset} disabled={isWorking}>
-            <legend>نوع رابطه</legend>
-            <div className={styles.relationshipGrid}>
-              {RELATIONSHIP_OPTIONS.map((option) => (
-                <label
-                  className={styles.relationshipOption}
-                  data-selected={relationshipContext === option.value}
-                  key={option.value}
-                >
-                  <input
-                    type="radio"
-                    name="relationship-context"
-                    value={option.value}
-                    checked={relationshipContext === option.value}
-                    onChange={() => {
-                      setRelationshipContext(option.value);
-                      trackComparePublicAggregateEvent("compare_relationship_selected");
-                      setMessage("");
-                    }}
-                  />
-                  <span>
-                    <strong>{option.label}</strong>
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </section>
-
 
         {message ? <p className={styles.errorMessage} role="alert">{message}</p> : null}
 

@@ -6,6 +6,7 @@ export type DemoLibrary = {account:boolean;charts:AstrologyReport[];reports:Demo
 export type DemoReport = {reportId:string;paid:boolean;summary:DemoSummary;preview:{overviewParagraphsFa:string[];primaryPatterns:{id:string;title:string;excerptFa:string}[];chapters:{id:string;title:string;eyebrow:string;storyTitle:string;evidenceStatus:"supported"|"limited"|"insufficient";excerptFa:string}[]};record?:ComparisonRecord};
 export type DemoInvoice = {invoiceId:string;status:"pending"|"verified";amountToman:number};
 const messages:Record<string,string> = {
+  RELATIONSHIP_CONTEXT_UNAVAILABLE:"در حال حاضر فقط گزارش رابطهٔ عاطفی قابل ساخت است.",
   CHART_UNAVAILABLE:"چارت انتخاب‌شده در دسترس نیست.",
   TIME_STATUS_INVALID:"دقت ساعت تولد معتبر نیست.",
   LOGIN_REQUIRED:"پیش از خرید وارد حساب آزمایشی شو.",

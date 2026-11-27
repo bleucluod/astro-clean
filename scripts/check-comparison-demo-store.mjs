@@ -39,7 +39,7 @@ try {
  s.close();s=openComparisonDemoStore(file);eq(s.read(a,p.reportId).paid,true);eq(s.read(b,p.reportId).ok,false);eq(s.status(a).charts.length,2);eq(s.status(a).reports.length,2);
  for (const context of ['friendship','family','work','general']) {
    const preview=s.create(a,{...req,relationshipContext:context,retryKey:'context-test-'+context+'-123456'},generate);
-   eq(preview.ok,true);eq(preview.paid,false);eq('record' in preview,false);
+   eq(preview.ok,false);eq(preview.code,'RELATIONSHIP_CONTEXT_UNAVAILABLE');
  }
  const source=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
  eq(existsSync(new URL('../app/compare/demo/page.tsx',import.meta.url)),false);

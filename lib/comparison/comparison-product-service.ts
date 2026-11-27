@@ -4,6 +4,7 @@ import {
 } from "@/lib/astrology/synastry/real-synastry-engine";
 import { buildFullComparisonInterpretation } from "@/lib/comparison/comparison-full-interpretation";
 import { buildComparisonEvidencePlan } from "@/lib/comparison/comparison-evidence-plan";
+import { buildRomanticOpening, describeRomanticOpeningContact } from "@/lib/comparison/comparison-romantic-opening.mjs";
 import type { AstrologyReport } from "@/types/astro";
 import type {
   ComparisonNarrativeChapter,
@@ -1397,7 +1398,10 @@ function buildPairNarrative(
     const available = group.ids.map(id => chapters.find(chapter => chapter.id === id))
       .filter(chapter => chapter && witness(chapter.id));
     const focus = available.map(chapter => "«" + chapter!.block.title + "»").join(" و ");
-    const link = focus
+    const romanticLens = report.relationshipContext === "romantic"
+      ? group.contacts.map(contact => describeRomanticOpeningContact(contact, names)).find(Boolean)
+      : null;
+    const link = romanticLens ? romanticLens.lead + ". " + romanticLens.scene + "." : focus
       ? "برای بررسی این احتمال، به یافتهٔ " + focus + " رجوع کنید؛ اگر در تجربهٔ خود نمونه‌ای ندارید، آن را به رابطه نسبت ندهید."
       : "برای نسبت دادن این چرخه به دو چارت شاهد اختصاصی کافی نداریم.";
     if (index === 0) return {
@@ -1649,7 +1653,7 @@ function buildPairNarrative(
     "در سه چرخهٔ بعد، یافته‌های فصل‌ها در کنار هم قرار می‌گیرند تا بتوانید یک رفتار را هنگام تغییر موقعیت دنبال کنید؛ اگر شاهد اختصاصی کافی نداریم، پرسش جای نتیجهٔ قطعی را می‌گیرد.",
     "در مرور این روایت، یک موقعیت مشخص را به یاد بیاورید و بگذارید آنچه واقعاً رخ داده معیار شما باشد؛ تفاوت تجربه با متن هم اطلاعات ارزشمندی است و نیازی نیست آن را با خوانش نجومی تطبیق دهید.",
   ];
-  const opening: [string, string] = [
+  const legacyOpening: [string, string] = [
     draft[0].opening + ". " + draft[1].opening + ". " + closingLines[0],
     draft[2].opening + ". " + closingLines[1] + " " + closingLines[2],
   ];
@@ -1657,7 +1661,7 @@ function buildPairNarrative(
     const ids = [...new Set(indexes.flatMap(index => patterns[index].contactIds.map(id => "contact:" + id)))];
     return ids.length ? ids : ["report:pair-context"];
   };
-  const openingEvidence = [
+  const legacyOpeningEvidence = [
     { sentenceId: "opening-p1-s1", paragraph: 1 as const, evidenceIds: cite([0]) },
     { sentenceId: "opening-p1-s2", paragraph: 1 as const, evidenceIds: cite([1]) },
     { sentenceId: "opening-p1-s3", paragraph: 1 as const, evidenceIds: cite([0, 1]) },
@@ -1665,6 +1669,11 @@ function buildPairNarrative(
     { sentenceId: "opening-p2-s2", paragraph: 2 as const, evidenceIds: cite([0, 1, 2]) },
     { sentenceId: "opening-p2-s3", paragraph: 2 as const, evidenceIds: ["report:pair-context"] },
   ];
+  const personalOpening = report.relationshipContext === "romantic"
+    ? buildRomanticOpening([comm, security, attraction, boundary, friction].filter((contact): contact is SynastryInterChartAspect => Boolean(contact)), names)
+    : null;
+  const opening = personalOpening?.opening ?? legacyOpening;
+  const openingEvidence = personalOpening?.openingEvidence ?? legacyOpeningEvidence;
   const questions: [string, string, string] = [draft[0].question, draft[1].question, draft[2].question];
   const growth = {
     personASkill: draft[0].next[0] + " " + draft[1].next[0] + " " + draft[2].next[0],
