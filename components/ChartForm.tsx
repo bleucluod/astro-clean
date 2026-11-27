@@ -526,6 +526,7 @@ function ChartStickyPortal({ children }: { children: ReactNode }) {
 export type ChartFormMode = "standalone" | "comparison";
 
 export type PreparedComparisonBirth = {
+  birthInput: BirthInput;
   calculate: () => Promise<AstrologyReport>;
 };
 
@@ -1133,6 +1134,7 @@ export function ChartForm({
       const { normalizedForm, engineCity } = normalizedBirth;
       const key = JSON.stringify(normalizedForm);
       return {
+        birthInput: normalizedForm,
         async calculate() {
           const cached = comparisonCalculationRef.current;
           if (cached?.key === key) return cached.report;

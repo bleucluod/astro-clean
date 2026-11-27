@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
 import { ComparisonLanding } from "@/components/comparison/ComparisonLanding";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
@@ -23,5 +24,6 @@ export const metadata: Metadata = {
 };
 
 export default function ComparePage() {
+  if (process.env.NODE_ENV === "development" && process.env.HALLEUS_COMPARE_LOCAL_DEMO === "1") redirect("/compare/demo");
   return <ComparisonLanding />;
 }

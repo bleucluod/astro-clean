@@ -1,0 +1,35 @@
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {openComparisonDemoStore} from '../lib/comparison/comparison-demo-store.mjs';
+const dir=mkdtempSync(join(tmpdir(),'compare-test-')); const file=join(dir,'demo.sqlite');
+let s=openComparisonDemoStore(file); let checks=0; const eq=(a,b)=>{assert.deepEqual(a,b);checks++};
+try {
+ const a=s.session('guest-1'), b=s.session('guest-2');
+ const chart={input:{name:'test'},realEngine:{test:true}};
+ const ca=s.saveChart(a,chart,'exact').chartId, cb=s.saveChart(a,chart,'unknown').chartId, other=s.saveChart(b,chart,'exact').chartId;
+ const req={chartAId:ca,chartBId:cb,relationshipContext:'romantic',chartABirthTimeStatus:'exact',chartBBirthTimeStatus:'unknown',retryKey:'test-retry-key-1234'};
+ const ids=['communication','emotional-security','attraction-intimacy','boundaries-commitment','friction-repair'];
+ let calls=0;
+ const generate=(x,y,input)=>{
+   calls++;
+   const chapters=ids.map(id=>({id,title:id,ownerContactId:id,block:{humanExperience:'preview',dailySituation:'PRIVATE',strength:'strength',challenge:'challenge',practicalStep:'practice'}}));
+   return {record:{...input,id:input.recordId,privacy:{visibility:'private',indexingPolicy:'noindex'},reading:{chapters}},plan:{chapterPlans:ids.map(chapter=>({chapter,status:'supported',primary:{id:chapter}}))}};
+ };
+ eq(s.create(a,{...req,chartBId:other},generate).code,'CHART_UNAVAILABLE'); eq(s.create(a,{...req,chartBBirthTimeStatus:'exact'},generate).code,'TIME_STATUS_INVALID');eq(calls,0);
+ eq(s.create(a,{...req,paid:true},generate).code,'INVALID_REQUEST');
+ const p=s.create(a,req,generate);eq(p.ok,true);eq(p.paid,false);eq('record' in p,false);eq(JSON.stringify(p).includes('PRIVATE'),false);eq(p.preview.chapters.length,5);eq(p.preview.chapters.every(c=>c.excerptFa==='preview'),true);
+ eq(s.create(a,req,generate),p);eq(calls,1);eq(s.create(a,{...req,relationshipContext:'work'},generate).code,'RETRY_CONFLICT');
+ const p2=s.create(a,{...req,retryKey:'second-retry-key-123'},generate);eq(p2.paid,false);
+ eq(s.read(b,p.reportId).code,'REPORT_UNAVAILABLE');eq(s.checkout(a,p.reportId).code,'LOGIN_REQUIRED');eq(s.login(a).account,true);
+ const i=s.checkout(a,p.reportId);eq(i.amountToman,500000);eq(s.checkout(a,p.reportId),i);eq(s.settle(b,p.reportId,i.invoiceId,'verified').code,'REPORT_UNAVAILABLE');eq(s.settle(a,p2.reportId,i.invoiceId,'verified').code,'INVOICE_UNAVAILABLE');
+ eq(s.settle(a,p.reportId,i.invoiceId,'cancelled').paid,false);eq(s.settle(a,p.reportId,i.invoiceId,'verified').code,'INVOICE_UNAVAILABLE');
+ const j=s.checkout(a,p.reportId);eq(j.invoiceId===i.invoiceId,false);eq(s.settle(a,p.reportId,j.invoiceId,'verified').paid,true);eq(s.settle(a,p.reportId,j.invoiceId,'verified').paid,true);eq(s.checkout(a,p.reportId).status,'verified');eq(s.read(a,p2.reportId).paid,false);eq(s.read(a,p.reportId).record.reading.chapters[0].block.dailySituation,'PRIVATE');
+ s.close();s=openComparisonDemoStore(file);eq(s.read(a,p.reportId).paid,true);eq(s.read(b,p.reportId).ok,false);eq(s.status(a).charts.length,2);eq(s.status(a).reports.length,2);
+ for (const context of ['friendship','family','work','general']) {
+   const preview=s.create(a,{...req,relationshipContext:context,retryKey:'context-test-'+context+'-123456'},generate);
+   eq(preview.ok,true);eq(preview.paid,false);eq('record' in preview,false);
+ }
+ console.log('PASS',checks,'SQLite assertions');
+}finally{s.close();rmSync(dir,{recursive:true,force:true});}
