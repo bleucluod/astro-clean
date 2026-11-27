@@ -5,6 +5,8 @@ const ids = ["communication", "emotional-security", "attraction-intimacy", "boun
 const build = () => ({
   reading: {
     privateRoot: "ROOT_PRIVATE",
+    overviewParagraphsFa: ["افتتاحیهٔ نخست", "افتتاحیهٔ دوم"],
+    primaryPatterns: [1,2,3].map(i=>({id:"pattern-"+i,title:"الگوی "+i,humanExperience:"یک چرخه از اینجا آغاز می‌شود",personA:"نقش نخست در چرخه",personB:"نقش دوم در چرخه",cycle:"مسیر چرخه در رابطه",dailySituation:"مثال روزمره در رابطه",strength:"نقطه قوت در رابطه",challenge:"دشواری در این رابطه",practicalStep:"پیشنهاد عملی در رابطه",evidence:[{detail:"PATTERN_PRIVATE"}]})),
     chapters: ids.map(id => ({
       id, title: id, ownerContactId: id + ":witness", crossReferencePatternTitle: "CROSS_PRIVATE",
       block: {
@@ -21,11 +23,19 @@ const build = () => ({
 });
 const run = () => { const {reading, plan} = build(); return project(reading, plan); };
 const result = run();
-assert.deepEqual(Object.keys(result), ["version", "chapters"]);
-assert.equal(result.version, "comparison-chapter-preview-v3");
+assert.deepEqual(Object.keys(result), ["version", "overviewParagraphsFa", "primaryPatterns", "chapters"]);
+assert.equal(result.version, "comparison-chapter-preview-v4");
 assert.deepEqual(result.chapters.map(c => c.id), ids);
+assert.deepEqual(result.overviewParagraphsFa, ["افتتاحیهٔ نخست", "افتتاحیهٔ دوم"]);
+assert.equal(result.primaryPatterns.length, 3);
+for (const pattern of result.primaryPatterns) {
+  assert.deepEqual(Object.keys(pattern), ["id", "title", "excerptFa"]);
+  const original = build().reading.primaryPatterns.find(p => p.id === pattern.id);
+  const story = ["humanExperience","personA","personB","cycle","dailySituation","strength","challenge","practicalStep"].map(k => original[k]).join("\n\n");
+  assert.deepEqual(pattern.excerptFa.split(/\s+/u), story.split(/\s+/u).slice(0, Math.floor(story.split(/\s+/u).length/5)));
+}
 for (const chapter of result.chapters) {
-  assert.deepEqual(Object.keys(chapter), ["id", "title", "evidenceStatus", "excerptFa"]);
+  assert.deepEqual(Object.keys(chapter), ["id", "title", "eyebrow", "storyTitle", "evidenceStatus", "excerptFa"]);
   assert.equal(chapter.excerptFa, "شاهد معتبر و برداشت روشن");
 }
 assert.equal(JSON.stringify(result).includes("_PRIVATE"), false);
@@ -37,6 +47,10 @@ assert.deepEqual(run(), result);
   assert.equal(JSON.stringify({reading, plan}), before);
 }
 for (const change of [
+  ({reading}) => reading.overviewParagraphsFa.pop(),
+  ({reading}) => reading.primaryPatterns.pop(),
+  ({reading}) => {reading.primaryPatterns[0].personA = "";},
+  ({reading}) => {reading.primaryPatterns[1].id = reading.primaryPatterns[0].id;},
   ({reading}) => reading.chapters.pop(),
   ({reading}) => reading.chapters.push(reading.chapters[0]),
   ({reading}) => reading.chapters.reverse(),
@@ -85,6 +99,8 @@ for (const change of [
   assert.deepEqual(refresh(reading, old), result);
   const v2 = {version:"comparison-chapter-preview-v2",chapters:result.chapters.map((c,i)=>({...c,excerptFa:reading.chapters[i].block.humanExperience}))};
   assert.deepEqual(refresh(reading, v2), result);
+  const v3 = {version:"comparison-chapter-preview-v3",chapters:result.chapters.map(({id,title,evidenceStatus,excerptFa})=>({id,title,evidenceStatus,excerptFa}))};
+  assert.deepEqual(refresh(reading, v3), result);
   assert.deepEqual(refresh(reading, result), result);
   assert.equal(JSON.stringify(refresh(reading, old)).includes("_PRIVATE"), false);
   assert.throws(()=>refresh(reading,{...old,chapters:old.chapters.slice(1)}),/COMPARISON_PREVIEW_INVALID/);

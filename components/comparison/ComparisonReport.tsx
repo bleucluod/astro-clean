@@ -320,17 +320,41 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
           <div>
             <p className={styles.eyebrow}>{formatRelationshipContext(demoReport.summary.relationshipContext)}</p>
             <h1>این رابطه از چه داستانی می‌گوید؟</h1>
-            <p className={styles.heroLead}>پیش‌نمایش پنج فصل را بخوان؛ با خرید گزارش، ادامهٔ همهٔ فصل‌ها و جزئیات نجومی باز می‌شود.</p>
+            <div className={styles.overviewParagraphs}>
+              {demoReport.preview.overviewParagraphsFa.map((paragraph,index) => (
+                <p className={styles.heroLead} key={index}>{paragraph}</p>
+              ))}
+            </div>
             <p className={styles.privateNote}>محیط آزمایشی محلی؛ هیچ وجهی دریافت نمی‌شود.</p>
           </div>
           <aside className={styles.pairCard} aria-label="دو نفر این مقایسه"><span>{demoReport.summary.chartALabel}</span><b aria-hidden="true">↔</b><span>{demoReport.summary.chartBLabel}</span></aside>
         </section>
         <div className={styles.readingFlow}>
+          <section className={styles.relationshipChapter} aria-labelledby="comparison-primary-patterns-title">
+            <div className={styles.sectionHeading}>
+              <p className={styles.eyebrow}>سه الگوی اصلی میان شما</p>
+              <h2 id="comparison-primary-patterns-title">سه چرخه‌ای که بهتر است زودتر بشناسید</h2>
+              <p>این سه چرخه از کنار هم گذاشتن یافته‌های فصل‌ها ساخته شده‌اند؛ هر فصل سپس موضوع خودش را جداگانه توضیح می‌دهد.</p>
+            </div>
+            <div className={styles.relationshipPatternList}>
+              {demoReport.preview.primaryPatterns.map((pattern,index) => (
+                <article className={styles.relationshipPattern} key={pattern.id}>
+                  <span>{(index+1).toLocaleString("fa-IR")}</span>
+                  <div>
+                    <h3>{pattern.title}</h3>
+                    <p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{pattern.excerptFa}…</p>
+                    <p className={styles.privateNote}>ادامه پس از خرید گزارش باز می‌شود.</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
           <div className={styles.chapterSequence}>
             {demoReport.preview.chapters.map(chapter => (
               <section className={styles.relationshipChapter} key={chapter.id}>
-                <div className={styles.sectionHeading}><h2>{chapter.title}</h2></div>
+                <div className={styles.sectionHeading}><p className={styles.eyebrow}>{chapter.eyebrow}</p><h2>{chapter.title}</h2></div>
                 <article className={styles.chapterStory}>
+                  <h3>{chapter.storyTitle}</h3>
                   <p className={styles.storyLead} style={{ whiteSpace: "pre-line" }}>{chapter.excerptFa}…</p>
                   {chapter.evidenceStatus !== "supported" && <p className={styles.privateNote}>{chapter.evidenceStatus === "insufficient" ? "شواهد این فصل برای نتیجه‌گیری اختصاصی کافی نیست." : "این بخش با محدودیت شواهد خوانده می‌شود."}</p>}
                   <p>ادامهٔ فصل پس از خرید باز می‌شود.</p>
@@ -339,7 +363,7 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
             ))}
           </div>
           <section className={styles.relationshipChapter} aria-label="خرید گزارش کامل">
-            <div className={styles.sectionHeading}><h2>گزارش کامل رابطه</h2><p>۵۰۰٬۰۰۰ تومان برای هر پنج فصل و جزئیات نجومی</p></div>
+            <div className={styles.sectionHeading}><h2>گزارش کامل رابطه</h2><p>ادامهٔ سه الگو و پنج فصل، لایه‌های عمیق‌تر، جزئیات نجومی و گام بعدی</p><p>۵۰۰٬۰۰۰ تومان</p></div>
             {!demoAccount ? <button className={styles.primaryButton} type="button" disabled={isWorking} onClick={() => void demoAction("login")}>ورود به حساب آزمایشی</button> : <button className={styles.primaryButton} type="button" disabled={isWorking || !!demoInvoice} onClick={() => void demoAction("checkout")}>خرید آزمایشی گزارش</button>}
             {demoInvoice && <div className={styles.practiceLine} role="group" aria-label="درگاه آزمایشی">
               <p>پرداخت شبیه‌سازی‌شده — {demoInvoice.amountToman.toLocaleString("fa-IR")} تومان</p>

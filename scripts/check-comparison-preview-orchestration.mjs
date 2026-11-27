@@ -11,7 +11,7 @@ function fixture() {
   const generated = {
     record: {version:"comparison-product-v1",id:"server-result",chartAId:"A",chartBId:"B",relationshipContext:"romantic",chartABirthTimeStatus:"exact",chartBBirthTimeStatus:"unknown",
       privacy:{visibility:"private",indexingPolicy:"noindex",rawBirthInputStored:false},report:{private:"REPORT_SECRET"},
-      reading:{private:"ROOT_SECRET",chapters:ids.map(id=>({id,title:id,ownerContactId:id+":witness",block:{humanExperience:"یک برداشت با شاهد روشن",dailySituation:"DAILY_SECRET یک دو سه چهار",strength:"STRENGTH_SECRET یک دو سه چهار",challenge:"CHALLENGE_SECRET یک دو سه چهار",practicalStep:"PRACTICE_SECRET یک دو سه چهار"}}))}},
+      reading:{private:"ROOT_SECRET",overviewParagraphsFa:["افتتاحیهٔ نخست","افتتاحیهٔ دوم"],primaryPatterns:[1,2,3].map(i=>({id:"pattern-"+i,title:"الگوی "+i,humanExperience:"یک چرخه از اینجا آغاز می‌شود",personA:"نقش نخست در چرخه",personB:"نقش دوم در چرخه",cycle:"مسیر چرخه در رابطه",dailySituation:"مثال روزمره در رابطه",strength:"نقطه قوت در رابطه",challenge:"دشواری در این رابطه",practicalStep:"پیشنهاد عملی در رابطه",evidence:[{detail:"PATTERN_PRIVATE"}]})),chapters:ids.map(id=>({id,title:id,ownerContactId:id+":witness",block:{humanExperience:"یک برداشت با شاهد روشن",dailySituation:"DAILY_SECRET یک دو سه چهار",strength:"STRENGTH_SECRET یک دو سه چهار",challenge:"CHALLENGE_SECRET یک دو سه چهار",practicalStep:"PRACTICE_SECRET یک دو سه چهار"}}))}},
     plan:{chapterPlans:ids.map(chapter=>({chapter,status:"supported",primary:{id:chapter+":witness"}}))},
   };
   const deps = {
@@ -74,6 +74,8 @@ for(const receipt of [null,{status:"created",reportId:"wrong"},{status:"replay",
   assert.deepEqual(Object.keys(result),["ok","reportId","preview"]);
   assert.equal(result.ok,true);
   assert.equal(result.preview.chapters.length,5);
+  assert.equal(result.preview.primaryPatterns.length,3);
+  assert.deepEqual(result.preview.overviewParagraphsFa,["افتتاحیهٔ نخست","افتتاحیهٔ دوم"]);
   assert.equal(JSON.stringify(result).includes("SECRET"),false);
 }
 console.log("PASS isolated comparison preview orchestration");
