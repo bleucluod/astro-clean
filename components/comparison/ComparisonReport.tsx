@@ -331,7 +331,8 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
               <section className={styles.relationshipChapter} key={chapter.id}>
                 <div className={styles.sectionHeading}><h2>{chapter.title}</h2></div>
                 <article className={styles.chapterStory}>
-                  <p className={styles.storyLead}>{chapter.excerptFa}</p>
+                  <p className={styles.storyLead} style={{ whiteSpace: "pre-line" }}>{chapter.excerptFa}…</p>
+                  {chapter.evidenceStatus !== "supported" && <p className={styles.privateNote}>{chapter.evidenceStatus === "insufficient" ? "شواهد این فصل برای نتیجه‌گیری اختصاصی کافی نیست." : "این بخش با محدودیت شواهد خوانده می‌شود."}</p>}
                   <p>ادامهٔ فصل پس از خرید باز می‌شود.</p>
                 </article>
               </section>

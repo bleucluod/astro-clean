@@ -20,7 +20,7 @@ try {
  };
  eq(s.create(a,{...req,chartBId:other},generate).code,'CHART_UNAVAILABLE'); eq(s.create(a,{...req,chartBBirthTimeStatus:'exact'},generate).code,'TIME_STATUS_INVALID');eq(calls,0);
  eq(s.create(a,{...req,paid:true},generate).code,'INVALID_REQUEST');
- const p=s.create(a,req,generate);eq(p.ok,true);eq(p.paid,false);eq('record' in p,false);eq(JSON.stringify(p).includes('PRIVATE'),false);eq(p.preview.chapters.length,5);eq(p.preview.chapters.every(c=>typeof c.excerptFa==='string'&&c.excerptFa.length>0),true);eq(p.preview.chapters[0].excerptFa,'preview '.repeat(20).trim());eq(p.preview.chapters[4].excerptFa,'limited evidence');
+ const p=s.create(a,req,generate);eq(p.ok,true);eq(p.paid,false);eq('record' in p,false);eq(JSON.stringify(p).includes('PRIVATE'),false);eq(p.preview.chapters.length,5);eq(p.preview.chapters.every(c=>typeof c.excerptFa==='string'&&c.excerptFa.length>0),true);eq(p.preview.chapters[0].excerptFa,'preview '.repeat(4).trim());eq(p.preview.chapters[4].excerptFa,'limited');
  eq(s.create(a,req,generate),p);eq(calls,1);eq(s.create(a,{...req,relationshipContext:'work'},generate).code,'RETRY_CONFLICT');
  eq(p.summary.chartALabel,'A');eq(p.summary.id,p.reportId);
  eq(s.status(a).charts[0].input.name,'test');eq(s.status(b).charts.length,1);
