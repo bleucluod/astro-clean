@@ -212,7 +212,7 @@
 
 ### نوبت ۳ — کاندید اجرایی روایت ترکیبی
 
-شرح تاریخی نوبت ۳؛ بلوک‌های اجرایی زیر اکنون نسخهٔ نوبت ۴ هستند. نسخهٔ نوبت ۳ در کامیت ثبت‌شدهٔ آن قابل بازیابی است. مسیرهای محصول روی شاخه هنوز همان مبنا هستند.
+شرح تاریخی نوبت ۳؛ بلوک‌های اجرایی زیر اکنون نسخهٔ نوبت ۵ هستند. نسخهٔ نوبت ۳ در کامیت ثبت‌شدهٔ آن قابل بازیابی است. مسیرهای محصول روی شاخه هنوز همان مبنا هستند.
 
 - جایگزینی مسیر عمومی و اختصاصی افتتاحیه با انتخاب قطعی یک زمینهٔ مشترک، بانک ۵۶ کنش و ۱۴ پاسخ مکمل؛ ۱۱ جفت پرکاربرد با کنش هماهنگ‌تر و دقیق‌تر پوشش داده شده‌اند.
 - انتخاب زمینه براساس مجموع ترجیح دو نقش و نوع زاویه انجام می‌شود؛ جفت‌های اختصاصی زمینهٔ از پیش تعیین‌شده دارند. پنج زاویه پیامد و مسیر پاسخ جداگانه دارند. گزینش تماس و انتساب شناسهٔ شاهد دست نخورده است.
@@ -224,7 +224,7 @@
 
 `lib/comparison/comparison-romantic-opening.mjs`
 
-<!-- BEGIN ROUND4 WRITER -->
+<!-- BEGIN ROUND5 WRITER -->
 ```javascript
 /** Pair-specific opening lenses. Use only already assigned, supported contacts.
  * Each lens describes a possible interaction, not observed behaviour or a prediction.
@@ -804,6 +804,98 @@ const openingAspectOrder = [
   "conjunction"
 ];
 
+const openingLiteraryNeed = {
+  "sun": "دلیل انتخابش شنیده شود",
+  "moon": "برای حرف دلش مجال پیدا کند",
+  "mercury": "معنای حرف پشت ابهام نماند",
+  "venus": "توجه در کاری دلنشین به چشم بیاید",
+  "mars": "حرف به قدمی عملی برسد",
+  "jupiter": "در تجربهٔ مشترک جایی برای کشف چیز تازه باشد",
+  "saturn": "بتواند به قولی که داده می‌شود تکیه کند",
+  "uranus": "حق تغییر دادن مسیر محفوظ بماند",
+  "neptune": "حسی که از لحظه گرفته بی‌نام نماند",
+  "pluto": "اختیارش در انتخاب حساس محفوظ بماند",
+  "asc": "برخورد نخستش درست فهمیده شود",
+  "dsc": "هر دو در شکل همراهی سهم داشته باشند",
+  "mc": "برای هدف شخصی‌اش وقت باقی بماند",
+  "ic": "جایی آرام برای گفت‌وگوی خصوصی داشته باشد"
+};
+const openingPairProse = {
+  "mercury|venus": [
+    "{y} با شوق از جایی می‌گوید که دوست دارد با هم ببینند؛ {x} از دلیل انتخابش سؤال می‌کند و {y} هنوز منتظر واکنشی گرم است",
+    "برای {x} پرسیدن راه رسیدن به معنای حرف است؛ برای {y} همین پیام فرصتی است برای شریک کردن دیگری در چیزی دلنشین"
+  ],
+  "moon|saturn": [
+    "{x} از روز دشوارش حرف می‌زند و برای پیدا کردن کلمات مکث می‌کند؛ {y} زمانی را که واقعاً برای ماندن و شنیدن در اختیار دارد روشن می‌کند، تا همراهی بی‌عجله در حد قولی شدنی بماند",
+    "در این چند دقیقه، {x} به فرصتی برای بیان احساس نیاز دارد و {y} به اطمینان از اینکه حضوری را وعده نمی‌دهد که توانش را ندارد"
+  ],
+  "saturn|uranus": [
+    "{x} قول قبلی را به یاد می‌آورد و می‌پرسد چه بخشی هنوز شدنی است؛ {y} پیشنهاد می‌دهد راه دیگری را امتحان کنند",
+    "برای {x} آنچه قبلاً قطعی شده هنوز وزن دارد؛ برای {y} باز بودن راه تغییر به اندازهٔ خود برنامه اهمیت دارد"
+  ],
+  "mercury|neptune": [
+    "{x} می‌پرسد آیا عبارت «دفعهٔ بعد» به قرار مشخصی اشاره دارد؛ {y} از آن عبارت نشانه‌ای عاطفی برای نزدیک‌تر شدن فهمیده و دربارهٔ همان برداشت حرف می‌زند",
+    "یکی می‌خواهد معنای کلمه روشن باشد و دیگری می‌خواهد حسی که همان کلمه در او برانگیخته، نادیده نماند"
+  ],
+  "mars|venus": [
+    "{x} آماده است زمان یکی از گزینه‌ها را بررسی کند و اولین قدم را بردارد؛ {y} از کاری حرف می‌زند که انجامش برای هر دو دلنشین است",
+    "برای {x} جذابیت پیشنهاد با عملی شدنش بیشتر می‌شود؛ برای {y} مهم است که خود انتخاب به دل هر دو بنشیند"
+  ],
+  "uranus|venus": [
+    "{x} پیشنهاد می‌دهد بخشی از برنامه باز بماند تا تجربه‌های تازه مجال پیدا کنند؛ {y} از بخش دلنشینی می‌گوید که دوست دارد در برنامه حفظ شود",
+    "برای {x} تازگی به دیدار جان می‌دهد؛ برای {y} آنچه از پیش پسندیده نیز در کیفیت همان دیدار سهم دارد"
+  ],
+  "mercury|sun": [
+    "{y} دلیل انتخابی را توضیح می‌دهد که برای مسیر شخصی خودش مهم است؛ {x} با چند سؤال به سراغ جزئیات همان انتخاب می‌رود",
+    "برای {x} سؤال راه شناختن دلیل است؛ برای {y} مهم است که دلیلش شنیده شود بی‌آنکه حق انتخابش به پاسخ دیگری وابسته شود"
+  ],
+  "mercury|moon": [
+    "{y} برای بیان حالش مکث می‌کند و از اتفاقی می‌گوید که هنوز ذهنش را مشغول کرده؛ {x} از جملهٔ نیمه‌تمامش سؤال می‌پرسد تا معنی آن را درست بفهمد",
+    "در فاصلهٔ میان یک احساس و کلمه‌ای که آن را بیان می‌کند، {y} به وقت نیاز دارد و {x} در پی معنایی روشن است"
+  ],
+  "mars|mercury": [
+    "{x} پیشنهاد می‌دهد همان لحظه کاری انجام دهند؛ {y} پیش از تصمیم می‌خواهد روشن شود چه چیزی در توافق قبلی متفاوت فهمیده شده",
+    "برای {x} معطل ماندن دشوارتر از برداشتن قدم اول است؛ برای {y} اقدام وقتی معنا دارد که دلیل و جزئیاتش روشن باشند"
+  ],
+  "saturn|venus": [
+    "{y} برای دیدار بعدی با اشتیاق پیشنهادی فرستاده است؛ {x} پیش از پاسخ به پیشنهاد، زمان در دسترسش را نگاه می‌کند تا قولی بیش از توانش ندهد",
+    "در این مکث کوتاه، {x} به امکان وفای به قول فکر می‌کند و {y} به گرمای پاسخی که به پیشنهادش می‌رسد"
+  ],
+  "mars|moon": [
+    "{y} از دلخوری همان لحظه می‌گوید و می‌خواهد چند دقیقه شنیده شود؛ {x} می‌پرسد اکنون چه کاری از دستش برمی‌آید و به فکر حل مشکل می‌افتد",
+    "برای {x} کمک کردن از قدمی عملی آغاز می‌شود؛ برای {y} اولین شکل کمک، فرصتی است که در آن لازم نیست احساسش را عجولانه کنار بگذارد"
+  ]
+};
+const openingSceneOpeners = [
+  "تصور کنید صفحهٔ پیام‌ها باز است و هنوز جزئیات دیدار بعدی روشن نیست",
+  "فرض کنید چند پیشنهاد برای گذراندن وقت مطرح شده و هنوز تصمیم نهایی نگرفته‌اند",
+  "یک دیدار را تصور کنید که در میانه‌اش برنامه تغییر می‌کند و باید دربارهٔ ادامهٔ آن تصمیم بگیرند",
+  "پایان یک دیدار را تصور کنید؛ پیش از خداحافظی هنوز چند دقیقه برای گفت‌وگو مانده است"
+];
+const openingFollowOpeners = [
+  "در تصویر فرضی دیگری از پیام‌های دیدار بعدی",
+  "فرض کنید این بار صحبت بر سر انتخاب یک برنامهٔ مشترک باشد",
+  "اگر در میانهٔ دیداری برنامه طبق انتظار پیش نرود",
+  "اگر پیش از خداحافظی چند دقیقه برای گفت‌وگو بماند"
+];
+function openingPoints(contact,names){
+  return [contact.pointA,contact.pointB].sort((left,right)=>left.id.localeCompare(right.id)||names[left.chartSide].localeCompare(names[right.chartSide],"fa"));
+}
+function openingBridge(previous,current,names){
+  const p=openingPoints(previous,names),q=openingPoints(current,names);
+  const shared=q.find(point=>p.some(old=>old.id===point.id&&old.chartSide===point.chartSide));
+  const other=q.find(point=>!shared||point.id!==shared.id||point.chartSide!==shared.chartSide);
+  const hard=aspect=>["square","opposition"].includes(aspect);
+  const oldTheme=openingMeaning[p[0].id][1],newTheme=openingMeaning[other?.id??q[1].id][1];
+  if(shared&&other){
+    const name=names[shared.chartSide],second=names[other.chartSide],need=openingLiteraryNeed[shared.id];
+    if(hard(previous.aspectId)&&!hard(current.aspectId))return `همان نیازی که در تصویر نخست برای ${name} اهمیت داشت، در پیوند دیگری راهی متفاوت پیدا می‌کند؛ برای ${name} مهم است که ${need} و این بار توجه ${second} به ${newTheme} نیز در کنار آن قرار می‌گیرد`;
+    return `در تصویر دیگری هم برای ${name} مهم است که ${need}؛ این بار این خواسته در کنار توجه ${second} به ${newTheme} قرار می‌گیرد`;
+  }
+  if(hard(previous.aspectId)&&!hard(current.aspectId))return `در کنار دشواریِ ${oldTheme}، این خوانش جایی برای ${newTheme} نیز باز می‌کند؛ رابطه فقط از لحظه‌های اختلاف ساخته نشده است`;
+  if(!hard(previous.aspectId)&&hard(current.aspectId))return `همراهی در ${oldTheme} به این معنی نیست که اختلاف دربارهٔ ${newTheme} از میان می‌رود؛ هر کدام لحظهٔ خودش را دارد`;
+  return `در کنار ${oldTheme}، موضوع دیگری که در همین خوانش اهمیت پیدا می‌کند ${newTheme} است`;
+}
 function openingContextIndex(a,b,aspect){
   const p=openingAspectPreference[aspect]??openingAspectPreference.conjunction;
   let best=0,score=-Infinity;
@@ -813,8 +905,8 @@ function openingContextIndex(a,b,aspect){
   }
   return best;
 }
-function openingPassage(contact,names,lens){
-  const [a,b]=[contact.pointA,contact.pointB].sort((left,right)=>left.id.localeCompare(right.id)||names[left.chartSide].localeCompare(names[right.chartSide],"fa"));
+function openingPassage(contact,names,lens,mode="main"){
+  const [a,b]=openingPoints(contact,names);
   if(!Object.hasOwn(openingScenes,a.id)||!Object.hasOwn(openingScenes,b.id))return [lens.lead,lens.scene];
   const x=names[a.chartSide],y=names[b.chartSide],aspect=contact.aspectId;
   const key=a.id+"|"+b.id,pair=openingPairScenes[key];
@@ -823,8 +915,13 @@ function openingPassage(contact,names,lens){
   const second=pair?.second??(a.id===b.id?openingMirrors[b.id][index]:openingScenes[b.id][index]);
   const [u,themeA]=openingMeaning[a.id], [v,themeB]=openingMeaning[b.id];
   const same=a.id===b.id;
-  const scene=`${openingContexts[index]}؛ ${x} ${first}؛ ${y} ${second}`;
-  const reasons=same?`برای هر دو، ${themeA} در این لحظه اهمیت دارد، اما ${x} و ${y} لزوماً پاسخ یکسانی برای این خواسته ندارند`:`برای ${x} مهم است ${u.replace(/^اینکه /u,"که ")}؛ برای ${y} اهمیت دارد ${v.replace(/^اینکه /u,"که ")}`;
+  const prose=openingPairProse[key],fill=text=>text.replace(/\{[xy]\}/g,key=>key==="{x}"?x:y);
+  const intro=(mode==="main"?openingSceneOpeners:openingFollowOpeners)[index];
+  const scene=`${intro}؛ ${prose?fill(prose[0]):x+" "+first+"؛ "+y+" "+second}`;
+  const needA=openingLiteraryNeed[a.id],needB=openingLiteraryNeed[b.id];
+  const reasons=prose?fill(prose[1]):same?
+    `برای ${x} و ${y} هر دو مهم است که ${needA}، اما آنچه برای یکی نشانهٔ همراهی است الزاماً برای دیگری همان معنا را ندارد`:
+    `در دل این دو واکنش، ${x} می‌خواهد ${needA} و ${y} می‌خواهد ${needB}`;
   const effects={
     square:same?`اگر هر کدام پاسخ خودش را تنها شکل درست ${themeA} بداند، اختلاف از اتفاق نخست به شیوهٔ پاسخ دادن به هم می‌رسد`:`اگر ${themeA} تمام توجه ${x} را بگیرد و برای ${themeB} که برای ${y} اهمیت دارد جایی نماند، پاسخ نخست به جای همراهی به صورت مخالفت شنیده می‌شود`,
     opposition:same?`دو برداشت از ${themeA} کنار هم قرار می‌گیرند؛ تصمیمی که فقط برداشت یکی را در نظر بگیرد برای دیگری ناتمام می‌ماند`:`در انتخاب میان دو اولویت، ${x} به ${themeA} تکیه می‌کند و ${y} به ${themeB}؛ مقدم دانستن همیشگی یکی از آن‌ها، خواستهٔ دیگری را بی‌پاسخ می‌گذارد`,
@@ -834,7 +931,10 @@ function openingPassage(contact,names,lens){
   };
   const specific=openingPairEffects[key]?.[openingAspectOrder.indexOf(aspect)];
   const responseA=openingRoleResponse[a.id],responseB=openingRoleResponse[b.id];
-  const close=same?`در چنین لحظه‌ای هر دو فرصت دارند ${responseA}؛ پاسخ هر یک باید جداگانه شنیده شود`:`در چنین لحظه‌ای ${x} می‌تواند ${responseA} و ${y} هم ${responseB}`;
+  const close=same?`برای نزدیک‌تر شدن، هر یک فرصت دارد ${responseA} و برای پاسخ دیگری هم جا بگذارد`:
+    aspect==="square"||aspect==="opposition"?
+    `پیش از آنکه این تفاوت به دلخوری برسد، ${x} فرصت دارد ${responseA} و ${y} هم ${responseB}`:
+    `این امکان در زندگی روزمره از انتخابی کوچک جان می‌گیرد: کافی است ${x} ${responseA} و ${y} ${responseB}`;
   return [scene,reasons,specific??effects[aspect]??effects.conjunction,close];
 }
 
@@ -857,19 +957,24 @@ export function buildRomanticOpening(contacts, names) {
   const second=(first===risk?benefit:risk)??items.filter(i=>i!==first).sort(rank)[0];
   const paragraphs=[[],[]];
   const evidence=[[],[]];
-  function append(index,item,full) {
-    const passage=openingPassage(item.contact,names,item.lens);
+  function append(index,item,full,previous){
+    const passage=openingPassage(item.contact,names,item.lens,previous?"follow":"main");
+    const id="contact:"+item.contact.id;
+    if(previous){
+      paragraphs[index].push(openingBridge(previous.contact,item.contact,names));
+      evidence[index].push(["contact:"+previous.contact.id,id]);
+    }
     const sentences=full ? passage : [passage[0],passage[2]??passage[1]];
     for(const sentence of sentences){
       paragraphs[index].push(sentence);
-      evidence[index].push("contact:"+item.contact.id);
+      evidence[index].push([id]);
     }
   }
   append(0,first,true);
-  if(second) append(1,second,true);
+  if(second) append(1,second,true,first);
   else {
     paragraphs[1].push("برای "+pairNames+" همین موضوع می‌تواند آغاز شناخت باشد؛ برای توصیف جنبه‌های دیگر رابطه هنوز شاهد کافی نداریم","آنچه در ارتباط واقعی با هم تجربه می‌کنند معنای بیشتری از هر پیش‌بینی دربارهٔ فردا دارد");
-    evidence[1].push("report:pair-context","report:pair-context");
+    evidence[1].push(["report:pair-context"],["report:pair-context"]);
   }
   const remaining=items.filter(i=>i!==first&&i!==second);
   // Cover a different theme rather than adding two near-identical contact stories.
@@ -878,23 +983,23 @@ export function buildRomanticOpening(contacts, names) {
     const used=new Set([main.contact.pointA.id,main.contact.pointB.id]);
     const extra=remaining.filter(i=>(["square","opposition"].includes(i.contact.aspectId))===hard)
       .filter(i=>!used.has(i.contact.pointA.id)&&!used.has(i.contact.pointB.id)).sort(rank)[0];
-    if(extra){append(index,extra,false);remaining.splice(remaining.indexOf(extra),1);}
+    if(extra){append(index,extra,false,main);remaining.splice(remaining.indexOf(extra),1);}
   }
   addDifferent(0,first,["square","opposition"].includes(first.contact.aspectId));
   if(second)addDifferent(1,second,["square","opposition"].includes(second.contact.aspectId));
   return {
     opening:[paragraphs[0].join(". ")+".",paragraphs[1].join(". ")+"."],
-    openingEvidence:paragraphs.flatMap((sentences,i)=>sentences.map((_,j)=>({sentenceId:"opening-p"+(i+1)+"-s"+(j+1),paragraph:i===0?1:2,evidenceIds:[evidence[i][j]]}))),
+    openingEvidence:paragraphs.flatMap((sentences,i)=>sentences.map((_,j)=>({sentenceId:"opening-p"+(i+1)+"-s"+(j+1),paragraph:i===0?1:2,evidenceIds:evidence[i][j]}))),
   };
 }
 ```
-<!-- END ROUND4 WRITER -->
+<!-- END ROUND5 WRITER -->
 
 #### فایل کاندید آزمون
 
 `scripts/check-comparison-romantic-opening.mjs`
 
-<!-- BEGIN ROUND4 GUARD -->
+<!-- BEGIN ROUND5 GUARD -->
 ```javascript
 import assert from "node:assert/strict";
 import {buildRomanticOpening,describeRomanticOpeningContact} from "../lib/comparison/comparison-romantic-opening.mjs";
@@ -907,9 +1012,9 @@ assert.ok(result.opening[0].includes(names.a)&&result.opening[0].includes(names.
 assert.match(result.opening[0],/دیدار بعدی/);
 assert.ok(result.opening[1].includes(names.a)&&result.opening[1].includes(names.b));
 assert.match(result.opening[1],/همراهی بی‌عجله/);
-assert.equal(result.openingEvidence.length,12);
+assert.equal(result.openingEvidence.length,15);
 assert.ok(result.opening.join(" ").trim().split(/\s+/u).length >= 220);
-assert.deepEqual(result.openingEvidence.map(e=>e.evidenceIds[0]),["contact:communication","contact:communication","contact:communication","contact:communication","contact:friction","contact:friction","contact:security","contact:security","contact:security","contact:security","contact:attraction","contact:attraction"]);
+assert.deepEqual(result.openingEvidence.map(e=>e.evidenceIds),[["contact:communication"],["contact:communication"],["contact:communication"],["contact:communication"],["contact:communication","contact:friction"],["contact:friction"],["contact:friction"],["contact:communication","contact:security"],["contact:security"],["contact:security"],["contact:security"],["contact:security"],["contact:security","contact:attraction"],["contact:attraction"],["contact:attraction"]]);
 assert.deepEqual(buildRomanticOpening(contacts.map(c=>({...c,pointA:{...c.pointB,chartSide:"a"},pointB:{...c.pointA,chartSide:"b"}})),{a:names.b,b:names.a}),result);
 assert.deepEqual(buildRomanticOpening([...contacts].reverse(),names),result);
 assert.match(buildRomanticOpening([],names).opening[0],/نفر الف.*نفر ب.*مبنای کافی/);
@@ -961,7 +1066,7 @@ console.log("PASS pair-specific romantic opening fixtures; matrix",cases,"two-co
 for(const a of pointIds)for(const b of pointIds){
   const passages=aspects.map(aspect=>buildRomanticOpening([make("angle",a,b,aspect,95)],names).opening[0]);
   assert.equal(new Set(passages).size,5);
-  assert.ok(passages.every(p=>p.startsWith("تصور کنید")));
+  assert.ok(passages.every(p=>/^(تصور کنید|فرض کنید|یک دیدار را تصور کنید|پایان یک دیدار را تصور کنید)/u.test(p)));
 }
 console.log("PASS five distinct aspect outputs for 196 ordered pairs");
 
@@ -983,8 +1088,16 @@ const sameMoon=buildRomanticOpening([make("same","moon","moon","square",95)],nam
 assert.match(sameMoon,/نفر الف از دلخوری همان لحظه/);
 assert.match(sameMoon,/نفر ب از واکنش عاطفی خودش/);
 console.log("PASS grammar, exact evidence and targeted owner checks");
+
+// Round 5: bridges cite both underlying contacts.
+const joint=buildRomanticOpening([make("tension","moon","mars","square",95),make("support","moon","saturn","trine",90)],names);
+assert.deepEqual(joint.openingEvidence.find(e=>e.paragraph===2).evidenceIds,["contact:tension","contact:support"]);
+assert.match(joint.opening[1],/همان نیازی.*نفر الف/);
+assert.equal(result.openingEvidence.filter(e=>e.evidenceIds.length===2).length,3);
+assert.ok(joint.opening.every(p=>!p.includes("{x}")&&!p.includes("{y}")));
+console.log("PASS narrative bridges cite both contacts");
 ```
-<!-- END ROUND4 GUARD -->
+<!-- END ROUND5 GUARD -->
 
 آخرین نوبت کامل‌شدهٔ تاریخی: ۳ از ۸.
 
@@ -998,7 +1111,26 @@ console.log("PASS grammar, exact evidence and targeted owner checks");
 
 محدودیت: ممیزی دستوری و ساختاری ماشینی جای خواندن ادبی تمام ۹۸۰ حالت را نمی‌گیرد. مثال‌های طراحی هنوز چهار زمینهٔ اصلی دارند، برخی پایان‌ها الگوی مشترک دارند و تکرار بین دو بند و شاعرانگی کل مقدمه در نوبت ۵ و ۶ باید اصلاح شوند. از نمونهٔ ماه/مریخ، ماه/زحل، عطارد/نپتون، زحل/اورانوس و نقاط هم‌نام برای بررسی معنایی استفاده شد. این اجرا محاسبهٔ چارت یا تست Node/pnpm و git diff --check نبود؛ این موارد در مراحل اجرایی لازم باید انجام شوند. هیچ فایل فعال محصول تغییر نکرده است.
 
-آخرین نوبت کامل‌شده: ۴ از ۸ (ممیزی ترکیب‌ها و اصلاح کاندید). تصمیم معوق جدید: ندارد. نقطهٔ ادامه: نوبت ۵، بازیابی بلوک‌های ROUND4 WRITER و ROUND4 GUARD و بازسازی ترکیب چند شاهد به یک روایت طبیعی و شاعرانه بدون تکرار ساختاری. حفظ بررسی‌های نوبت ۴ و اجرای تازهٔ کاندید.
+آخرین نوبت کامل‌شدهٔ تاریخی: ۴ از ۸.
+
+### نوبت ۵ — روایت پیوسته و صدای انسانی
+
+کاندید نوبت ۴ عیناً از کامیت `88518786c7338e0e6f4d45a276036284164b9ceb` بازیابی شد. نسخهٔ فعال محصول تغییر نکرده است. نسخهٔ اجرایی جدید در بلوک‌های ROUND5 WRITER و ROUND5 GUARD نگه‌داری می‌شود.
+
+تغییرها: چهار شروع موقعیت متناسب با زمینه؛ بازنویسی کنش و علت واکنش ۱۱ جفت خاص؛ زبان ملموس برای نیاز ۱۴ نقطه؛ پایان وابسته به نقش و جهت زاویه؛ اتصال شاهد دوم به نخست بر اساس نقطهٔ مشترک و صاحب واقعی آن. اگر نقطهٔ مشترک وجود ندارد، اتصال فقط بین موضوع‌ها است و ادعای تماس جدید ندارد. پل به هر دو شناسهٔ شاهد ارجاع می‌دهد. مثال‌های اصلی و تکمیلی همچنان فرضی‌اند؛ دو بند حفظ شده‌اند.
+
+اجرای جاوااسکریپت و guard با assert معادل در V8: PASS pair-specific romantic opening fixtures; matrix 980 two-contact word range 273 349؛ PASS five distinct aspect outputs for 196 ordered pairs؛ PASS grammar, exact evidence and targeted owner checks؛ PASS narrative bridges cite both contacts. 13167 assertion بدون شکست. ممیزی ۹۸۰ حالت دو شاهد: 980 اتصال با دو شناسه، صفر نام گم‌شده، جای‌نگهدار حل‌نشده و تکرار عین جمله در هر بند. تکرار عبارت «تصور کنید» در نمونه‌های دو تماس: 980 به 0. چهار شروع متمایز. شمارش مکانیکی جای ممیزی ادبی نیست. تغییر تعداد جمله‌ها و چندشناسه‌ای شدن پل‌ها در guard صریح ثبت شد.
+
+نمونهٔ خام کاندید با تماس‌های مصنوعی ماه/مریخ مربع و ماه/زحل تثلیث (چارت محاسبه‌شده نیست):
+
+یک دیدار را تصور کنید که در میانه‌اش برنامه تغییر می‌کند و باید دربارهٔ ادامهٔ آن تصمیم بگیرند؛ رها از دلخوری همان لحظه می‌گوید و می‌خواهد چند دقیقه شنیده شود؛ نیما می‌پرسد اکنون چه کاری از دستش برمی‌آید و به فکر حل مشکل می‌افتد. برای نیما کمک کردن از قدمی عملی آغاز می‌شود؛ برای رها اولین شکل کمک، فرصتی است که در آن لازم نیست احساسش را عجولانه کنار بگذارد. اگر راه‌حل پیش از شنیدن دلخوری برسد، گفت‌وگو از مشکلی که پیش آمده به شیوهٔ برخورد با احساس دیگری کشیده می‌شود. پیش از آنکه این تفاوت به دلخوری برسد، نیما فرصت دارد پیش از برداشتن قدم بعدی دربارهٔ زمان اقدام با دیگری هماهنگ شود و رها هم روشن کند در آن لحظه شنیدن می‌خواهد یا فرصتی برای آرام شدن.
+
+همان نیازی که در تصویر نخست برای رها اهمیت داشت، در پیوند دیگری راهی متفاوت پیدا می‌کند؛ برای رها مهم است که برای حرف دلش مجال پیدا کند و این بار توجه نیما به ثبات و وفای به قول نیز در کنار آن قرار می‌گیرد. اگر پیش از خداحافظی چند دقیقه برای گفت‌وگو بماند؛ رها از روز دشوارش حرف می‌زند و برای پیدا کردن کلمات مکث می‌کند؛ نیما زمانی را که واقعاً برای ماندن و شنیدن در اختیار دارد روشن می‌کند، تا همراهی بی‌عجله در حد قولی شدنی بماند. در این چند دقیقه، رها به فرصتی برای بیان احساس نیاز دارد و نیما به اطمینان از اینکه حضوری را وعده نمی‌دهد که توانش را ندارد. حضورِ قابل اتکا در کنار فرصت بیان احساس، به لحظه‌ای آرام شکل می‌دهد؛ گاهی همان چند دقیقهٔ بی‌عجله از قولی بزرگ ارزشمندتر است. این امکان در زندگی روزمره از انتخابی کوچک جان می‌گیرد: کافی است رها روشن کند در آن لحظه شنیدن می‌خواهد یا فرصتی برای آرام شدن و نیما روشن کند کدام قول واقعاً از عهده‌اش برمی‌آید.
+
+محدودیت: نسبت واقعی لحن قاطع و کیفیت شاعرانه هنوز ممیزی مستقل نشده است؛ پایان‌ها و پیوند موضوع‌های بدون نقطهٔ مشترک ممکن است قالبی بمانند. چهار زمینه و ۱۱ جفت خاص تصمیم طراحی است. Node/pnpm، git diff --check و موتور کامل اجرا نشده‌اند. خطای اجرای نخست ابزار (فراخوانی تابع جدید در نسخهٔ قدیمی) پیش از هر جهش شاخه رخ داد و با جدا کردن رابط اجرای مشترک نسخه‌ها رفع شد.
+
+آخرین نوبت کامل‌شده: ۵ از ۸ (روایت پیوسته). تصمیم معوق جدید: ندارد. نقطهٔ ادامه: نوبت ۶، بازیابی ROUND5 WRITER و ROUND5 GUARD و ممیزی مستقل لحن ۸۰ تا ۹۰ درصد مستقیم، تنوع، شاعرانگی و اتصال، اصلاح و اجرای تازه؛ سپس بررسی مسیر واقعی موتور برای نوبت ۷.
+
 
 
 
