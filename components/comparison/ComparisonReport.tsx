@@ -85,6 +85,19 @@ type ComparisonReportProps = {
 
 type ComparisonMode = "reading" | "technical";
 
+function ComparisonPreviewLock() {
+  return (
+    <div className={styles.previewLock} aria-hidden="true">
+      <div className={styles.previewLockLines}><span /><span /><span /><span /></div>
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="10" width="14" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        <path d="M12 14v3" />
+      </svg>
+    </div>
+  );
+}
+
 export function ComparisonReport({ comparisonId, localDemo = false }: ComparisonReportProps) {
   const router = useRouter();
   const [record, setRecord] = useState<ComparisonRecord | null>(null);
@@ -342,7 +355,8 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
                   <span>{(index+1).toLocaleString("fa-IR")}</span>
                   <div>
                     <h3>{pattern.title}</h3>
-                    <p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{pattern.excerptFa}…</p>
+                    <p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{pattern.excerptFa}</p>
+                    <ComparisonPreviewLock />
                     <p className={styles.privateNote}>ادامه پس از خرید گزارش باز می‌شود.</p>
                   </div>
                 </article>
@@ -355,7 +369,8 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
                 <div className={styles.sectionHeading}><p className={styles.eyebrow}>{chapter.eyebrow}</p><h2>{chapter.title}</h2></div>
                 <article className={styles.chapterStory}>
                   <h3>{chapter.storyTitle}</h3>
-                  <p className={styles.storyLead} style={{ whiteSpace: "pre-line" }}>{chapter.excerptFa}…</p>
+                  <p className={styles.storyLead} style={{ whiteSpace: "pre-line" }}>{chapter.excerptFa}</p>
+                  <ComparisonPreviewLock />
                   {chapter.evidenceStatus !== "supported" && <p className={styles.privateNote}>{chapter.evidenceStatus === "insufficient" ? "شواهد این فصل برای نتیجه‌گیری اختصاصی کافی نیست." : "این بخش با محدودیت شواهد خوانده می‌شود."}</p>}
                   <p>ادامهٔ فصل پس از خرید باز می‌شود.</p>
                 </article>

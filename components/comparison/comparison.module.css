@@ -5116,3 +5116,12 @@
   .directPeopleGrid .optionalChartPicker,
   .product[data-embedded="true"][data-builder-simplified="r12"] .directPeopleGrid .personCard { margin-inline: 8px; }
 }
+
+/* Match the Vedic locked continuation: decorative lines, never private text. */
+.previewLock { position: relative; display: grid; place-items: center; min-height: 90px; color: #d6dde6; isolation: isolate; }
+.previewLockLines { position: absolute; inset: 3px 0; display: grid; align-content: space-around; gap: 8px; padding: 4px 0; mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); }
+.previewLockLines span { display: block; height: 7px; width: 95%; border-radius: 10px; background: rgb(216 221 229 / 22%); }
+.previewLockLines span:nth-child(2) { width: 83%; }
+.previewLockLines span:nth-child(3) { width: 92%; }
+.previewLockLines span:nth-child(4) { width: 65%; }
+.previewLock svg { z-index: 1; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #11141a; border: 1px solid rgba(216, 221, 229, .14); }
