@@ -25,4 +25,36 @@ assert.equal(JSON.stringify(result).includes("رجوع کنید"),false);
 assert.equal(result.opening[0].includes(describeRomanticOpeningContact(contacts[0],names).lead),false);
 assert.equal(result.opening[1].includes(describeRomanticOpeningContact(contacts[1],names).lead),false);
 assert.ok(buildRomanticOpening([contacts[2],contacts[3]],names).opening.join(" ").includes("تجربه‌های تازه"));
-console.log("PASS pair-specific romantic opening fixtures");
+
+// Synthetic contact coverage; not a calculation of actual natal charts.
+const pointIds=["sun","moon","mercury","venus","mars","jupiter","saturn","uranus","neptune","pluto","asc","dsc","mc","ic"];
+const aspects=["square","opposition","conjunction","trine","sextile"];
+const countWords=text=>text.trim().split(/\s+/u).length;
+const reverse=c=>({...c,pointA:{...c.pointB,chartSide:"a"},pointB:{...c.pointA,chartSide:"b"}});
+let cases=0,minimum=Infinity,maximum=0;
+for(const a of pointIds)for(const b of pointIds)for(const aspect of aspects){
+  const c=make("matrix-"+a+"-"+b+"-"+aspect,a,b,aspect,95);
+  const opening=buildRomanticOpening([c],names);
+  assert.equal(opening.opening.length,2);
+  assert.ok(opening.opening[0].includes(names.a)&&opening.opening[0].includes(names.b));
+  assert.ok(countWords(opening.opening[0])>=65);
+  assert.ok(opening.openingEvidence.filter(e=>e.paragraph===1).length>=4);
+  assert.ok(opening.openingEvidence.every(e=>e.evidenceIds.every(id=>id==="contact:"+c.id||id==="report:pair-context")));
+  assert.deepEqual(buildRomanticOpening([reverse(c)],{a:names.b,b:names.a}),opening);
+  assert.deepEqual(buildRomanticOpening([c,c],names),opening);
+  const other=make("matrix-other","moon","saturn",aspect==="square"||aspect==="opposition"?"sextile":"square",80);
+  const combined=buildRomanticOpening([c,other],names);
+  const words=countWords(combined.opening.join(" "));
+  assert.ok(words>=140);
+  assert.ok(combined.opening.every(p=>p.trim().length>0));
+  assert.deepEqual(buildRomanticOpening([other,c],names),combined);
+  assert.ok(combined.openingEvidence.every(e=>e.evidenceIds.every(id=>id==="contact:"+c.id||id==="contact:"+other.id||id==="report:pair-context")));
+  minimum=Math.min(minimum,words);maximum=Math.max(maximum,words);
+  cases++;
+}
+const noAngles=contacts.filter(c=>![c.pointA.id,c.pointB.id].some(id=>["moon","asc","dsc","mc","ic"].includes(id)));
+const unknownTime=buildRomanticOpening(noAngles,names);
+assert.ok(unknownTime.openingEvidence.every(e=>e.evidenceIds.every(id=>id==="report:pair-context"||noAngles.some(c=>"contact:"+c.id===id))));
+assert.match(buildRomanticOpening([],names).opening.join(" "),/مبنای کافی/);
+assert.equal(buildRomanticOpening([],names).openingEvidence.every(e=>e.evidenceIds[0]==="report:pair-context"),true);
+console.log("PASS pair-specific romantic opening fixtures; matrix",cases,"two-contact word range",minimum,maximum);
