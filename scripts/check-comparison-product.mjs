@@ -522,6 +522,12 @@ if (/\bfetch\s*\(/.test(runtimeSources)) {
   failures.push("comparison runtime must not send comparison or second-person data over fetch");
 }
 
+try {
+  await import("./check-comparison-romantic-opening-v2.mjs");
+} catch (error) {
+  failures.push(`romantic opening V2: ${error instanceof Error ? error.message : String(error)}`);
+}
+
 if (failures.length > 0) {
   console.error("Comparison product check failed:");
   for (const failure of failures) console.error(`- ${failure}`);

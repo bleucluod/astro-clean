@@ -4,7 +4,8 @@ import {
 } from "@/lib/astrology/synastry/real-synastry-engine";
 import { buildFullComparisonInterpretation } from "@/lib/comparison/comparison-full-interpretation";
 import { buildComparisonEvidencePlan } from "@/lib/comparison/comparison-evidence-plan";
-import { buildRomanticOpening, describeRomanticOpeningContact } from "@/lib/comparison/comparison-romantic-opening.mjs";
+import { describeRomanticOpeningContact } from "@/lib/comparison/comparison-romantic-opening.mjs";
+import { buildRomanticOpeningV2 } from "@/lib/comparison/comparison-romantic-opening-v2.mjs";
 import type { AstrologyReport } from "@/types/astro";
 import type {
   ComparisonNarrativeChapter,
@@ -30,6 +31,14 @@ import type {
 
 const EMOTIONAL_POINT_IDS = new Set(["moon", "venus", "saturn"]);
 const BOUNDARY_POINT_IDS = new Set(["saturn", "uranus", "pluto"]);
+
+// Private runtime metadata, not a new stored/public reading field.
+type OpeningPrimaryCoverage = "specific" | "general";
+const openingPrimaryCoverage = new WeakMap<HumanFirstDirectionalNarrativeBlock, OpeningPrimaryCoverage>();
+function markOpeningPrimaryCoverage(block: HumanFirstDirectionalNarrativeBlock, coverage: OpeningPrimaryCoverage) {
+  openingPrimaryCoverage.set(block, coverage);
+  return block;
+}
 
 type ComparisonNatalSource = Pick<AstrologyReport, "realEngine"> & {
   input: Pick<AstrologyReport["input"], "name">;
@@ -457,6 +466,7 @@ function buildCommunicationChapter(
   const secondaryMercury = support && owner(support, "mercury");
   const secondarySun = support && owner(support, "sun");
   const secondaryJupiter = support && owner(support, "jupiter");
+  let openingCoverage: OpeningPrimaryCoverage = "general";
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
   let roles: Partial<Record<Side, string>> = {};
   const assignRoles = (first: string, firstRole: string, second: string, secondRole: string) => {
@@ -465,6 +475,7 @@ function buildCommunicationChapter(
     roles = { [firstSide]: firstRole, [secondSide]: secondRole };
   };
   if (mercury && sun && hard) {
+    openingCoverage = "specific";
     title = "یک سؤال، دو معنای متفاوت";
     lead = `${sun} ایده‌ای را با علاقه توضیح می‌دهد و اولین جواب ${mercury} این است: «چرا این راه؟» سؤال می‌تواند دربارهٔ خود پیشنهاد باشد، اما برای ${sun} معنای دیگری پیدا کند: «پس انتخابم را نپسندیدی؟» ${relationship(primary)} در تفسیر نجومی همین فاصله میان نقد یک نظر و واکنش به صاحب آن را برجسته می‌کند.`;
     example = `در بررسی طرح یک پروژه، ${mercury} می‌پرسد «هزینه‌اش چقدره؟» و ${sun} هنوز نمی‌داند طرف مقابل با اصل طرح موافق است یا نه. اگر جواب فقط «این یکی بهتره» باشد، دلیل ترجیح هم ناگفته می‌ماند.`;
@@ -473,6 +484,7 @@ function buildCommunicationChapter(
     step = `${sun} نوع بازخورد را مشخص کند: «اول بگو پیام اصلی رو گرفتی یا نه». ${mercury} ابتدا برداشتش را بگوید، سپس یک نکتهٔ قابل اصلاح را مطرح کند.`;
     assignRoles(mercury, "پیشنهاد را از نظر دلیل و جزئیات می‌سنجد.", sun, "به معنای شخصی انتخاب و نظر کلی توجه دارد.");
   } else if (mercury && moon && smooth) {
+    openingCoverage = "specific";
     title = "معنایی که بین جمله‌ها پیدا می‌شود";
     lead = `${moon} از یک اتفاق می‌گوید: «یه جای کار عجیب بود». ${mercury} می‌پرسد «یعنی انتظار داشتی از قبل خبرت کنند؟» و موضوع از یک حس مبهم به پرسشی روشن تبدیل می‌شود. ${relationship(primary)} در تفسیر نجومی به توانایی پیدا کردن کلمات برای تجربه‌ای اشاره دارد که هنوز کامل بیان نشده است.`;
     example = `این توانایی یک‌طرفه نیست. وقتی ${mercury} ماجرایی را نقل می‌کند، ممکن است ${moon} بپرسد تصمیم قبل از جلسه گرفته شده بود یا بعد از آن. همین ترتیب زمانی معنای خبر را عوض می‌کند.`;
@@ -481,6 +493,7 @@ function buildCommunicationChapter(
     step = `${mercury} پس از برداشت اولیه بپرسد «کدوم بخشش؟» و ${moon} یک نمونه از خود اتفاق بدهد. قبل از نتیجه‌گیری، تفاوت دو تعبیر را با همان نمونه بررسی کنید.`;
     assignRoles(moon, "اهمیت و معنای تجربه را وارد گفت‌وگو می‌کند.", mercury, "با سؤال دقیق به تجربه صورت روشن می‌دهد.");
   } else if (mercury && mars && smooth) {
+    openingCoverage = "specific";
     title = "وقتی حرف به یک امتحان کوچک تبدیل می‌شود";
     lead = `${mercury} می‌پرسد «می‌شه این وسیله رو یه جور دیگه چید؟» و ${mars} راهی برای امتحان کردن پیشنهاد پیدا می‌کند. ${relationship(primary)} در تفسیر نجومی پیوند فکر و عمل را برجسته می‌کند: یک پیشنهاد تنها با موافقت یا مخالفت روبه‌رو نمی‌شود؛ نتیجه‌ای پیدا می‌کند که هر دو می‌توانند درباره‌اش حرف بزنند.`;
     example = `فرض کنید ${mars} قواعد یک بازی را با حرکت اول توضیح می‌دهد. ${mercury} حالتی را پیدا می‌کند که در آن قاعده کار نمی‌کند. به‌جای بحث بر سر اینکه توضیح کافی بوده یا نه، می‌توانند همان حالت را دوباره بازی کنند و قاعده را دقیق‌تر بنویسند.`;
@@ -489,6 +502,7 @@ function buildCommunicationChapter(
     step = `ابتدا معیار آزمون را مشخص کنید: «می‌خوایم جا بیشتر بشه یا دسترسی راحت‌تر؟» سپس ${mars} یک تغییر کوچک انجام دهد و ${mercury} نتیجه را با همان معیار توصیف کند.`;
     assignRoles(mercury, "سؤال و معیار سنجش را مطرح می‌کند.", mars, "راه آزمودن ایده را پیشنهاد می‌دهد.");
   } else if (primary.pointA.id === "mercury" && primary.pointB.id === "mercury") {
+    openingCoverage = "specific";
     title = "آیا از یک کلمه، یک چیز می‌فهمید؟";
     lead = `${relationship(primary)} در خوانش نجومی به عبارت‌بندی هر دو نفر مربوط است. ${smooth ? "این تماس امکان پیدا کردن زبان مشترک را برجسته می‌کند." : hard ? "این تماس تفاوت در تعریف یا ترتیب توضیح را برجسته می‌کند." : "این تماس توجه را به انتخاب واژه‌ها جلب می‌کند."} مثلاً «آماده است» برای یکی می‌تواند به معنای قابل‌بررسی و برای دیگری به معنای تمام‌شده باشد.`;
     example = "در توضیح یک دستور یا مسیر، نخست واژه‌های مبهم را مشخص کنید و بعد سراغ جزئیات بروید.";
@@ -582,13 +596,13 @@ function buildCommunicationChapter(
     else example += sentence;
     evidence.push({ id: item.evidenceId, label: "جنبهٔ فردی مرتبط", detail: description + "." });
   }
-  return {
+  return markOpeningPrimaryCoverage({
     id: "communication-" + primary.id, title, humanExperience: lead,
     dailySituation: example, strength, challenge, practicalStep: step, evidence,
     personA: roles.a ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
     personB: roles.b ?? "نقش او در شاهد اصلی به موضوع گفت‌وگو وابسته است.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
-  };
+  }, openingCoverage);
 }
 
 
@@ -626,6 +640,7 @@ function buildEmotionalSecurityChapter(
     const s = side(c, point);
     if (s) roles[s] = role;
   };
+  let openingCoverage: OpeningPrimaryCoverage = "general";
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
   if (!primary) {
     title = "آنچه دربارهٔ احساس امنیت هنوز روشن نیست";
@@ -643,6 +658,7 @@ function buildEmotionalSecurityChapter(
     const hard = primary.aspectId === "opposition" || primary.aspectId === "square";
     const smooth = primary.aspectId === "conjunction" || primary.aspectId === "trine" || primary.aspectId === "sextile";
     if (moon && saturn && hard) {
+      openingCoverage = "specific";
       title = "اول دلگرمی، بعد راه‌حل";
       lead = `${moon} از روزی سخت به خانه برمی‌گردد. ${saturn} به فکر سبک کردن کارهای فرداست، اما ${moon} هنوز به دلگرمی نیاز دارد. در تفسیر ${describe(primary)}، نیاز به دلگرمی با میل به سامان دادن اوضاع روبه‌رو می‌شود. کمکِ به‌موقع فقط به حل مشکل محدود نیست.`;
       example = `بعد از یک نتیجهٔ ناامیدکننده، جملهٔ «دفعهٔ بعد جور دیگری امتحان کن» از طرف ${saturn} شاید برای ${moon} زود باشد. هنوز وقت جبران نرسیده؛ اول باید بتواند از چیزی که از دست داده ناراحت باشد.`;
@@ -652,6 +668,7 @@ function buildEmotionalSecurityChapter(
       assign(primary, "moon", "به دیده شدن خستگی و احساس خود نیاز دارد.");
       assign(primary, "saturn", "حمایت را با ایجاد ثبات و کم کردن بار عملی نشان می‌دهد.");
     } else if (moon && pluto && primary.aspectId === "conjunction") {
+      openingCoverage = "specific";
       title = "برای حمایت لازم نیست همه‌چیز را بدانید";
       lead = `پس از خبری تلخ، ${moon} دوباره به کارهای روزمره‌اش می‌رسد، اما هنوز اندوهگین است. ${describe(primary)} در تفسیر نجومی با حساسیت به احساساتی پیوند دارد که به‌سادگی آشکار نمی‌شوند. ${pluto} ممکن است تغییر حال او را زود دریابد؛ امنیت برای ${moon} آن است که حتی بدون شرح کامل ماجرا نیز بتواند روی همراهی او حساب کند.`;
       example = `بعد از دیداری خانوادگی که ${moon} را اندوهگین کرده، شاید تا فردا حالش بهتر نشود. ${pluto} لازم نیست تمام شب را وقف تغییر حال او کند؛ می‌تواند برنامهٔ عادی شب را حفظ کند تا آن اندوه تمام فضای خانه را نگیرد.`;
@@ -661,6 +678,7 @@ function buildEmotionalSecurityChapter(
       assign(primary, "moon", "برای احساس حساس خود فضای پذیرفته شدن می‌خواهد.");
       assign(primary, "pluto", "به عمق تجربه توجه می‌کند، بدون اینکه مالک آن باشد.");
     } else if (moon && venus && smooth) {
+      openingCoverage = "specific";
       title = "وقتی جزئیات کوچک خبر از توجه می‌دهند";
       lead = `${venus} هنگام خرید، خوراکی دلخواه ${moon} را هم برمی‌دارد. ${describe(primary)} در تفسیر نجومی نیاز به توجه را به ابراز مهر پیوند می‌دهد. برای ${moon}، این کار نشانهٔ آن است که حتی در غیابش به یاد او بوده‌اند.`;
       example = `در روزی که ${moon} برای یک کار مهم از خانه بیرون رفته، ${venus} می‌تواند بعد از تمام شدن کار سراغش را بگیرد. به خاطر داشتن زمان آن اتفاق، بدون اینکه لازم باشد دوباره یادآوری شود، شکل دیگری از همین توجه است.`;
@@ -670,6 +688,7 @@ function buildEmotionalSecurityChapter(
       assign(primary, "moon", "توجه را از تناسب رفتار با نیاز عاطفی روز دریافت می‌کند.");
       assign(primary, "venus", "علاقه را در رفتارهای خوشایند و مراقبت روزمره ابراز می‌کند.");
     } else if (moon && venus && hard) {
+      openingCoverage = "specific";
       title = "مهری که همیشه به شکل دلخواه نمی‌رسد";
       lead = `${venus} برای خوشحال کردن ${moon} پیشنهادی می‌دهد؛ اما ${moon} شاید در آن لحظه چیز دیگری بخواهد. ${describe(primary)} در تفسیر نجومی به فاصلهٔ میان ابراز مهر و نیاز عاطفی اشاره دارد. رد کردن یک پیشنهاد الزاماً رد کردن محبت نیست.`;
       example = `وقتی ${moon} از یک روز شلوغ برمی‌گردد، دعوت ${venus} به جمع دوستان شاید برایش دلپذیر نباشد؛ یک شام آرام می‌تواند مناسب‌تر باشد.`;
@@ -679,6 +698,7 @@ function buildEmotionalSecurityChapter(
       assign(primary, "moon", "به حمایتی متناسب با حال خود نیاز دارد.");
       assign(primary, "venus", "مهر را ابراز می‌کند، اما شکل دریافت آن ممکن است متفاوت باشد.");
     } else if (moon && saturn && smooth) {
+      openingCoverage = "specific";
       title = "آرامش در حضور قابل اتکا";
       lead = `${moon} پس از یک روز آشفته به محیطی آرام برمی‌گردد. ${describe(primary)} در تفسیر نجومی به امکان همراه شدن نیاز عاطفی با ثبات اشاره دارد. حضور آرام و بدون عجلهٔ ${saturn} می‌تواند همان چیزی باشد که ${moon} در آن لحظه از حمایت می‌خواهد.`;
       example = `هنگام انتظار برای خبری مهم، ${saturn} می‌تواند بی‌آنکه قول نتیجه‌ای بدهد، بخشی از زمان انتظار را کنار ${moon} بگذراند.`;
@@ -759,14 +779,14 @@ function buildEmotionalSecurityChapter(
       used.add(item.evidenceId);
     }
   }
-  return {
+  return markOpeningPrimaryCoverage({
     id: primary ? "emotional-security-" + primary.id : "emotional-security-insufficient",
     title, humanExperience: lead, dailySituation: example, strength, challenge,
     practicalStep: step, evidence,
     personA: roles.a ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
     personB: roles.b ?? "نقش اختصاصی او در دریافت حمایت از این شاهد به تنهایی روشن نیست.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
-  };
+  }, openingCoverage);
 }
 
 /** The approved attraction evidence is separate from emotional care and promises. */
@@ -818,6 +838,7 @@ function buildAttractionChapter(
   };
   const addEvidence = (c: SynastryInterChartAspect, label: string) =>
     evidence.push({ id: c.id + "-attraction-intimacy", label, detail: describe(c) + "." });
+  let openingCoverage: OpeningPrimaryCoverage = "general";
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
   if (!primary) {
     title = "ریتم نزدیکی هنوز روشن نیست";
@@ -833,6 +854,7 @@ function buildAttractionChapter(
     const sun = owner(primary, "sun");
     const smooth = ["conjunction", "trine", "sextile"].includes(primary.aspectId);
     if (venus && uranus && smooth) {
+      openingCoverage = "specific";
       title = romantic ? "وقتی تازگی دوباره جرقه می‌زند" : "لذت کشف راهی تازه در کنار هم";
       lead = romantic
         ? `وسط یک قرار معمولی، ${uranus} پیشنهاد می‌دهد به نمایشگاهی بروند که هیچ‌کدام ندیده‌اند. توجه ${venus} به خودِ ابتکار جلب می‌شود، نه فقط مقصد. ${describe(primary)} در زبان نجومی به این پیوند میان غافلگیری و کشش اشاره دارد.`
@@ -848,6 +870,7 @@ function buildAttractionChapter(
       assign(primary, "uranus", "با آوردن تازگی، توجه و کنجکاوی را برمی‌انگیزد.");
       assign(primary, "venus", "با انتخاب آنچه خوشایند است، تازگی را به تجربهٔ مشترک تبدیل می‌کند.");
     } else if (venus && sun && smooth) {
+      openingCoverage = "specific";
       title = romantic ? "وقتی خودِ دیگری جذاب است" : "رغبت به همراهی از دل تحسین";
       lead = romantic
         ? `وقتی ${sun} با شوق سرگرم چیزی است که دوست دارد، توجه ${venus} فقط به آن سرگرمی نیست؛ شیوهٔ حضور خودِ او هم جذاب است. ${describe(primary)} در خوانش نجومی به همین پیوند میان ابراز خود و پسندیدن دیگری اشاره دارد. کشش لزوماً از یک قرار طراحی‌شده آغاز نمی‌شود.`
@@ -866,6 +889,7 @@ function buildAttractionChapter(
       assign(primary, "venus", "با تحسین و سلیقهٔ خود، به آن تجربه رنگ مشترک می‌دهد.");
     } else if (primary.pointA.id === "venus" && primary.pointB.id === "venus" && smooth) {
       const a = names[primary.pointA.chartSide], b = names[primary.pointB.chartSide];
+      openingCoverage = "specific";
       title = "لذت بردن از همان لحظه";
       lead = romantic
         ? `گاهی ${a} و ${b} در یک قرار معمولی همزمان به همان شوخی فیلم می‌خندند. ${describe(primary)} در خوانش نجومی به هم‌خوانی سلیقه اشاره دارد: برای لذت بردن از کنار هم بودن، همیشه به برنامه‌ای ویژه نیاز ندارند.`
@@ -879,6 +903,7 @@ function buildAttractionChapter(
       roles[primary.pointA.chartSide] = "با سلیقهٔ خودش در ساختن تجربه‌ای خوشایند برای هر دو سهم دارد.";
       roles[primary.pointB.chartSide] = roles[primary.pointA.chartSide];
     } else if (venus && uranus && ["square", "opposition"].includes(primary.aspectId)) {
+      openingCoverage = "specific";
       title = "تازگی با ریتم متفاوت";
       lead = `${describe(primary)} در تعبیر نجومی به تفاوت در استقبال از تغییر اشاره دارد. ${uranus} ممکن است وسط ${setting} پیشنهاد دیگری مطرح کند، در حالی که ${venus} هنوز از انتخاب قبلی لذت می‌برد. تازه بودن برای هر دو الزاماً در همان لحظه خوشایند نیست.`;
       example = ({ romantic: `مثلاً ${venus} هنوز از قدم‌زدن لذت می‌برد که ${uranus} پیشنهاد می‌دهد همین حالا مسیر دیگری را امتحان کنند. گزینهٔ تازه شاید برای دیدار بعد دلپذیر باشد، نه در آن لحظه.`, friendship: `اگر ${uranus} وسط بازی پیشنهاد عوض کردن آن را بدهد، ${venus} شاید ترجیح دهد دور فعلی را تمام کند.`, family: `اگر ${uranus} سرگرمی تازه‌ای پیشنهاد دهد، ${venus} شاید هنوز بخواهد از گفت‌وگوی جمع خانوادگی لذت ببرد.`, work: `اگر ${uranus} وسط ساخت نمونه طرح تازه‌ای پیشنهاد دهد، ${venus} شاید هنوز از شکل گرفتن نسخهٔ فعلی راضی باشد.`, general: `پیشنهاد تازهٔ ${uranus} شاید برای نوبت بعد برای ${venus} خوشایندتر باشد تا وسط تجربهٔ فعلی.` }[relationship]);
@@ -889,6 +914,7 @@ function buildAttractionChapter(
       assign(primary, "venus", "خوشایندی تغییر را از سلیقهٔ خودش می‌سنجد.");
     } else if (venus && owner(primary, "mars") && smooth) {
       const mars = owner(primary, "mars");
+      openingCoverage = "specific";
       title = "از پسندیدن تا همراه شدن";
       lead = `${describe(primary)} در تعبیر نجومی به پیوند میان پسندیدن و پیش‌قدم شدن اشاره دارد. در ${setting}، ${venus} چیزی را که دوست دارد انتخاب می‌کند و ${mars} راهی برای تجربه کردن آن پیشنهاد می‌دهد.`;
       example = ({ romantic: `مثلاً ${venus} از آهنگی خوشش می‌آید و ${mars} پیشنهاد می‌دهد با آن برقصند؛ پسندیدن یک صدا به فرصتی برای نزدیکی تبدیل می‌شود، اگر هر دو مایل باشند.`, friendship: `اگر ${venus} بازی تازه‌ای را بپسندد، ${mars} می‌تواند وسایلش را آماده کند و شروع آن را آسان‌تر سازد.`, family: `اگر ${venus} خوراکی خاصی را دوست داشته باشد، ${mars} می‌تواند پیشنهاد دهد یک بار با هم آن را درست کنند.`, work: `وقتی ${venus} از طرحی استقبال می‌کند، ${mars} می‌تواند نمونهٔ کوچکی از آن بسازد تا هر دو نتیجه را ببینند.`, general: `وقتی ${venus} بخشی از تجربه را می‌پسندد، ${mars} می‌تواند امکان انجام دادن همان بخش را فراهم کند.` }[relationship]);
@@ -958,14 +984,14 @@ function buildAttractionChapter(
       evidence.push({ id: item.evidenceId, label: "جنبهٔ فردی مرتبط با کشش و صمیمیت", detail: description + "." });
     }
   }
-  return {
+  return markOpeningPrimaryCoverage({
     id: primary ? "attraction-intimacy-" + primary.id : "attraction-intimacy-insufficient",
     title, humanExperience: lead, dailySituation: example, strength, challenge,
     practicalStep: step, evidence,
     personA: roles.a ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
     personB: roles.b ?? "نقش اختصاصی او در ریتم نزدیکی از این شاهد به تنهایی روشن نیست.",
     feelingOrReaction: challenge, effect: strength, cycle: example,
-  };
+  }, openingCoverage);
 }
 
 /** Keep expectations and agreements separate from closeness and conflict repair. */
@@ -1054,6 +1080,7 @@ function buildBoundaryChapter(
     }[outer];
     return { holder, person, target, outer, tense, domain, lens };
   };
+  let openingCoverage: OpeningPrimaryCoverage = "general";
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
   if (!primary || plan?.status !== "supported") {
     title = "کدام پیشنهاد واقعاً قول است؟";
@@ -1072,6 +1099,7 @@ function buildBoundaryChapter(
     const dsc = owner(primary, "dsc");
     const hard = primary.aspectId === "square" || primary.aspectId === "opposition";
     if (saturn && venus) {
+      openingCoverage = "specific";
       title = "وقتی یک انتخاب به قول تبدیل می‌شود";
       lead = `${venus} پیشنهاد ${scenes.invitation} را مطرح می‌کند؛ ${saturn} پیش از کنار گذاشتن وقتش می‌خواهد بداند قرار قطعی است یا نه. در خوانش نجومی، ${describe(primary)} ${hard ? "تفاوت میان آزادی انتخاب و توقع پایبندی را پررنگ می‌کند" : "ترجیح شخصی را به نیاز به یک قرار قابل اتکا پیوند می‌دهد"}. برای ${saturn} پاسخ روشن به پیشنهاد، مبنای برنامه‌ریزی بعدی است.`;
       example = `${terms.release}. این قاعده از ${saturn} نمی‌خواهد برای پیشنهادی نامشخص وقتش را نگه دارد و به ${venus} فرصت انتخاب می‌دهد.`;
@@ -1088,6 +1116,7 @@ function buildBoundaryChapter(
         addEvidence(support, "شاهد پشتیبان مرز و تعهد");
       }
     } else if (saturn && dsc) {
+      openingCoverage = "specific";
       title = "چه کسی مسئول کدام بخش است؟";
       lead = `در ${scenes.duty}، برای ${dsc} مهم است بداند کدام بخش را می‌تواند به ${saturn} بسپارد. ${describe(primary)} در خوانش نجومی مسئولیت را به نقطهٔ شراکت در چارت ${dsc} پیوند می‌دهد. اینجا معیار اعتماد، انجام کاری است که دیگری پذیرفته، نه تعداد کارهایی که به عهده گرفته است.`;
       example = `مثلاً ${saturn} مسئولیت ${scenes.handoff} را می‌پذیرد. به جای اینکه ${dsc} هر مرحله را دوباره پیگیری کند، می‌توانند از پیش تعیین کنند ${saturn} چه زمانی نتیجه را به ${dsc} اطلاع دهد. سپس دربارهٔ ${concrete.next} با هم تصمیم می‌گیرند.`;
@@ -1106,6 +1135,7 @@ function buildBoundaryChapter(
       const target = ["sun", "asc", "ic", "mc"].find(id => owner(primary, id))!;
       const person = owner(primary, target)!;
       const dimension = { sun: "اختیار انتخاب مسیر شخصی", asc: "شیوهٔ مستقل پیش بردن کار", ic: "اختیار در فضای خصوصی", mc: "انتخاب مسیر و مسئولیت بیرونی" }[target as "sun" | "asc" | "ic" | "mc"];
+      openingCoverage = "specific";
       title = "مسئولیت مشترک تا کجا پیش می‌رود؟";
       lead = `${describe(primary)} در خوانش نجومی ${hard ? "تفاوت میان" : "پیوند میان"} انتظار ${saturn} از مسئولیت و ${dimension} ${person} را برجسته می‌کند. پذیرفتن یک کار مشترک لزوماً به معنی واگذاری تصمیم شخصی نیست.`;
       const lens = boundaryLens(primary)!;
@@ -1117,6 +1147,7 @@ function buildBoundaryChapter(
       assign(primary, target, "اختیار تصمیم مربوط به مسیر خود را حفظ می‌کند.");
     } else if (boundaryLens(primary)) {
       const lens = boundaryLens(primary)!;
+      openingCoverage = "specific";
       title = lens.outer === "uranus" ? "کجا تغییر برنامه به توافق تازه نیاز دارد؟" : "اختیار هر نفر در تصمیم مشترک";
       lead = `${describe(primary)} در خوانش نجومی ${lens.tense ? "تفاوت احتمالی میان" : "پیوند میان"} ${lens.lens} برای ${lens.holder} و ${lens.domain.topic} برای ${lens.person} را مطرح می‌کند. این تماس به‌تنهایی رفتار کنترل‌گرانه یا بی‌تعهدی را ثابت نمی‌کند.`;
       example = `فرض کنید ${lens.domain.scene}. در این موقعیت ${lens.domain.rule}.`;
@@ -1142,13 +1173,13 @@ function buildBoundaryChapter(
     }
   }
   const unknownRole = "انتظار اختصاصی او دربارهٔ قول یا استقلال از این شاهد روشن نیست.";
-  return {
+  return markOpeningPrimaryCoverage({
     id: primary ? "boundaries-commitment-" + primary.id : "boundaries-commitment-insufficient",
     title, humanExperience: lead, dailySituation: example, strength, challenge,
     practicalStep: step, evidence,
     personA: roles.a ?? unknownRole, personB: roles.b ?? unknownRole,
     feelingOrReaction: challenge, effect: strength, cycle: example,
-  };
+  }, openingCoverage);
 }
 
 /** Describe escalation and repair, not the original disagreement or a diagnosis. */
@@ -1219,6 +1250,7 @@ function buildFrictionChapter(
     work: "پس از ذخیرهٔ فایل",
     general: "پس از پایان کار",
   }[relationship];
+  let openingCoverage: OpeningPrimaryCoverage = "general";
   let title: string, lead: string, example: string, strength: string, challenge: string, step: string;
   if (!primary || plan?.status !== "supported") {
     title = "اختلاف از کجا بزرگ‌تر می‌شود؟";
@@ -1237,6 +1269,7 @@ function buildFrictionChapter(
     const pluto = owner(primary, "pluto");
     const mercury = owner(primary, "mercury");
     if (mars && asc) {
+      openingCoverage = "specific";
       title = "وقتی مداخله به واکنش متقابل تبدیل می‌شود";
       lead = `${mars} برای جلو بردن کار دست به کار می‌شود؛ ${asc} ممکن است این کمک ناخواسته را دخالت بداند. ${describe(primary)} در خوانش نجومی برخوردِ عمل و واکنش فوری را برجسته می‌کند. اگر ${mars} بعد از اعتراض ${asc} باز هم اصرار کند، اختلاف دیگر فقط بر سر نحوهٔ انجام کار نیست. مسئله این می‌شود که آیا اعتراض دیگری واقعاً در رفتار بعدی اثر دارد یا نه.`;
       example = `${scenes.immediate}، فرض کنید ${mars} ${immediateActions}؛ ${asc} می‌گوید «خودم داشتم انجامش می‌دادم». اگر جواب ${mars} این باشد که «ولی این‌طوری سریع‌تره» و همچنان ادامه دهد، اعتراض به یک حرکت کوچک به بحث دربارهٔ احترام تبدیل می‌شود.`;
@@ -1246,6 +1279,7 @@ function buildFrictionChapter(
       assign(primary, "mars", "با ادامهٔ اقدام پس از مقاومت می‌تواند تنش را بیشتر کند؛ توقف مداخله نقطهٔ برگشت اوست.");
       assign(primary, "asc", "به مداخلهٔ مستقیم واکنش فوری نشان می‌دهد؛ مشخص کردن کمک قابل قبول نقطهٔ برگشت اوست.");
     } else if (mars && pluto) {
+      openingCoverage = "specific";
       title = "وقتی اختلاف به زورآزمایی تبدیل می‌شود";
       lead = `${mars} برای پایان دادن به اختلاف به اقدام رو می‌آورد و ${pluto} ممکن است آن را تحمیل نتیجه بداند. ${describe(primary)} در تفسیر نجومی به تشدید متقابل اشاره دارد. نقطهٔ خطر وقتی است که انتخاب راه بهتر دیگر کافی نیست و تغییر نظر برای هر کدام به معنی باختن می‌شود. حتی یک پیشنهاد درست هم ممکن است رد شود، چون پذیرفتن آن در آن لحظه شبیه تسلیم شدن است.`;
       example = `${controlScenes.setting}، ${mars} ${controlScenes.action}. ${pluto} می‌گوید: «${controlScenes.objection}». اگر پاسخ ${mars} به نگرانی فقط اصرار باشد، ${pluto} ممکن است حتی پیشنهادهای بعدی را هم نپذیرد؛ در حالی که هنوز نمی‌دانید نگرانی اولیه چقدر موجه بوده است.`;
@@ -1255,6 +1289,7 @@ function buildFrictionChapter(
       assign(primary, "mars", "برای پایان دادن به اختلاف به اقدام رو می‌آورد؛ پیشنهاد آزمون برگشت‌پذیر مسیر ترمیم اوست.");
       assign(primary, "pluto", "ممکن است در برابر تحمیل نتیجه سخت‌تر بر موضع بایستد؛ بیان نگرانی مشخص مسیر ترمیم اوست.");
     } else if (mars && mercury) {
+      openingCoverage = "specific";
       title = "وقتی هر توضیح، پاسخ تندتری به دنبال می‌آورد";
       lead = `${mercury} می‌خواهد دلیل اتفاق را روشن کند و ${mars} وقتی بحث کش پیدا می‌کند به دنبال پایان آن است. ${describe(primary)} در تفسیر نجومی به چرخه‌ای اشاره دارد که شتاب یکی، توضیح دیگری را طولانی‌تر می‌کند. نخستین نشانهٔ تشدید می‌تواند این باشد که هر دو به جای پاسخ به موضوع، به طرز حرف زدن یکدیگر واکنش نشان دهند.`;
       example = `${scenes.verbal}، ${mercury} دلیل اتفاق را توضیح می‌دهد و ${mars} وسط جمله می‌گوید «خب، حالا چی کار کنیم؟». اگر ${mercury} این بار بگوید «تو اصلاً گوش نمی‌دی» و ${mars} جواب بدهد «باز شروع کردی»، مسئله به داوری دربارهٔ رفتار هم تبدیل شده است.`;
@@ -1286,13 +1321,13 @@ function buildFrictionChapter(
     }
   }
   const unknownRole = "نقش اختصاصی او در تشدید یا ترمیم اختلاف از این شاهد روشن نیست.";
-  return {
+  return markOpeningPrimaryCoverage({
     id: primary ? "friction-repair-" + primary.id : "friction-repair-insufficient",
     title, humanExperience: lead, dailySituation: example, strength, challenge,
     practicalStep: step, evidence,
     personA: roles.a ?? unknownRole, personB: roles.b ?? unknownRole,
     feelingOrReaction: challenge, effect: strength, cycle: example,
-  };
+  }, openingCoverage);
 }
 
 function findOwnedContact(
@@ -1670,7 +1705,10 @@ function buildPairNarrative(
     { sentenceId: "opening-p2-s3", paragraph: 2 as const, evidenceIds: ["report:pair-context"] },
   ];
   const personalOpening = report.relationshipContext === "romantic"
-    ? buildRomanticOpening([comm, security, attraction, boundary, friction].filter((contact): contact is SynastryInterChartAspect => Boolean(contact)), names)
+    ? buildRomanticOpeningV2(report, plan, chapters.map(chapter => ({
+        ...chapter,
+        openingPrimaryCoverage: openingPrimaryCoverage.get(chapter.block),
+      })), names)
     : null;
   const opening = personalOpening?.opening ?? legacyOpening;
   const openingEvidence = personalOpening?.openingEvidence ?? legacyOpeningEvidence;
