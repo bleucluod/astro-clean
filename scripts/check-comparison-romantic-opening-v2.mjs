@@ -21,6 +21,7 @@ const build=f=>buildRomanticOpeningV2(f.report,f.plan,f.chapters,names);
 const f=fixture(),opening=build(f);
 assert.equal(opening.opening.length,2);
 assert.ok(opening.opening.every(Boolean));
+assert.ok(opening.opening.join(" ").trim().split(/\s+/u).length >= 300, "supported romantic opening must contain at least 300 words");
 assert.ok(opening.opening.join(" ").includes(names.a)&&opening.opening.join(" ").includes(names.b));
 assert.ok(opening.openingEvidence.some(e=>e.evidenceIds.includes("contact:words")));
 assert.ok(opening.openingEvidence.some(e=>e.evidenceIds.includes("contact:novelty")));
