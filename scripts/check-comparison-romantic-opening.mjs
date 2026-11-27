@@ -6,11 +6,12 @@ const contacts=[make("communication","mercury","venus","square",95),make("securi
 const result=buildRomanticOpening(contacts,names);
 assert.equal(result.opening.length,2);
 assert.match(result.opening[0],/نفر الف.*نفر ب/);
-assert.match(result.opening[0],/هدیه یا قرار/);
+assert.match(result.opening[0],/دیدار بعدی/);
 assert.match(result.opening[1],/نفر الف.*نفر ب/);
-assert.match(result.opening[1],/حضور آرام/);
-assert.equal(result.openingEvidence.length,5);
-assert.deepEqual(result.openingEvidence.map(e=>e.evidenceIds[0]),["contact:communication","contact:communication","contact:security","contact:security","contact:attraction"]);
+assert.match(result.opening[1],/همراهی بی‌عجله/);
+assert.equal(result.openingEvidence.length,12);
+assert.ok(result.opening.join(" ").trim().split(/\s+/u).length >= 220);
+assert.deepEqual(result.openingEvidence.map(e=>e.evidenceIds[0]),["contact:communication","contact:communication","contact:communication","contact:communication","contact:friction","contact:friction","contact:security","contact:security","contact:security","contact:security","contact:attraction","contact:attraction"]);
 assert.deepEqual(buildRomanticOpening(contacts.map(c=>({...c,pointA:{...c.pointB,chartSide:"a"},pointB:{...c.pointA,chartSide:"b"}})),{a:names.b,b:names.a}),result);
 assert.deepEqual(buildRomanticOpening([...contacts].reverse(),names),result);
 assert.match(buildRomanticOpening([],names).opening[0],/نفر الف.*نفر ب.*مبنای کافی/);
@@ -21,4 +22,7 @@ assert.match(describeRomanticOpeningContact(contacts[2],names).lead,/نفر ال
 assert.match(buildRomanticOpening([contacts[0]],names).opening[1],/شاهد کافی/);
 assert.equal(JSON.stringify(result).includes("شاهد تخصیص‌یافته"),false);
 assert.equal(JSON.stringify(result).includes("رجوع کنید"),false);
+assert.equal(result.opening[0].includes(describeRomanticOpeningContact(contacts[0],names).lead),false);
+assert.equal(result.opening[1].includes(describeRomanticOpeningContact(contacts[1],names).lead),false);
+assert.ok(buildRomanticOpening([contacts[2],contacts[3]],names).opening.join(" ").includes("تجربه‌های تازه"));
 console.log("PASS pair-specific romantic opening fixtures");

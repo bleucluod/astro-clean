@@ -318,7 +318,7 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
       <div className={`${styles.product} ${styles.humanFirstProduct}`} data-comparison-reading="human-first">
         <section className={`${styles.reportHero} ${styles.humanReportHero}`}>
           <div>
-            <p className={styles.eyebrow}>{formatRelationshipContext(demoReport.summary.relationshipContext)}</p>
+            {demoReport.summary.relationshipContext !== "romantic" && <p className={styles.eyebrow}>{formatRelationshipContext(demoReport.summary.relationshipContext)}</p>}
             <h1>این رابطه از چه داستانی می‌گوید؟</h1>
             <div className={styles.overviewParagraphs}>
               {demoReport.preview.overviewParagraphsFa.map((paragraph,index) => (
@@ -440,9 +440,9 @@ export function ComparisonReport({ comparisonId, localDemo = false }: Comparison
 
       <section className={`${styles.reportHero} ${styles.humanReportHero}`}>
         <div>
-          <p className={styles.eyebrow}>
-            {formatRelationshipContext(record.relationshipContext)}
-          </p>
+          {record.relationshipContext !== "romantic" && (
+            <p className={styles.eyebrow}>{formatRelationshipContext(record.relationshipContext)}</p>
+          )}
           <h1>این رابطه از چه داستانی می‌گوید؟</h1>
           <div className={styles.overviewParagraphs}>
             {reading.overviewParagraphsFa.map((paragraph, index) => (
