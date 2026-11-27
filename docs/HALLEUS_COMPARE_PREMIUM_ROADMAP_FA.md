@@ -1,6 +1,6 @@
 # رودمپ فعال خوانش عاطفی هالیوس
 
-[متن کامل رودمپ اجرایی ۲۷ نوامبر ۲۰۲۶](https://github.com/bleucluod/astro-clean/blob/11d220ade9553f42026adac9e511717b1bf66151/docs/HALLEUS_COMPARE_PREMIUM_ROADMAP_FA.md) · [آخرین وضعیت و کار بعدی ABR](https://github.com/bleucluod/halleus-gsc-private-backup/blob/main/reports/compare/premium-review/CURRENT.md)
+[متن کامل رودمپ اجرایی ۲۷ نوامبر ۲۰۲۶](https://github.com/bleucluod/astro-clean/blob/9aee2fcd8806076f6eb3f754000c93b15f24ed62/docs/HALLEUS_COMPARE_PREMIUM_ROADMAP_FA.md) · [آخرین وضعیت و کار بعدی ABR](https://github.com/bleucluod/halleus-gsc-private-backup/blob/main/reports/compare/premium-review/CURRENT.md)
 
 مرجع اجرا سند شاخهٔ کاری در لینک بالاست. دامنه فقط عاطفی است. اولین تحویل مشترک، مقدمهٔ پذیرفته‌شده به همراه پیش‌نمایش و ادامهٔ پولی فصل گفت‌وگو برای سه زوج است. بازنویسی با حداقل پنج دور Z برای هر بخش به‌صورت خودکار تا تحویل نسخهٔ کامل پیش می‌رود. کاربر برای گذر از دور یا فصل تأیید جداگانه نمی‌دهد. این مأموریت مجوز انتشار محصول ندارد.
 
