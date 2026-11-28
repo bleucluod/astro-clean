@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
+import { wikiArticleHref } from "@/lib/wiki/wiki-canonical-redirects";
 import { WikiArticleBody, WikiInlineText, WikiIntroText, WikiKeyPoints } from "@/components/wiki/WikiArticleRender";
 import { BirthChartPromptBuilder } from "@/components/wiki/BirthChartPromptBuilder";
 import { notFound, permanentRedirect } from "next/navigation";
@@ -304,7 +305,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
               <div className={styles.sideLinks}>
                 {clusterArticles.map((clusterArticle) => (
                   <Link
-                    href={`/wiki/${clusterArticle.slug}`}
+                    href={wikiArticleHref(clusterArticle.slug)}
                     key={clusterArticle.slug}
                   >
                     <span>{clusterArticle.shortTitle}</span>
@@ -367,7 +368,7 @@ export default async function WikiArticlePage({ params }: WikiArticlePageProps) 
           {relatedArticles.map((relatedArticle) => (
             <Link
               className={styles.relatedCard}
-              href={`/wiki/${relatedArticle.slug}`}
+              href={wikiArticleHref(relatedArticle.slug)}
               key={relatedArticle.slug}
             >
               <span>{relatedArticle.shortTitle}</span>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata, siteConfig } from "@/lib/config/seo";
 import Link from "next/link";
+import { wikiArticleHref } from "@/lib/wiki/wiki-canonical-redirects";
 import { notFound } from "next/navigation";
 
 import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
@@ -187,7 +188,7 @@ export default async function WikiCategoryPage({
               "@type": "ListItem",
               position: index + 1,
               name: article.shortTitle,
-              url: `${siteConfig.url}/wiki/${article.slug}`,
+              url: `${siteConfig.url}${wikiArticleHref(article.slug)}`,
             })),
           },
         ]
@@ -276,7 +277,7 @@ export default async function WikiCategoryPage({
               <h3>
                 <Link
                   className={styles.articleTitleLink}
-                  href={`/wiki/${article.slug}`}
+                  href={wikiArticleHref(article.slug)}
                 >
                   {article.shortTitle}
                 </Link>
@@ -396,7 +397,7 @@ export default async function WikiCategoryPage({
               <h3>
                 <Link
                   className={styles.articleTitleLink}
-                  href={`/wiki/${article.slug}`}
+                  href={wikiArticleHref(article.slug)}
                 >
                   {article.shortTitle}
                 </Link>

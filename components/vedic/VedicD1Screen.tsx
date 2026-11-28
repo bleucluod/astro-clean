@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import reportStyles from "@/components/report/human-first-report.module.css";
@@ -13,7 +13,7 @@ import styles from "./vedic-d1-guest.module.css";
 const LazySupabaseAuthPanel = dynamic(() => import("@/components/SupabaseAuthPanel").then(m => m.SupabaseAuthPanel), { ssr: false });
 
 /** Keep both screens on /vedic. Only ephemeral React state holds birth data. */
-export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{storageEnabled?:boolean;checkoutEnabled?:boolean}) {
+export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false,guide}:{storageEnabled?:boolean;checkoutEnabled?:boolean;guide?:ReactNode}) {
   const { result, setResult } = useVedicD1GuestSession();
   const [showReport, setShowReport] = useState(false);
   const [showAccountPanel, setShowAccountPanel] = useState(false);
@@ -34,7 +34,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
     <div className={chartStyles.page + " " + styles.vedicPage} dir="rtl">
       <header className={chartStyles.hero + " " + styles.vedicHero}>
         <div className={chartStyles.heroCopy}>
-          <h1 className={chartStyles.heroTitle}>چارت تولد ودیک</h1>
+          <h1 className={chartStyles.heroTitle}>چارت تولد رایگان ودیک</h1>
         </div>
       </header>
       <section className={chartStyles.workspace + " " + styles.vedicWorkspace} aria-label="فرم چارت تولد ودیک">
@@ -49,6 +49,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
           </div>}
         </div>
       </section>
+      {guide ?? <>
       <section className={chartStyles.heroEditorial} aria-label="راهنمای چارت تولد ودیک">
         <h2>در چارت تولد ودیک رایگان چه می‌بینی؟</h2>
         <p className={chartStyles.editorialParagraph}>اگر تاریخ تولدت شمسی است، همان تاریخ شناسنامه‌ات را وارد کن؛ فرم تقویم میلادی را هم می‌پذیرد. نقشه‌ای که بعد از تکمیل فرم می‌بینی، در آسترولوژی هندی «راشی» یا D1 نام دارد. برای اولین نگاه، ماه را در جدول جایگاه‌ها پیدا کن و بعد همان نام را در نقشه ببین. به این ترتیب می‌توانی بدون حفظ کردن شکل نمودار شمال هند، از روی چارت خودت خواندنش را شروع کنی.</p>
@@ -63,8 +64,9 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false}:{stor
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>در گزارش رایگان و تفسیر کامل چه می‌خوانی؟</h2>
-        <p className={chartStyles.editorialParagraph}>در نسخهٔ رایگان نقشه، جدول جایگاه‌ها و یک خوانش کوتاه فارسی در اختیارت قرار می‌گیرد. اگر بخواهی ارتباط این جایگاه‌ها را دنبال کنی، گزارش کامل چهار فصل دارد. از لاگنا و سیارهٔ حاکم آن شروع می‌کنی، بعد به ماه و الگوی عاطفی می‌رسی، پیوند خانه‌ها را می‌خوانی و در فصل آخر برداشت‌ها را کنار هم می‌بینی. برای آشنایی با اصطلاحات هم می‌توانی <Link href="/wiki/free-vedic-birth-chart">راهنمای خواندن چارت ودیک</Link> را بخوانی.</p>
+        <p className={chartStyles.editorialParagraph}>در نسخهٔ رایگان نقشه، جدول جایگاه‌ها و یک خوانش کوتاه فارسی در اختیارت قرار می‌گیرد. اگر بخواهی ارتباط این جایگاه‌ها را دنبال کنی، گزارش کامل چهار فصل دارد. از لاگنا و سیارهٔ حاکم آن شروع می‌کنی، بعد به ماه و الگوی عاطفی می‌رسی، پیوند خانه‌ها را می‌خوانی و در فصل آخر برداشت‌ها را کنار هم می‌بینی.</p>
       </section>
+      </>}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import { unstable_cache } from "next/cache";
 import postgres from "postgres";
 
 import { getHalleusRuntimeEnv } from "@/lib/config/env";
-import { isHistoricalWikiRedirectSource } from "@/lib/wiki/wiki-canonical-redirects";
+import { isHistoricalWikiRedirectSource, VEDIC_GUIDE_SLUG } from "@/lib/wiki/wiki-canonical-redirects";
 import {
   wikiArticles as fallbackWikiArticles,
   wikiCategories as fallbackWikiCategories,
@@ -1207,12 +1207,12 @@ export async function listPublicWikiRouteSlugs() {
     getPublicWikiIndex(),
     listPublicWikiRedirectSourceSlugs(),
   ]);
-  return [...index.articles.map((article) => article.slug), ...redirectSlugs];
+  return [...index.articles.map((article) => article.slug), ...redirectSlugs].filter((slug) => slug !== VEDIC_GUIDE_SLUG);
 }
 
 export async function listPublicWikiSitemapArticles() {
   const index = await getPublicWikiIndex();
-  return index.articles.filter((article) => !isHistoricalWikiRedirectSource(article.slug)).map((article) => ({
+  return index.articles.filter((article) => !isHistoricalWikiRedirectSource(article.slug) && article.slug !== VEDIC_GUIDE_SLUG).map((article) => ({
     slug: article.slug,
     updatedAt: article.updatedAt,
   }));

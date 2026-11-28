@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 import Link from "next/link";
+import { wikiArticleHref } from "@/lib/wiki/wiki-canonical-redirects";
 import { getPublicWikiIndex } from "@/lib/wiki/wiki-repository";
 import {
   buildPublicWikiCategoryViews,
@@ -256,7 +257,7 @@ export default async function WikiPage() {
                 <ul className={styles.compactLinkList}>
                   {previewArticles.map((article) => (
                     <li key={article.slug}>
-                      <Link href={`/wiki/${article.slug}`}>{article.shortTitle}</Link>
+                      <Link href={wikiArticleHref(article.slug)}>{article.shortTitle}</Link>
                     </li>
                   ))}
                 </ul>
@@ -292,7 +293,7 @@ export default async function WikiPage() {
             return (
               <Link
                 className={styles.compactArticleLink}
-                href={`/wiki/${article.slug}`}
+                href={wikiArticleHref(article.slug)}
                 key={article.slug}
               >
                 <span>{category?.label ?? "ویکی هالیوس"}</span>

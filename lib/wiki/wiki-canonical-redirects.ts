@@ -10,3 +10,17 @@ const redirectSources = new Set<string>(WIKI_CANONICAL_REDIRECTS.map((item) => i
 export function isHistoricalWikiRedirectSource(slug: string): boolean {
   return redirectSources.has(slug);
 }
+
+// Keep the published CMS article as the editorial source for the product page.
+export const VEDIC_GUIDE_SLUG = "free-vedic-birth-chart";
+export const VEDIC_PRODUCT_PATH = "/vedic";
+export const VEDIC_GUIDE_PATH = `/wiki/${VEDIC_GUIDE_SLUG}`;
+
+export function wikiArticleHref(slug: string): string {
+  return slug === VEDIC_GUIDE_SLUG ? VEDIC_PRODUCT_PATH : `/wiki/${slug}`;
+}
+
+export function canonicalWikiPublicHref(href: string): string {
+  return href === VEDIC_GUIDE_PATH || href === `https://halleus.ir${VEDIC_GUIDE_PATH}`
+    ? VEDIC_PRODUCT_PATH : href;
+}

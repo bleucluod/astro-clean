@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { canonicalWikiPublicHref, wikiArticleHref } from "@/lib/wiki/wiki-canonical-redirects";
 import { Fragment } from "react";
 import { WikiShopShowcaseCard } from "@/components/wiki/WikiShopShowcaseCard";
 import type { PublicWikiShopShowcase } from "@/lib/wiki/wiki-shop-showcase";
@@ -47,7 +48,7 @@ export function WikiInlineText({
       return (
         <Link
           className={styles.inlineArticleLink}
-          href={`/wiki/${target.slug}`}
+          href={wikiArticleHref(target.slug)}
           key={`article-${target.slug}-${index}`}
         >
           {explicitLabel ?? target.label}
@@ -64,7 +65,7 @@ export function WikiInlineText({
         return (
           <Link
             className={styles.inlineArticleLink}
-            href={href}
+            href={canonicalWikiPublicHref(href)}
             key={`page-${href}-${index}`}
           >
             {label}
@@ -88,6 +89,9 @@ export function WikiInlineText({
       try {
         const parsed = new URL(external[2]);
         if (parsed.protocol === "https:") {
+          if (canonicalWikiPublicHref(parsed.toString()) !== parsed.toString()) {
+            return <Link key={`external-${index}`} className={styles.inlineArticleLink} href={canonicalWikiPublicHref(parsed.toString())}>{external[1]}</Link>;
+          }
           return <a key={`external-${index}`} href={parsed.toString()} target="_blank" rel="noopener noreferrer">{external[1]}</a>;
         }
       } catch { /* The original text is shown below for invalid URLs. */ }
@@ -318,7 +322,7 @@ export function WikiArticleBody({
           <h2 id="article-links-title">برای ادامه بخوان</h2>
           <div className={styles.sideLinks}>
             {contextLinks.map((link) => (
-              <Link href={link.href} key={`${link.href}-${link.label}`}>
+              <Link href={canonicalWikiPublicHref(link.href)} key={`${link.href}-${link.label}`}>
                 <span>{link.label}</span>
                 <span aria-hidden="true">←</span>
               </Link>

@@ -1,5 +1,5 @@
 import type { NextConfig } from "next";
-import { WIKI_CANONICAL_REDIRECTS } from "./lib/wiki/wiki-canonical-redirects";
+import { WIKI_CANONICAL_REDIRECTS, VEDIC_GUIDE_PATH, VEDIC_PRODUCT_PATH } from "./lib/wiki/wiki-canonical-redirects";
 
 const nextConfig: NextConfig = {
   // The BitPay release build hit Next's default 60s no-progress guard during
@@ -10,11 +10,11 @@ const nextConfig: NextConfig = {
     cpus: 2,
   },
   async redirects() {
-    return WIKI_CANONICAL_REDIRECTS.map(({ sourceSlug, destinationSlug }) => ({
+    return [{ source: VEDIC_GUIDE_PATH, destination: VEDIC_PRODUCT_PATH, permanent: true as const }, ...WIKI_CANONICAL_REDIRECTS.map(({ sourceSlug, destinationSlug }) => ({
       source: `/wiki/${sourceSlug}`,
       destination: `/wiki/${destinationSlug}`,
       statusCode: 301 as const,
-    }));
+    }))];
   },
 };
 

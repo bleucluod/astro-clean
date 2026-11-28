@@ -130,12 +130,12 @@ for (const redundant of ['styles.breadcrumb', 'chartStyles.heroKicker',
   'chartStyles.heroLead', 'chartStyles.formPanelHeading', 'chartStyles.panelStep']) {
   assert.ok(!screen.includes(redundant), 'Vedic entry must not repeat page intro: ' + redundant);
 }
-assert.ok(screen.includes('<h1 className={chartStyles.heroTitle}>چارت تولد ودیک</h1>'),
+assert.ok(screen.includes('<h1 className={chartStyles.heroTitle}>چارت تولد رایگان ودیک</h1>') && (screen.match(/<h1\b/g) ?? []).length === 1,
   'Preserve one clear visible page title');
 assert.ok(!form.includes('journeyStyles.progressHeading') &&
   !form.includes('آسمان تو در حال شکل‌گرفتنه'),
   'Mobile stepper must not carry a second verbal introduction');
-assert.ok(page.includes('buildPublicPageMetadata({') && page.includes('canonical: "/vedic"') &&
+assert.ok(page.includes('buildPublicPageMetadata({') && page.includes('canonical: VEDIC_PRODUCT_PATH') && read('lib/wiki/wiki-canonical-redirects.ts').includes('VEDIC_PRODUCT_PATH = "/vedic"') &&
   seo.includes('robots: { index: true, follow: true }') &&
   seo.includes('{ path: "/vedic", priority: 0.9, changeFrequency: "weekly" }'),
   'Only the public Vedic entry is indexable and self-canonical');
@@ -145,7 +145,13 @@ const formSectionEnd = screen.indexOf('</section>', formStart);
 assert.ok(formStart >= 0 && formSectionEnd > formStart && editorialStart > formSectionEnd &&
   screen.indexOf('<h2>', editorialStart) > editorialStart && !screen.slice(0, formSectionEnd).includes('<h2>'),
   'SEO editorial starts after the complete input and account controls');
-assert.ok(page.includes('<VedicD1GuestSessionProvider><VedicD1Screen storageEnabled={isVedicD1StorageReady()} checkoutEnabled={isVedicD1CheckoutReady()} /></VedicD1GuestSessionProvider>'));
+assert.ok(/<VedicD1GuestSessionProvider>\s*<VedicD1Screen\s+storageEnabled=\{isVedicD1StorageReady\(\)\}\s+checkoutEnabled=\{isVedicD1CheckoutReady\(\)\}/.test(page));
+assert.ok(page.includes('getPublicWikiArticleResolution(VEDIC_GUIDE_SLUG)') && page.includes('data-vedic-migrated-guide="true"') && page.includes('<WikiArticleBody sections={article.sections}'), 'Published guide is server-rendered on the product landing');
+assert.ok(screen.indexOf('{guide ?? <>') > formSectionEnd && !screen.includes('/wiki/free-vedic-birth-chart'), 'Migrated guide follows the form without a self-redirect');
+const redirects=read('next.config.ts');
+const repository=read('lib/wiki/wiki-repository.ts');
+assert.ok(redirects.includes('source: VEDIC_GUIDE_PATH, destination: VEDIC_PRODUCT_PATH, permanent: true'), 'Old guide must return a permanent redirect');
+assert.ok(repository.includes('article.slug !== VEDIC_GUIDE_SLUG'), 'Old guide must be excluded from sitemap inventory');
 assert.ok(screen.includes('if (showReport && result) return <VedicD1GuestResult onEdit={editBirth} storageEnabled={storageEnabled} checkoutEnabled={checkoutEnabled} />;'));
 assert.ok(screen.includes('<VedicD1GuestForm onComplete={openReport} storageEnabled={storageEnabled} />'));
 assert.ok(legacyPage.includes('redirect("/vedic")')&&legacyResult.includes('redirect("/vedic")'));
