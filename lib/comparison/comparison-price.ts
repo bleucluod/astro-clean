@@ -1,0 +1,1 @@
+export const COMPARISON_PRICE_TOMAN=500000;

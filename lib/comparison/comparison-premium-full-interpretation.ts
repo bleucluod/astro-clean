@@ -1,0 +1,1244 @@
+// HALLEUS_COMPARE_FULL_INTERPRETATION_SLICE2_R5
+import type {
+  ComparisonCalculationExplanation,
+  ComparisonContactInterpretation,
+  ComparisonDeepLayer,
+  ComparisonDeepLayerItem,
+  ComparisonFullInterpretation,
+  ComparisonInterpretationCoverageEntry,
+  ComparisonNatalContext,
+  ComparisonOpeningEvidence,
+  ComparisonOverlayInterpretation,
+} from "@/types/comparison-product";
+import {
+  REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS,
+} from "@/types/synastry-engine";
+import type {
+  RealEngineSynastryCoverageField,
+  RealSynastryReport,
+  SynastryBirthTimeStatus,
+  SynastryHouseOverlay,
+  SynastryInterChartAspect,
+  SynastryNatalPoint,
+  SynastryNatalSnapshot,
+  SynastryRelationshipContext,
+} from "@/types/synastry-engine";
+
+const SIGN_LABELS_FA: Record<string, string> = {
+  aries: "اریس",
+  taurus: "تارس",
+  gemini: "جمنای",
+  cancer: "کنسر",
+  leo: "لیو",
+  virgo: "ویرگو",
+  libra: "لیبرا",
+  scorpio: "اسکورپیو",
+  sagittarius: "سجیتریس",
+  capricorn: "کپریکورن",
+  aquarius: "اکواریوس",
+  pisces: "پایسیز",
+};
+
+const PLANET_LABELS_FA: Record<string, string> = {
+  sun: "خورشید", moon: "ماه", mercury: "عطارد", venus: "زهره", mars: "مریخ",
+  jupiter: "مشتری", saturn: "زحل", uranus: "اورانوس", neptune: "نپتون", pluto: "پلوتو",
+  asc: "طالع", dsc: "نزول", mc: "میانهٔ آسمان", ic: "پایین آسمان",
+};
+const SIGNATURE_LABELS_FA: Record<string, string> = {
+  fire: "آتش", earth: "خاک", air: "هوا", water: "آب", cardinal: "آغازگر",
+  fixed: "ثابت", mutable: "تغییرپذیر", active: "فعال", receptive: "پذیرا",
+};
+function planetLabel(id: string): string { return PLANET_LABELS_FA[id] ?? id; }
+function signatureLabel(id: string | null | undefined): string {
+  return id ? SIGNATURE_LABELS_FA[id] ?? id : "غالب مشخصی ندارد";
+}
+export function comparisonAspectNameFa(id: string, fallback: string): string {
+  const names: Record<string, string> = { conjunction: "هم‌نشینی", opposition: "مقابله", square: "مربع", trine: "تثلیث", sextile: "تسدیس" };
+  return names[id] ?? fallback;
+}
+
+const CONTEXT_LABELS_FA: Record<SynastryRelationshipContext, string> = {
+  romantic: "رابطهٔ عاطفی",
+  friendship: "دوستی",
+  family: "رابطهٔ خانوادگی",
+  work: "همکاری",
+  general: "رابطه",
+};
+
+// Advanced point cross-chart policy remains deferred-no-approved-orb-policy until an approved orb contract exists.
+const TECHNICAL_COVERAGE_FIELDS = new Set<RealEngineSynastryCoverageField>([
+  "version",
+  "generatedAt",
+  "behavioralAudienceMode",
+  "cityLabel",
+  "utcIso",
+  "ascendantLongitude",
+  "houseContext",
+  "calculationQuality",
+  "note",
+]);
+
+const HOUSE_THEME_FA: Record<number, string> = {
+  1: "حضور، تصویر شخصی و نحوه دیده‌شدن",
+  2: "ارزش‌ها، امنیت و منابع شخصی",
+  3: "گفت‌وگو، یادگیری و رفت‌وآمد روزمره",
+  4: "خانه، ریشه و امنیت عاطفی",
+  5: "لذت، خلاقیت و ابراز محبت",
+  6: "عادت‌ها، کارهای روزمره و مسئولیت عملی",
+  7: "شراکت، مذاکره و تعریف رابطه",
+  8: "اعتماد، مرز، قدرت و منابع مشترک",
+  9: "جهان‌بینی، یادگیری، سفر و معنا",
+  10: "هدف، نقش اجتماعی و جهت بلندمدت",
+  11: "دوستی، شبکه، آرمان و کار جمعی",
+  12: "خلوت، لایه‌های پنهان و حساسیت‌های ناگفته",
+};
+
+const POINT_MEANING_FA: Record<string, string> = {
+  "north-node": "گرهٔ شمالی جهت رشدی را نشان می‌دهد که فرد برای توسعهٔ تجربه‌های تازه بیشتر به سوی آن کشیده می‌شود.",
+  "south-node": "گرهٔ جنوبی الگوهای آشنا و مهارت‌هایی را نشان می‌دهد که راحت‌تر فعال می‌شوند اما گاهی می‌توانند تکراری شوند.",
+  "black-moon-lilith": "لیلیت به لایه‌های خام‌ترِ مرز، کشش، استقلال و بخش‌هایی اشاره می‌کند که فرد همیشه مایل نیست آن‌ها را نرم یا قابل‌قبول نشان دهد.",
+  chiron: "کایرون نقطه‌ای از حساسیت و یادگیری را برجسته می‌کند که می‌تواند هم زخم‌پذیری و هم ظرفیت همدلی را فعال کند.",
+  "part-of-fortune": "سهم سعادت به ناحیه‌ای اشاره می‌کند که هماهنگی میان شرایط، بدن و انتخاب‌های عملی می‌تواند احساس روانی بیشتری ایجاد کند.",
+  vertex: "ورتکس یک نقطهٔ وابسته به زمان تولد است که در خوانش رابطه به تجربه‌های برخورد، جهت‌گیری و رویدادهای معنادار زمینه می‌دهد.",
+  ceres: "سرس با شیوهٔ مراقبت، تغذیهٔ روانی و الگوی رسیدگی‌کردن پیوند دارد.",
+  pallas: "پالاس با الگوی تشخیص، حل مسئله و دیدن ساختارها ارتباط دارد.",
+  juno: "جونو به انتظارات فرد از شراکت، وفاداری، برابری و قرارداد رابطه زمینه می‌دهد.",
+  vesta: "وستا تمرکز، وقف‌کردن انرژی و نیاز به یک حریم شخصی یا موضوع محوری را برجسته می‌کند.",
+  eris: "اریس می‌تواند نقطهٔ حساسیت به نادیده‌گرفته‌شدن، رقابت یا به‌هم‌خوردن نظم تثبیت‌شده را پررنگ کند.",
+  pholus: "فولوس در این خوانش به نقاطی اشاره می‌کند که یک محرک کوچک می‌تواند زنجیره‌ای بزرگ‌تر از واکنش‌ها را فعال کند.",
+  nessus: "نسوس در لایهٔ پیشرفته با موضوع مرز، بازتولید الگو و مسئولیت در برابر چرخه‌های تکرارشونده خوانده می‌شود.",
+};
+
+const LOT_MEANING_FA: Record<string, string> = {
+  fortune: "سهم بخت به شرایط مادی، بدنی و موقعیت‌هایی مربوط است که امور در آن‌ها روان‌تر پیش می‌روند.",
+  spirit: "سهم روح به جهت ارادی، تصمیم و چیزی مربوط است که فرد فعالانه دنبال می‌کند.",
+  eros: "سهم اروس میل، کشش و نیروی پیگیری خواسته را در یک لایهٔ سنتی توصیف می‌کند.",
+  necessity: "سهم ضرورت به الزام‌ها، فشارهای اجتناب‌ناپذیر و چیزی مربوط است که باید با آن روبه‌رو شد.",
+  courage: "سهم جسارت زمینهٔ اقدام، خطرپذیری و ایستادگی را برجسته می‌کند.",
+  victory: "سهم پیروزی به تجربهٔ پیشروی، موفقیت و حمایت از هدف مربوط است.",
+  nemesis: "سهم نمسیس محدودیت، پیامد و نقطه‌ای را برجسته می‌کند که افراط می‌تواند با بازخورد روبه‌رو شود.",
+};
+
+// Each prompt addresses a different symbolic question, not an additional calculated contact.
+type LayerInquiry = [question: string, caution: string];
+const POINT_INQUIRIES_FA: Record<string, LayerInquiry> = {
+  "north-node": ["کدام تجربهٔ تازه را می‌خواهد با انتخاب خودش امتحان کند؟", "تازگی را به تکلیف طرف مقابل برای تغییرکردن تبدیل نکند."],
+  "south-node": ["کدام مهارت آشنا واقعاً مفید است و کدام عادت فقط از سر عادت تکرار می‌شود؟", "راحتی یک روش دلیل مناسب‌بودن آن در همهٔ موقعیت‌ها نیست."],
+  "black-moon-lilith": ["کدام حد شخصی را ترجیح می‌دهد صریح اعلام کند، حتی اگر دیگری همان سلیقه را نداشته باشد؟", "نه گفتنِ خود یا دیگری را نشانهٔ دشمنی یا نیت پنهان نداند."],
+  chiron: ["وقتی موضوعی حساس است، چه نوع کمک را خودش درخواست می‌کند؟", "این جایگاه وجود زخم روانی یا مسئولیت درمان نفر مقابل را نشان نمی‌دهد."],
+  "part-of-fortune": ["کدام شرایط ملموس انجام یک کار را برایش راحت‌تر می‌کند؟", "آسانی یک موقعیت را تضمین موفقیت یا خوشبختی نخواند."],
+  vertex: ["در برخوردهای پیش‌بینی‌نشده، کدام انتخاب هنوز در اختیار خودش است؟", "از ورتکس، ملاقات مقدر یا ناگزیر بودن رابطه نتیجه نگیرد."],
+  ceres: ["کدام شکل مراقبت را واقعاً نیاز دارد و کدام را فقط از روی عادت ارائه می‌دهد؟", "رسیدگی را با تصمیم‌گرفتن به جای دیگری یکی نکند."],
+  pallas: ["برای حل یک مسئله کدام الگو را در تجربهٔ خودش تشخیص می‌دهد؟", "تشخیص یک الگو جای شنیدن توضیح تازه را نگیرد."],
+  juno: ["کدام انتظار را باید پیش از توافق به زبان بیاورد؟", "خواستهٔ فردی را قرارداد پذیرفته‌شدهٔ دو نفر فرض نکند."],
+  vesta: ["برای تمرکز بر یک کار یا علاقه چه زمانی را لازم دارد؟", "اختصاص وقت به یک موضوع را معیار وفاداری دیگری قرار ندهد."],
+  eris: ["در کدام موقعیت می‌خواهد مخالفتش شنیده شود؟", "اختلاف را به مسابقه‌ای برای اثبات حقانیت تبدیل نکند."],
+  pholus: ["کدام تغییر کوچک در تجربهٔ خودش پیامدهای بیشتری داشته است؟", "یک محرک کوچک را پیش‌بینی قطعی بحران بعدی نداند."],
+  nessus: ["کدام رفتار تکرارشونده را می‌تواند متوقف یا اصلاح کند؟", "این نقطه دلیلی بر سوءرفتار، قربانی‌بودن یا نیت آسیب‌رسان هیچ‌یک از دو نفر نیست."],
+};
+const LOT_INQUIRIES_FA: Record<string, LayerInquiry> = {
+  fortune: POINT_INQUIRIES_FA["part-of-fortune"],
+  spirit: ["اگر انتخاب با خودش باشد، کدام هدف را دنبال می‌کند و چرا؟", "هدف شخصی را وظیفهٔ نفر مقابل قرار ندهد."],
+  eros: ["کدام علاقه را با میل خودش دنبال می‌کند، نه برای گرفتن تأیید؟", "از میل فردی، کشش متقابل یا رضایت دیگری نتیجه نگیرد."],
+  necessity: ["کدام محدودیت واقعاً بیرونی است و کدام تعهد هنوز قابل مذاکره است؟", "فشار فعلی را به تقدیر تغییرناپذیر تعبیر نکند."],
+  courage: ["در کدام تصمیم حاضر است قدمی حساب‌شده بردارد؟", "ریسک‌کردن را شرط ارزشمندی یا شجاعت دیگری نکند."],
+  victory: ["پیشرفت را با کدام نتیجهٔ قابل مشاهده می‌سنجد؟", "موفقیت فردی را پیروزی بر طرف مقابل نداند."],
+  nemesis: ["کدام پیامد واقعی نشان می‌دهد لازم است رویهٔ خودش را عوض کند؟", "از این سهم مجازات حتمی یا سزاوار بودن رنج استنباط نکند."],
+};
+const HOUSE_INQUIRY_SCOPE_FA: Record<number, string> = {
+  1: "هنگام معرفی خود به یک جمع تازه", 2: "هنگام تصمیم دربارهٔ خرید یا پس‌انداز",
+  3: "در یک گفت‌وگوی روزمره یا آموختن مهارتی نزدیک به زندگی", 4: "در تصمیمی دربارهٔ فضای خانه یا زندگی خصوصی",
+  5: "هنگام انتخاب یک سرگرمی یا فعالیت خلاقانه", 6: "وقتی برنامهٔ روزانه یا تقسیم وظایف تغییر می‌کند",
+  7: "هنگام مذاکره دربارهٔ یک توافق مشترک", 8: "وقتی حدود دسترسی به اطلاعات یا منابع مشترک مطرح است",
+  9: "هنگام روبه‌رو شدن با یک دیدگاه یا تجربهٔ آموزشی تازه", 10: "هنگام انتخاب هدف کاری یا پذیرش مسئولیت",
+  11: "در برنامه‌ریزی یک فعالیت با دوستان یا گروه", 12: "هنگام تعیین زمانی برای استراحت و خلوت",
+};
+function layerInquiryText(inquiry: LayerInquiry | undefined, label: string, house: number | null | undefined): { supportive: string; stress: string } {
+  if (!inquiry) return { supportive: "این داده را فقط در محدودهٔ معنای ثبت‌شده بررسی کنید.", stress: "بدون شاهد مستقل، نتیجهٔ رابطه‌ای از این جایگاه ساخته نمی‌شود." };
+  const scope = house ? HOUSE_INQUIRY_SCOPE_FA[house] : undefined;
+  return {
+    supportive: `برای ${label}: ${scope ? `${scope}، ` : ""}${inquiry[0]}`,
+    stress: `نکتهٔ احتیاط برای ${label}: ${inquiry[1]}`,
+  };
+}
+
+function exactComparisonTime(snapshot: SynastryNatalSnapshot): boolean {
+  return snapshot.birthTimeStatus === "exact";
+}
+
+function usableReferencePlanet(snapshot: SynastryNatalSnapshot, pointId: string): boolean {
+  return snapshot.placements.some((point) =>
+    point.id === pointId && point.kind === "planet" && point.id !== "moon" && !point.requiresExactBirthTime && point.analysisEligible !== false,
+  );
+}
+
+function displayNatalAspects(snapshot: SynastryNatalSnapshot) {
+  const aspects = snapshot.engineSnapshot?.aspects ?? [];
+  return exactComparisonTime(snapshot) ? aspects : aspects.filter((aspect) =>
+    usableReferencePlanet(snapshot, aspect.firstPlanetId) && usableReferencePlanet(snapshot, aspect.secondPlanetId),
+  );
+}
+
+function displayContactPoint(snapshot: SynastryNatalSnapshot, point: SynastryNatalPoint): boolean {
+  return exactComparisonTime(snapshot) || (point.kind === "planet" && usableReferencePlanet(snapshot, point.id));
+}
+
+function deepLabelFa(key: string | null | undefined): string {
+  const names: Record<string, string> = {fire:"آتش",earth:"خاک",air:"هوا",water:"آب",cardinal:"آغازگر",fixed:"ثابت",mutable:"تغییرپذیر",active:"فعال",receptive:"پذیرا",sun:"خورشید",moon:"ماه",mercury:"عطارد",venus:"زهره",mars:"مریخ",jupiter:"مشتری",saturn:"زحل",uranus:"اورانوس",neptune:"نپتون",pluto:"پلوتو"};
+  return key ? names[key] ?? key : "بدون غلبهٔ روشن";
+}
+
+export function buildFullComparisonInterpretation(
+  report: RealSynastryReport,
+  input: {
+    labels: { a: string; b: string };
+    chartABirthTimeStatus: SynastryBirthTimeStatus;
+    chartBBirthTimeStatus: SynastryBirthTimeStatus;
+    fallbackOverviewParagraphsFa?: [string, string];
+  },
+): ComparisonFullInterpretation {
+  // Both the caller and stored snapshot must establish exact time.
+  // Treat absent/legacy/approximate runtime values conservatively.
+  const chartA: SynastryNatalSnapshot = input.chartABirthTimeStatus === "exact" && exactComparisonTime(report.chartA)
+    ? report.chartA : { ...report.chartA, birthTimeStatus: "unknown" };
+  const chartB: SynastryNatalSnapshot = input.chartBBirthTimeStatus === "exact" && exactComparisonTime(report.chartB)
+    ? report.chartB : { ...report.chartB, birthTimeStatus: "unknown" };
+  const fingerprint = buildNarrativeFingerprint(report);
+  const bothExact = exactComparisonTime(chartA) && exactComparisonTime(chartB);
+  report = {
+    ...report, chartA, chartB,
+    contacts: report.contacts.filter((contact) =>
+      displayContactPoint(chartA, contact.pointA) && displayContactPoint(chartB, contact.pointB) &&
+      (bothExact || (contact.pointA.kind !== "angle" && contact.pointB.kind !== "angle")),
+    ),
+    houseOverlays: bothExact ? report.houseOverlays : [],
+  };
+  const overlays = report.houseOverlays.map((overlay) =>
+    buildOverlayInterpretation(report, overlay, input.labels),
+  );
+  const contacts = report.contacts.map((contact) =>
+    buildContactInterpretation(report, contact, overlays, input.labels, {
+      a: chartA.birthTimeStatus,
+      b: chartB.birthTimeStatus,
+    }),
+  );
+  const deepLayers = buildDeepLayers(report, input.labels);
+  const natalContexts: [ComparisonNatalContext, ComparisonNatalContext] = [
+    buildNatalContext(report.chartA, "a", input.labels.a),
+    buildNatalContext(report.chartB, "b", input.labels.b),
+  ];
+  const calculation = buildCalculationExplanation(report, input.labels, {
+    a: chartA.birthTimeStatus,
+    b: chartB.birthTimeStatus,
+  });
+  const coverage = buildInterpretationCoverage(report, deepLayers, contacts, overlays);
+  const opening = buildPairOpening(
+    report,
+    input.labels,
+    fingerprint,
+    deepLayers,
+    input.fallbackOverviewParagraphsFa,
+  );
+
+  return {
+    version: "comparison-full-interpretation-v1",
+    fingerprint,
+    openingParagraphsFa: opening.paragraphs,
+    openingEvidence: opening.evidence,
+    contacts,
+    overlays,
+    deepLayers,
+    natalContexts,
+    coverage,
+    calculation,
+  };
+}
+
+function buildPairOpening(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+  fingerprint: string,
+  deepLayers: ComparisonDeepLayer[],
+  fallbackOverviewParagraphsFa?: [string, string],
+): {
+  paragraphs: [string, string];
+  evidence: ComparisonOpeningEvidence[];
+} {
+  const supportive = report.contacts.find((contact) => contact.polarity === "supportive") ?? report.contacts[0] ?? null;
+  const tension = report.contacts.find(
+    (contact) => contact.polarity === "tension" || contact.polarity === "intense",
+  ) ?? report.contacts[1] ?? supportive;
+  const overlay = report.houseOverlays[0] ?? null;
+  const supportTheme = describeContactTheme(supportive);
+  const tensionTheme = describeContactTheme(tension);
+  const signatureTheme = describeSignatureInteraction(report.chartA, report.chartB);
+  const overlayTheme = overlay
+    ? HOUSE_THEME_FA[overlay.targetHouse] ?? "بخشی مشخص از زندگی روزمره"
+    : "بخش‌های عملی و روزمرهٔ رابطه";
+  const deeperTheme = chooseDeeperOpeningTheme(deepLayers);
+  const contextLabel = CONTEXT_LABELS_FA[report.relationshipContext];
+  const angle = parseInt(fingerprint.slice(-2), 16) % 4;
+  const anglePhrase = [
+    "داستان اصلی این پیوند از کنار هم قرارگرفتن دو نیاز متفاوت ساخته می‌شود، نه از شبیه‌بودن کامل.",
+    "این رابطه بیشتر وقتی خودش را نشان می‌دهد که تفاوت ریتم‌ها مجبور می‌شوید دربارهٔ نیاز واقعی پشت واکنش‌ها حرف بزنید.",
+    "در این پیوند، بخش مهم ماجرا این است که همان تفاوتی که گاهی اصطکاک می‌سازد می‌تواند به مکمل‌بودن تبدیل شود.",
+    "این دو چارت یک داستان یک‌خطی ندارند؛ چند نیروی هم‌زمان باعث می‌شوند رابطه هم ظرفیت آرامش داشته باشد و هم نقطه‌های حساس خودش را.",
+  ][angle];
+
+  const paragraph1 = `${anglePhrase} میان ${labels.a} و ${labels.b}، ${supportTheme} جایی است که همکاری طبیعی‌تر شکل می‌گیرد و هر دو نفر می‌توانند بدون تلاش دائمی برای تغییر دیگری، از تفاوت سبک‌هایشان استفاده کنند. در عین حال ${signatureTheme} باعث می‌شود سرعت تصمیم‌گیری، میزان نیاز به توضیح و شیوهٔ برگشتن به تعادل همیشه یکسان نباشد؛ بنابراین کیفیت این پیوند بیشتر از شباهت، به توانایی خواندن ریتم یکدیگر وابسته است.`;
+  const paragraph2 = `بخش حساس‌تر داستان جایی فعال می‌شود که ${tensionTheme} زیر فشار قرار می‌گیرد؛ در آن لحظه هر نفر ممکن است واکنش دیگری را شخصی‌تر از چیزی که هست تعبیر کند و چرخه‌ای بسازد که با توضیح بیشتر، عقب‌نشینی یا دفاع ادامه پیدا کند. ${overlay ? `هم‌زمان، ${overlayTheme} در زندگی ${overlay.targetChartSide === "a" ? labels.a : labels.b} زودتر فعال می‌شود و موضوع رابطه را از سطح احساس به انتخاب‌های واقعی روزمره می‌برد.` : `چون دادهٔ خانه‌ای قابل اتکا برای هر دو سمت کامل نیست، این بخش با احتیاط بیشتری خوانده می‌شود و روایت روی تماس‌های محاسبه‌شده تکیه می‌کند.`} ${deeperTheme} در ${contextLabel} این یعنی رابطه زمانی بالغ‌تر کار می‌کند که هم ظرفیت حمایت دیده شود و هم بخش دشوار ماجرا نام‌گذاری شود؛ نه اینکه یکی از آن‌ها برای حفظ تصویر خوب رابطه حذف شود.`;
+
+  const paragraphs = ensureOpeningWordBudget(
+    [paragraph1, paragraph2],
+    fallbackOverviewParagraphsFa ?? inputOpeningFallback(report, labels),
+  );
+  const evidence: ComparisonOpeningEvidence[] = [
+    { sentenceId: "opening-p1-s1", paragraph: 1 as const, evidenceIds: openingEvidenceIds(supportive, null, "fingerprint:" + fingerprint) },
+    { sentenceId: "opening-p1-s2", paragraph: 1 as const, evidenceIds: openingEvidenceIds(supportive, null, signatureEvidenceId(report)) },
+    { sentenceId: "opening-p1-s3", paragraph: 1 as const, evidenceIds: [signatureEvidenceId(report), "fingerprint:" + fingerprint] },
+    { sentenceId: "opening-p2-s1", paragraph: 2 as const, evidenceIds: openingEvidenceIds(tension, null, "fingerprint:" + fingerprint) },
+    { sentenceId: "opening-p2-s2", paragraph: 2 as const, evidenceIds: openingEvidenceIds(null, overlay, overlay ? `overlay:${overlay.id}` : "birth-time:limited") },
+    { sentenceId: "opening-p2-s3", paragraph: 2 as const, evidenceIds: deepLayers.flatMap((layer) => layer.items.slice(0, 1).map((item) => item.evidenceIds[0])).filter(Boolean).slice(0, 3) },
+  ].map((item) => ({ ...item, evidenceIds: item.evidenceIds.length > 0 ? item.evidenceIds : ["report:pair-context"] }));
+
+  return { paragraphs, evidence };
+}
+
+function ensureOpeningWordBudget(
+  paragraphs: [string, string],
+  fallback: [string, string],
+): [string, string] {
+  const total = countPersianWords(paragraphs[0]) + countPersianWords(paragraphs[1]);
+  if (total >= 160 && total <= 240) return paragraphs;
+  if (total < 160) {
+    const extra = "این خوانش عمداً هم نقطهٔ اتکا و هم نقطهٔ فشار را کنار هم نگه می‌دارد تا نتیجه شبیه تعریف کلی از سازگاری نباشد و بتواند به رفتارهای قابل مشاهده در همین رابطه وصل شود.";
+    const extended: [string, string] = [paragraphs[0], `${paragraphs[1]} ${extra}`];
+    const extendedTotal = countPersianWords(extended[0]) + countPersianWords(extended[1]);
+    if (extendedTotal >= 160 && extendedTotal <= 240) return extended;
+  }
+  const fallbackTotal = countPersianWords(fallback[0]) + countPersianWords(fallback[1]);
+  return fallbackTotal >= 160 && fallbackTotal <= 240 ? fallback : paragraphs;
+}
+
+function inputOpeningFallback(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+): [string, string] {
+  const first = `رابطهٔ ${labels.a} و ${labels.b} از مجموعه‌ای از تماس‌های واقعی میان دو چارت ساخته می‌شود و یک عامل به‌تنهایی نمی‌تواند داستان آن را توضیح دهد. بعضی بخش‌ها همکاری و فهم متقابل را آسان‌تر می‌کنند و بعضی بخش‌ها زمانی که خستگی، عجله یا ترس وارد رابطه می‌شود به نقطهٔ فشار تبدیل می‌شوند. این خوانش به‌جای یک حکم کلی، روی همین تفاوت میان ظرفیت حمایت و محل اصطکاک تمرکز می‌کند تا روشن شود کجا دو نفر طبیعی‌تر به هم می‌رسند و کجا لازم است معنای واکنش‌های یکدیگر را دقیق‌تر بخوانند.`;
+  const second = `در ${CONTEXT_LABELS_FA[report.relationshipContext]}، ارزش این تصویر زمانی بیشتر می‌شود که از آن برای نام‌گذاری الگوهای واقعی استفاده شود: چه چیزی احساس امنیت می‌سازد، چه چیزی میل به عقب‌نشینی یا دفاع را بالا می‌برد، و کدام انتخاب کوچک می‌تواند چرخه را عوض کند. ساعت تولد و کیفیت داده هر جا لازم باشد دامنهٔ اطمینان را محدود می‌کنند و نقاطی که هنوز orb policy تأییدشده ندارند به‌عنوان تماس تازه جعل نمی‌شوند. بنابراین داستان نهایی هم شخصی است و هم مرزش با چیزی که موتور واقعاً محاسبه نکرده روشن می‌ماند.`;
+  return [first, second];
+}
+
+function countPersianWords(value: string): number {
+  return value.trim().split(/\s+/u).filter(Boolean).length;
+}
+
+export function comparisonContactHasInterpretiveData(
+  contact: SynastryInterChartAspect,
+  birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
+): boolean {
+  return [contact.pointA, contact.pointB].every((point) =>
+    point.analysisEligible !== false &&
+    (birthTime[point.chartSide] === "exact" ||
+      (!point.requiresExactBirthTime && point.kind === "planet" && point.id !== "moon")),
+  );
+}
+
+// Symbolic, observable examples, not predictions or additional calculated contacts.
+const POINT_OBSERVATIONS_FA: Record<string, [string, string, string]> = {
+  sun: ["انتخاب یک هدف شخصی", "دلیل انتخابش را روشن کند", "تأیید انتخابش را با تأیید ارزش خودش یکی بگیرد"],
+  moon: ["بیان نیاز به استراحت یا همراهی", "بگوید اکنون به چه نوع همراهی نیاز دارد", "انتظار داشته باشد نیاز ناگفته‌اش فهمیده شود"],
+  mercury: ["بحث دربارهٔ یک پیشنهاد", "سؤالش را از داوری دربارهٔ گوینده جدا کند", "توضیح بیشتر را جای شنیدن بگذارد"],
+  venus: ["انتخاب چیزی که خوشایند هر دو باشد", "سلیقه‌اش را بدون الزام دیگری بیان کند", "همراهی ظاهری را نشانهٔ رضایت بگیرد"],
+  mars: ["شروع یا تغییر یک کار", "پیش از اقدام دربارهٔ زمان و روش توافق کند", "پیشنهاد را بدون توافق به اقدام تبدیل کند"],
+  jupiter: ["بررسی یک فرصت تازه", "امکان تازه‌ای را همراه با حدود عملی آن مطرح کند", "بیش از ظرفیت واقعی وعده بدهد"],
+  saturn: ["تعیین مسئولیت و زمان تحویل", "حدود مسئولیت را از پیش مشخص کند", "قاعدهٔ شخصی را به دیگری تحمیل کند"],
+  uranus: ["تغییر یک برنامهٔ از قبل تعیین‌شده", "برای تغییر برنامه فرصت انتخاب بدهد", "تغییر ناگهانی را بدون هماهنگی پیش ببرد"],
+  neptune: ["روشن‌کردن یک انتظار مبهم", "تفاوت آرزو و توافق واقعی را روشن کند", "برداشت دلخواهش را توافق قطعی بداند"],
+  pluto: ["گفت‌وگو دربارهٔ اختیار تصمیم", "جایی برای مخالفت و بازنگری باقی بگذارد", "اصرار بر تغییر نظر دیگری را ضروری بداند"],
+  asc: ["نحوهٔ حضور در یک جمع", "شیوهٔ حضور دلخواهش را بیان کند", "خود را برای جلب تأیید دیگری تغییر دهد"],
+  dsc: ["توافق بر نقش دو نفر", "انتظارش از مشارکت را مشخص کند", "نقش دلخواهش را برای دیگری بدیهی فرض کند"],
+  mc: ["معرفی یک هدف اجتماعی یا حرفه‌ای", "مشخص کند چه نوع کمکی برای هدفش می‌خواهد", "موفقیت بیرونی را معیار تأیید دیگری بگیرد"],
+  ic: ["تنظیم خلوت و فضای شخصی", "حدود حریم و احساس تعلقش را توضیح دهد", "دسترسی به حریم شخصی را بدون توافق بپذیرد"],
+};
+function pointObservation(id: string): [string, string, string] {
+  return POINT_OBSERVATIONS_FA[id] ?? ["یک موضوع مشترک", "نظرش را صریح بیان کند", "از یک برداشت اولیه نتیجهٔ قطعی بگیرد"];
+}
+function contactObservation(contact: SynastryInterChartAspect, first: string, second: string, context: SynastryRelationshipContext): { healthy: string; stress: string; example?: string } {
+  const owner = (id: string) => contact.pointA.id === id ? first : second;
+  const has = (a: string, b: string) => [contact.pointA.id, contact.pointB.id].includes(a) && [contact.pointA.id, contact.pointB.id].includes(b);
+  const kind = contact.aspectId;
+  if (has("moon", "mercury") && kind === "sextile") {
+    const moon = owner("moon"), mercury = owner("mercury");
+    return {
+      healthy: `در تسدیس ماه و عطارد، ${moon} می‌تواند احساسی را که هنوز برایش واژهٔ دقیقی ندارد بیان کند و ${mercury} با یک سؤال کوتاه به روشن‌شدن نیاز کمک کند.`,
+      stress: `اگر ${mercury} به‌جای پرسیدن، پاسخ را از پیش معلوم بداند، ممکن است ${moon} برای اصلاح برداشت او ناچار به توضیح دوباره شود.`,
+      example: context === "work" ? "مثلاً پس از تغییر ناگهانی شیفت، یکی ناراحتی‌اش را می‌گوید و دیگری می‌پرسد مشکل زمان‌بندی بود یا نحوهٔ اطلاع‌رسانی؟" : "مثلاً پس از یک روز شلوغ، یکی تنها می‌گوید خسته است و دیگری می‌پرسد الان شنیدن حرف‌ها کمک می‌کند یا کمی سکوت؟",
+    };
+  }
+  if (has("sun", "mercury") && kind === "opposition") {
+    const sun = owner("sun"), mercury = owner("mercury");
+    return {
+      healthy: `در مقابلهٔ خورشید و عطارد، ${sun} می‌تواند بگوید کدام بخش تصمیم برایش شخصی است و ${mercury} سؤال را به جزئیات قابل تغییر محدود کند؛ نقد ایده از نقد فرد جدا می‌ماند.`,
+      stress: `اگر هر پرسش به دفاع از انتخاب تبدیل شود، ${mercury} ممکن است برای توضیح منطقش بیشتر اصرار کند و ${sun} کمتر احساس کند اصل خواسته‌اش شنیده شده است.`,
+      example: context === "work" ? "مثلاً هنگام بازبینی طرح، نقد یک جزئیات اجرایی با نفی هدف یا صلاحیت طراح یکی نیست." : "مثلاً وقتی یکی مقصد یک گردش را دوست دارد و دیگری دربارهٔ هزینه می‌پرسد، می‌توان سلیقه را پذیرفت و بودجه را جدا بررسی کرد.",
+    };
+  }
+  if (has("moon", "pluto") && kind === "conjunction") {
+    const moon = owner("moon"), pluto = owner("pluto");
+    return {
+      healthy: `در هم‌نشینی ماه و پلوتو، ${pluto} می‌تواند برای حرفی که ${moon} گفتنش را دشوار می‌داند جا باز کند، بدون اینکه از او توضیح بیشتری بخواهد تا وقتی خودش آماده باشد.`,
+      stress: `اگر ${pluto} سکوت را نشانهٔ پنهان‌کاری بداند و برای گرفتن توضیح اصرار کند، ${moon} ممکن است گفتن موضوع را دشوارتر ببیند؛ این فرض را با رفتار واقعی بسنجید.`,
+      example: context === "work" ? "مثلاً دربارهٔ یک نگرانی خصوصی در محیط کار، حمایت به معنی دسترسی به همهٔ جزئیات نیست." : "مثلاً پس از دریافت یک خبر ناراحت‌کننده، پرسیدن اینکه «می‌خواهی حرف بزنی؟» با بازجویی دربارهٔ جزئیات فرق دارد.",
+    };
+  }
+  if (has("moon", "saturn") && kind === "square") {
+    const moon = owner("moon"), saturn = owner("saturn");
+    return {
+      healthy: `در مربع ماه و زحل، ${moon} می‌تواند نیاز به همراهی را بیان کند و ${saturn} دربارهٔ زمانی که واقعاً در اختیار دارد صادق باشد؛ محدودیت عملی لزوماً رد نیاز نیست.`,
+      stress: `اگر ${saturn} برای حل فوری مسئله فقط به قاعده و وظیفه اشاره کند، ممکن است ${moon} پیش از شنیده‌شدن ناچار به دفاع از نیازش شود.`,
+      example: context === "work" ? "مثلاً درخواست کمک نزدیک موعد تحویل می‌تواند با پاسخ روشن دربارهٔ زمان و حجم کاری همراه شود." : "مثلاً وقتی یکی روز سختی داشته و دیگری هنوز کاری دارد، می‌توان زمانی مشخص برای گفت‌وگو تعیین کرد، نه اینکه نیاز را بی‌اهمیت دانست.",
+    };
+  }
+  if (has("moon", "venus") && kind === "conjunction") {
+    const moon = owner("moon"), venus = owner("venus");
+    return {
+      healthy: `در هم‌نشینی ماه و زهره، ${venus} می‌تواند علاقه را در شکلی نشان دهد که ${moon} واقعاً از آن احساس همراهی می‌کند، نه صرفاً شکلی که خودش دوست دارد.`,
+      stress: `اگر ${venus} هدیه یا سرگرمی را برای هر حالتی کافی بداند، نیاز ${moon} به شنیده‌شدن ممکن است همچنان بی‌پاسخ بماند.`,
+      example: context === "work" ? "مثلاً برای همکار خسته، تشکر عملی یا کمک کوتاه با تعارف صرف تفاوت دارد." : "مثلاً پس از یک روز سخت، انتخاب یک خوراکی دلخواه می‌تواند خوشایند باشد؛ اما پرسیدن حال طرف مقابل هنوز اهمیت دارد.",
+    };
+  }
+  if (has("mars", "mercury") && kind === "trine") {
+    const mars = owner("mars"), mercury = owner("mercury");
+    return {
+      healthy: `در تثلیث مریخ و عطارد، ${mercury} می‌تواند پیشنهادی را روشن توضیح دهد و ${mars} به تبدیل آن به آزمایشی کوچک و قابل بازگشت کمک کند.`,
+      stress: `اگر ${mars} هر فکر تازه را تصمیم نهایی بداند، ${mercury} ممکن است برای ادامهٔ فکر کردن مجبور شود ابتدا جلوی اجرای ایده را بگیرد.`,
+      example: context === "work" ? "مثلاً یک راه تازه برای مرتب‌کردن پرونده‌ها ابتدا روی یک پرونده امتحان می‌شود، نه همهٔ فایل‌ها." : "مثلاً یکی راه متفاوتی برای چیدن وسایل پیشنهاد می‌دهد و دیگری ابتدا همان تغییر کوچک را با اجازهٔ او امتحان می‌کند.",
+    };
+  }
+  const a = pointObservation(contact.pointA.id);
+  const b = pointObservation(contact.pointB.id);
+  const roles = `${first} می‌تواند ${a[1]} و ${second} می‌تواند ${b[1]}.`;
+  const risks = `اگر ${first} ${a[2]} یا ${second} ${b[2]}،`;
+  switch (contact.aspectId) {
+    case "sextile": return { healthy: `تسدیس در خوانش نمادین فرصتی است که به انتخاب آگاهانه نیاز دارد. ${roles}`, stress: `${risks} فرصت همکاری ممکن است اصلاً به عمل نرسد.` };
+    case "trine": return { healthy: `در تثلیث، همراهی این دو نقش ممکن است روان‌تر شکل بگیرد. ${roles}`, stress: `${risks} سهولت اولیه می‌تواند جای بررسی توافق واقعی را بگیرد.` };
+    case "opposition": return { healthy: `در مقابله، قرار نیست یکی از دو دیدگاه حذف شود. ${roles}`, stress: `${risks} گفت‌وگو ممکن است به انتخاب اجباری میان دو موضع تبدیل شود.` };
+    case "square": return { healthy: `مربع در این خوانش به ضرورت تنظیم دو خواسته اشاره دارد، نه ناممکن بودن همکاری. ${roles}`, stress: `${risks} شیوهٔ پیش‌بردن کار برای یکی می‌تواند مانع دیگری شود.` };
+    case "conjunction": return { healthy: `در هم‌نشینی، موضوع دو نقطه در یک موقعیت به هم نزدیک می‌شود. ${roles}`, stress: `${risks} مرز میان خواستهٔ دو نفر ممکن است روشن نماند.` };
+    default: return { healthy: `در این خوانش نمادین، ${roles}`, stress: `${risks} بهتر است هر نفر برداشت خودش را جداگانه توضیح دهد.` };
+  }
+}
+
+function buildContactInterpretation(
+  report: RealSynastryReport,
+  contact: SynastryInterChartAspect,
+  overlays: ComparisonOverlayInterpretation[],
+  labels: { a: string; b: string },
+  birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
+): ComparisonContactInterpretation {
+  const theme = describeContactTheme(contact);
+  const first = labels[contact.pointA.chartSide];
+  const second = labels[contact.pointB.chartSide];
+  const firstPoint = `${contact.pointA.label} ${first}`;
+  const secondPoint = `${contact.pointB.label} ${second}`;
+  const limited = birthTime.a !== "exact" || birthTime.b !== "exact";
+  const relatedOverlays = overlays.filter((overlay) =>
+    overlay.relatedContactIds.includes(contact.id),
+  );
+  const natalA = describeNatalModifier(report.chartA, contact.pointA.id, labels.a, birthTime.a);
+  const natalB = describeNatalModifier(report.chartB, contact.pointB.id, labels.b, birthTime.b);
+  const hasInterpretiveData = comparisonContactHasInterpretiveData(contact, birthTime);
+  const confidenceFa = hasInterpretiveData ? buildContactConfidence(contact, birthTime) : "این تماس فقط ثبت محاسباتی است؛ به دلیل محدودیت داده، شاهد معتبر برای تفسیر رابطه نیست.";
+  const observation = contactObservation(contact, first, second, report.relationshipContext);
+  const tightness = contact.allowedOrb > 0 ? Math.max(0, 1 - contact.orb / contact.allowedOrb) : 0;
+  const importanceFa = contact.relevanceScore >= 80 || tightness >= 0.8
+    ? `در رتبه‌بندی موتور، این تماس پررنگ است (امتیاز ${contact.relevanceScore.toLocaleString("fa-IR")})؛ نزدیکی به زاویهٔ دقیق نیز در رتبه اثر دارد. این امتیاز درصد سازگاری نیست.`
+    : contact.relevanceScore >= 45
+      ? `این تماس وزن میانی دارد؛ به‌تنهایی داستان رابطه را تعیین نمی‌کند اما وقتی با شواهد هم‌جهت تکرار شود معنای بیشتری پیدا می‌کند.`
+      : `این تماس در رتبهٔ پایین‌تری قرار دارد و بهتر است به‌عنوان زمینهٔ تکمیلی خوانده شود، نه محور اصلی رابطه.`;
+
+  return {
+    id: contact.id,
+    titleFa: `${firstPoint} و ${secondPoint}؛ ${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}`,
+    pointAFactFa: formatPointFact(contact.pointA, first, birthTime[contact.pointA.chartSide]),
+    pointBFactFa: formatPointFact(contact.pointB, second, birthTime[contact.pointB.chartSide]),
+    aspectFa: `${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}: فاصلهٔ زاویه‌ای ${formatDegree(contact.separation)}، فاصله از زاویهٔ دقیق (اورب) ${formatDegree(contact.orb)} از سقف ${formatDegree(contact.allowedOrb)}${limited ? "؛ بر پایهٔ زمان مرجع" : ""}`,
+    importanceFa: hasInterpretiveData ? importanceFa : `رتبهٔ خام موتور ${contact.relevanceScore.toLocaleString("fa-IR")} است؛ این رتبه مجوز تفسیر تماس نیست.`,
+    healthyFa: !hasInterpretiveData
+      ? `از این تماس نمی‌توان دربارهٔ هماهنگی ${first} و ${second} نتیجه گرفت؛ جایگاه لازم برای تفسیر معتبر نیست.`
+      : observation.healthy,
+    stressFa: !hasInterpretiveData
+      ? "از این ثبت خام، تنش یا ضعف رابطه استنباط نمی‌شود."
+      : observation.stress,
+    contextFa: hasInterpretiveData ? (observation.example ?? describeRelationshipContextForContact(report.relationshipContext, theme) + ` برای نمونه، موقعیت «${pointObservation(contact.pointA.id)[0]}» را در کنار «${pointObservation(contact.pointB.id)[0]}» بررسی کنید.`) + " این‌ها مثال‌اند، نه رویدادهای ثبت‌شده." : "تا تأیید دادهٔ لازم، این تماس فقط برای بررسی فنی نگه داشته می‌شود.",
+    natalContextFa: hasInterpretiveData ? `${natalA} ${natalB}` : "شواهد فردی ثبت‌شده جایگزین اعتبار تماس میان دو نفر نمی‌شوند.",
+    overlayContextFa: relatedOverlays.length > 0
+      ? `برای بررسی جداگانهٔ حوزه‌های زندگی، به این موارد در بخش هم‌پوشانی خانه‌ها مراجعه کنید: ${relatedOverlays.map((item) => item.titleFa).join("؛ ")}. قرارگرفتن یک نقطه در خانه، جنبهٔ تازه یا تأیید مستقل همهٔ برداشت‌های این تماس نیست.`
+      : `شاهد خانه‌ای مستقلی برای این تماس در دست نیست.`,
+    confidenceFa,
+    evidenceIds: uniqueStrings([
+      contact.id,
+      ...relatedOverlays.map((item) => item.id),
+      ...(hasInterpretiveData ? findNatalAspectEvidence(report.chartA, contact.pointA.id, "a", birthTime.a) : []),
+      ...(hasInterpretiveData ? findNatalAspectEvidence(report.chartB, contact.pointB.id, "b", birthTime.b) : []),
+    ]),
+  };
+}
+
+function specificOverlayObservation(pointId: string, house: number, source: string, target: string): string | undefined {
+  if (pointId === "moon" && house === 5) return `برای نمونه، اگر ${target} سرگرمی تازه‌ای را برای لذت خودش انتخاب کرده، ${source} می‌تواند با همراهی یا توجه به حال او فضا را دلپذیرتر کند؛ لازم نیست سرگرمی همیشه مشترک باشد.`;
+  if (pointId === "moon" && house === 4) return `برای نمونه، ${source} می‌تواند در دیدار یا تماس با ${target} به این توجه کند که او چه زمانی خلوت می‌خواهد و چه زمانی همراهی؛ آسایش در فضای شخصی را صاحب آن تعریف می‌کند.`;
+  if (pointId === "moon" && house === 11) return `برای نمونه، در یک دورهمی که ${target} میزبان یا عضو جمع دوستان است، ${source} می‌تواند حال او را بپرسد بی‌آنکه نیاز به همراهی را شرط حضور در جمع کند.`;
+  if (pointId === "sun" && house === 11) return `برای نمونه، وقتی ${target} برای گروه یا شبکهٔ دوستانش ایده‌ای دارد، ${source} می‌تواند به روشن‌تر شدن هدف کمک کند، نه اینکه جهت آن جمع را از طرف صاحب خانه تعیین کند.`;
+  if (pointId === "venus" && house === 7) return `برای نمونه، ${source} سلیقهٔ خود را در یک انتخاب مشترک مطرح کند و ${target} هم فرصت پیشنهاد و مخالفت داشته باشد؛ رضایت هر دو بخش توافق است.`;
+  return undefined;
+}
+
+function buildOverlayInterpretation(
+  report: RealSynastryReport,
+  overlay: SynastryHouseOverlay,
+  labels: { a: string; b: string },
+): ComparisonOverlayInterpretation {
+  const sourceLabel = overlay.sourceChartSide === "a" ? labels.a : labels.b;
+  const targetLabel = overlay.targetChartSide === "a" ? labels.a : labels.b;
+  const theme = HOUSE_THEME_FA[overlay.targetHouse] ?? "یک حوزه مشخص از زندگی";
+  const relatedContactIds = report.contacts
+    .filter((contact) =>
+      (contact.pointA.chartSide === overlay.sourceChartSide && contact.pointA.id === overlay.sourcePointId) ||
+      (contact.pointB.chartSide === overlay.sourceChartSide && contact.pointB.id === overlay.sourcePointId),
+    )
+    .map((contact) => contact.id);
+
+  return {
+    id: overlay.id,
+    directionFa: `${sourceLabel} → زندگی ${targetLabel}`,
+    titleFa: `${overlay.sourcePointLabel} ${sourceLabel} در خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} ${targetLabel}`,
+    meaningFa: `در این هم‌پوشانی، ${overlay.sourcePointLabel} متعلق به ${sourceLabel} است و خانهٔ ${overlay.targetHouse.toLocaleString("fa-IR")} متعلق به ${targetLabel}؛ موضوع خانه «${theme}» است.`,
+    contextFa: describeOverlayContext(report.relationshipContext, overlay.targetHouse, sourceLabel, targetLabel) + " " + (specificOverlayObservation(overlay.sourcePointId, overlay.targetHouse, sourceLabel, targetLabel) ?? `از میان موقعیت‌ها، «${pointObservation(overlay.sourcePointId)[0]}» نمونه‌ای برای بررسی نقش این نقطه است.`),
+    supportiveFa: `در موضوع «${theme}»، ${sourceLabel} می‌تواند ${pointObservation(overlay.sourcePointId)[1]}. ${targetLabel} مشخص کند آیا این مشارکت در حوزهٔ زندگی خودش به کار می‌آید یا نه.`,
+    stressFa: `در همین حوزه، اگر ${sourceLabel} ${pointObservation(overlay.sourcePointId)[2]}، ${targetLabel} می‌تواند حدود مشارکت را دوباره مشخص کند. این جایگاه به‌تنهایی وجود چنین رفتاری را ثابت نمی‌کند.`,
+    confidenceFa: `این هم‌پوشانی فقط چون هر دو چارت دادهٔ خانه‌ای قابل استفاده دارند محاسبه شده است؛ با تغییر معنی‌دار ساعت تولد، جایگاه خانه می‌تواند تغییر کند.`,
+    relatedContactIds,
+    evidenceIds: uniqueStrings([overlay.id, ...relatedContactIds]),
+  };
+}
+
+function describeOverlayContext(
+  context: SynastryRelationshipContext,
+  house: number,
+  sourceLabel: string,
+  targetLabel: string,
+): string {
+  if (house === 8 && context === "work") {
+    return `در همکاری، این خانه دربارهٔ منابع مشترک، محرمانگی، اختیار، ریسک و نحوهٔ تقسیم مسئولیت خوانده می‌شود و باید صرفاً در همین چارچوب حرفه‌ای تفسیر شود. حضور ${sourceLabel} می‌تواند این موضوع‌ها را در تجربهٔ کاری ${targetLabel} پررنگ‌تر کند.`;
+  }
+  if (house === 8 && context === "romantic") {
+    return `در رابطهٔ عاطفی، این خانه اعتماد، صمیمیت عمیق، مرزهای آسیب‌پذیری و منابع مشترک را برجسته می‌کند؛ حضور ${sourceLabel} این موضوع‌ها را برای ${targetLabel} زودتر به سطح می‌آورد.`;
+  }
+  const questions: Record<number, string> = {
+    1: "طرف مقابل در جمع چگونه معرفی می‌شود؟",
+    2: "چه چیزهایی ارزش هزینه یا نگهداری دارند؟",
+    3: "خبرها و برنامه‌های روزانه چگونه منتقل می‌شوند؟",
+    4: "چه چیزی برای صاحب خانه احساس تعلق می‌سازد؟",
+    5: "کدام سرگرمی یا کار خلاقانه از روی میل انتخاب می‌شود؟",
+    6: "تقسیم کارهای کوچک و تکراری چگونه انجام می‌شود؟",
+    7: "چه تصمیمی به توافق هر دو نفر نیاز دارد؟",
+    8: "چه اطلاعات یا منابعی را می‌توان با اجازهٔ هر دو به اشتراک گذاشت؟",
+    9: "با اختلاف دیدگاه یا شیوهٔ یادگیری چگونه کنار می‌آیند؟",
+    10: "چه هدفی متعلق به خود فرد است و چه کمکی می‌خواهد؟",
+    11: "چه جمع، دوست یا هدف مشترکی برای صاحب خانه اهمیت دارد؟",
+    12: "چه زمانی باید برای خلوت نفر مقابل جا گذاشت؟",
+  };
+  const scope: Record<SynastryRelationshipContext, string> = {
+    romantic: "در تصمیم‌های روزمرهٔ رابطهٔ عاطفی",
+    friendship: "در برنامه‌ها و دیدارهای دوستانه",
+    family: "در نقش‌ها و رفت‌وآمدهای خانوادگی",
+    work: "در محدودهٔ همکاری حرفه‌ای",
+    general: "در تعامل‌های مشترک",
+  };
+  return `${scope[context]}، برای بررسی اثر حضور ${sourceLabel} بر زندگی ${targetLabel} این سؤال را دنبال کنید: ${questions[house] ?? "چه چیزی واقعاً در زندگی صاحب خانه تغییر کرده است؟"}`;
+}
+
+function buildDeepLayers(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+): ComparisonDeepLayer[] {
+  const layers: ComparisonDeepLayer[] = [];
+  const nodeItems = [
+    ...buildNodeItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildNodeItems(report.chartB, "b", labels.b, report.relationshipContext),
+  ];
+  pushLayer(layers, "lunar-nodes", "گره‌های ماه و مسیر رشد", "گره‌های ماه در این گزارش متعلق به چارت فردی‌اند؛ برای آن‌ها جنبهٔ تازه میان دو چارت محاسبه نشده است.", nodeItems);
+
+  const specialItems = [
+    ...buildLilithItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildLilithItems(report.chartB, "b", labels.b, report.relationshipContext),
+    ...buildSpecialPointItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildSpecialPointItems(report.chartB, "b", labels.b, report.relationshipContext),
+  ];
+  pushLayer(layers, "special-points", "لایه‌های عمیق‌تر و نقاط ویژه", "کایرون، ورتکس، لیلیت و اجرام پیشرفته فقط در محدودهٔ داده و اعتبار واقعی موتور توضیح داده می‌شوند.", specialItems);
+
+  const fixedStarItems = [
+    ...buildFixedStarItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildFixedStarItems(report.chartB, "b", labels.b, report.relationshipContext),
+  ];
+  pushLayer(layers, "fixed-stars", "ستاره‌های ثابت", "فقط نزدیکی‌های ثبت‌شدهٔ ستاره‌های ثابت به نقاط چارت تولد نمایش داده می‌شوند؛ این‌ها جنبهٔ تازه میان دو نفر نیستند.", fixedStarItems);
+
+  const lotItems = [
+    ...buildTraditionalLotItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildTraditionalLotItems(report.chartB, "b", labels.b, report.relationshipContext),
+  ];
+  pushLayer(layers, "traditional-lots", "سهم‌های سنتی", "سهم‌های سنتی با فرمول روز یا شب محاسبه می‌شوند؛ شمارهٔ خانه تنها در صورت اعتبار ساعت تولد قابل خواندن است.", lotItems);
+
+  const retrogradeItems = [
+    ...buildRetrogradeItems(report.chartA, "a", labels.a, report.contacts),
+    ...buildRetrogradeItems(report.chartB, "b", labels.b, report.contacts),
+  ];
+  pushLayer(layers, "retrogrades", "حرکت بازگشتی", "حرکت بازگشتی، وضعیت ظاهری حرکت سیاره نزدیک تولد است؛ به‌تنهایی نشانهٔ کیفیت رابطه نیست.", retrogradeItems);
+
+  const signatureItems = [
+    ...buildSignatureItems(report.chartA, "a", labels.a, report.relationshipContext),
+    ...buildSignatureItems(report.chartB, "b", labels.b, report.relationshipContext),
+  ];
+  pushLayer(layers, "chart-signatures", "امضای کلی دو چارت", "توزیع عناصر و کیفیت‌ها در جایگاه‌های اصلی هر چارت جداگانه بررسی می‌شود؛ این توزیع آزمون شخصیت نیست.", signatureItems);
+
+  const natalAspectItems = [
+    ...buildNatalAspectItems(report.chartA, "a", labels.a, report.contacts),
+    ...buildNatalAspectItems(report.chartB, "b", labels.b, report.contacts),
+  ];
+  pushLayer(layers, "natal-aspects", "زمینهٔ جنبه‌های تولد", "این جنبه‌ها پیش از مقایسه در چارت هر نفر وجود داشته‌اند؛ با تماس‌های میان دو نفر یکی نیستند.", natalAspectItems);
+
+  return layers;
+}
+
+function pushLayer(
+  layers: ComparisonDeepLayer[],
+  id: string,
+  titleFa: string,
+  summaryFa: string,
+  items: ComparisonDeepLayerItem[],
+) {
+  if (items.length === 0) return;
+  layers.push({ id, titleFa, summaryFa, items });
+}
+
+function buildNodeItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  const nodes = snapshot.engineSnapshot?.lunarNodes;
+  if (!nodes) return [];
+  if (nodes.status === "calculated" && "northNode" in nodes && "southNode" in nodes) {
+    return [nodes.northNode, nodes.southNode].map((node) =>
+      buildPointLayerItem({
+        id: `node:${side}:${node.id}`,
+        pointId: node.id,
+        titleFa: `${node.id === "north-node" ? "گرهٔ شمالی" : "گرهٔ جنوبی"} ${label}`,
+        label,
+        signId: node.signId,
+        degreeInSign: node.degreeInSign,
+        house: exactComparisonTime(snapshot) ? node.house ?? null : null,
+        referenceTime: !exactComparisonTime(snapshot),
+        reliability: node.reliability,
+        context,
+        evidenceIds: [`engine:${side}:lunarNodes`, `point:${side}:${node.id}`],
+        limitation: node.limitation,
+      }),
+    );
+  }
+  return [buildDeferredLayerItem(`node:${side}:deferred`, `گره‌های ماه ${label}`, nodes.limitation ?? "گره‌های ماه در این داده قابل تفسیر نیستند.", [`engine:${side}:lunarNodes`])];
+}
+
+function buildLilithItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  const lilith = snapshot.engineSnapshot?.lilith;
+  if (!lilith) return [];
+  if (lilith.status === "calculated" && "longitude" in lilith && "approvedForReportOutput" in lilith) {
+    if (!lilith.approvedForReportOutput) {
+      return [buildDeferredLayerItem(`lilith:${side}:not-approved`, `لیلیت ${label}`, lilith.limitation ?? "لیلیت محاسبه شده اما برای خروجی تفسیری تأیید نشده است.", [`engine:${side}:lilith`])];
+    }
+    return [buildPointLayerItem({
+      id: `lilith:${side}`,
+      pointId: lilith.id,
+      titleFa: `لیلیت ${label}`,
+      label,
+      signId: lilith.signId,
+      degreeInSign: lilith.degreeInSign,
+      house: exactComparisonTime(snapshot) ? lilith.house ?? null : null,
+      referenceTime: !exactComparisonTime(snapshot),
+      reliability: lilith.reliability,
+      context,
+      evidenceIds: [`engine:${side}:lilith`, `point:${side}:${lilith.id}`],
+      limitation: lilith.limitation,
+    })];
+  }
+  return [buildDeferredLayerItem(`lilith:${side}:deferred`, `لیلیت ${label}`, lilith.limitation ?? "لیلیت برای این داده قابل تفسیر نیست.", [`engine:${side}:lilith`])];
+}
+
+function buildSpecialPointItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  return (snapshot.engineSnapshot?.specialPoints ?? []).map((point) => {
+    if (point.status !== "calculated") {
+      return buildDeferredLayerItem(
+        `special:${side}:${point.id}:deferred`,
+        `${point.labelFa} ${label}`,
+        point.limitation,
+        [`engine:${side}:specialPoints`, `point:${side}:${point.id}`],
+      );
+    }
+    const normalized = snapshot.points?.find((entry) => entry.id === point.id);
+    if (!exactComparisonTime(snapshot) && (
+      point.id === "part-of-fortune" || point.id === "vertex" ||
+      normalized?.requiresExactBirthTime === true || normalized?.analysisEligible === false
+    )) {
+      return buildDeferredLayerItem(
+        `special:${side}:${point.id}:time-limited`, `${point.labelFa} ${label}`,
+        "این نقطه به ساعت تولد معتبر وابسته است؛ جایگاه مرجع وارد خوانش رابطه نمی‌شود.",
+        [`engine:${side}:specialPoints`, `point:${side}:${point.id}`],
+      );
+    }
+    return buildPointLayerItem({
+      id: `special:${side}:${point.id}`,
+      pointId: point.id,
+      titleFa: `${point.labelFa} ${label}`,
+      label,
+      signId: point.signId,
+      degreeInSign: point.degreeInSign,
+      house: exactComparisonTime(snapshot) ? point.house : null,
+      referenceTime: !exactComparisonTime(snapshot),
+      reliability: point.reliability,
+      context,
+      evidenceIds: [`engine:${side}:specialPoints`, `point:${side}:${point.id}`],
+      limitation: null,
+    });
+  });
+}
+
+function buildFixedStarItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  const fixed = snapshot.engineSnapshot?.specialistAstrology?.fixedStars;
+  if (!fixed) return [];
+  return fixed.conjunctionCandidates.flatMap((candidate, index) => {
+    if (!exactComparisonTime(snapshot) && !usableReferencePlanet(snapshot, candidate.anchorId)) return [];
+    return [{
+    id: `fixed-star:${side}:${candidate.starId}:${candidate.anchorId}:${index}`,
+    titleFa: `${candidate.starLabelFa} با ${planetLabel(candidate.anchorId)} در چارت ${label}`,
+    meaningFa: `نامزد هم‌نشینی ستارهٔ ثابت با ${planetLabel(candidate.anchorId)}${exactComparisonTime(snapshot) ? "" : " در زمان مرجع (تقریبی)"}؛ فاصلهٔ ثبت‌شده ${candidate.orbDegrees.toFixed(2)} درجه است.`,
+    relationshipExpressionFa: "",
+    supportiveExpressionFa: "",
+    stressExpressionFa: "",
+    contextualExpressionFa: "",
+    confidenceFa: "",
+    evidenceIds: [`engine:${side}:specialistAstrology.fixedStars.conjunctionCandidates`, `fixed-star:${side}:${candidate.starId}:${candidate.anchorId}`],
+    }];
+  });
+}
+
+function buildTraditionalLotItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  const lots = snapshot.engineSnapshot?.specialistAstrology?.traditionalLots;
+  if (!lots) return [];
+  if (!exactComparisonTime(snapshot)) {
+    return lots.lots.length ? [buildDeferredLayerItem(
+      `lot:${side}:time-limited`, `سهم‌های سنتی ${label}`,
+      "محاسبهٔ سهم‌ها به ساعت و زاویه‌های معتبر وابسته است؛ جایگاه‌های مرجع وارد خوانش نمی‌شوند.",
+      [`engine:${side}:specialistAstrology.traditionalLots`, ...lots.lots.map((lot) => `lot:${side}:${lot.id}`)],
+    )] : [];
+  }
+  return lots.lots.map((lot) => {
+    const inquiry = layerInquiryText(LOT_INQUIRIES_FA[lot.id], label, lot.house);
+    const fortunePoint = snapshot.engineSnapshot?.specialPoints?.find((point) => point.id === "part-of-fortune" && point.status === "calculated");
+    const sharedFortune = lot.id === "fortune" && fortunePoint?.status === "calculated" && fortunePoint.longitude === lot.longitude;
+    return ({
+    id: `lot:${side}:${lot.id}`,
+    titleFa: `${lot.labelFa} ${label}`,
+    meaningFa: sharedFortune ? "سهم بخت همان فورچون ثبت‌شده در بخش نقاط ویژه است؛ اینجا روش محاسبهٔ سنتی آن توضیح داده می‌شود، نه یک شاهد دوم." : LOT_MEANING_FA[lot.id] ?? "این سهم سنتی یک نقطهٔ محاسبه‌شده بر پایهٔ فرمول ثبت‌شدهٔ موتور است.",
+    relationshipExpressionFa: `${lot.labelFa} در چارت ${label}: ${SIGN_LABELS_FA[lot.signId] ?? lot.signId}، خانهٔ ${lot.house?.toLocaleString("fa-IR") ?? "نامشخص"}. ${sharedFortune ? "این همان مقدار ثبت‌شده در بخش نقاط ویژه است." : `در خوانش ${CONTEXT_LABELS_FA[context]} فقط زمینه‌ای برای پرسش فردی است.`}`,
+    supportiveExpressionFa: sharedFortune ? "" : inquiry.supportive,
+    stressExpressionFa: sharedFortune ? "" : inquiry.stress,
+    contextualExpressionFa: `فرمول ثبت‌شده: ${lot.formulaId}؛ چارت ${lot.sect === "day" ? "روز" : lot.sect === "night" ? "شب" : lot.sect}؛ ${lot.dayNightBehavior === "sect-reversing" ? "ترتیب فرمول بر اساس روز یا شب تولد تغییر می‌کند" : lot.dayNightBehavior}.`,
+    confidenceFa: `شمارهٔ خانه، جایگاه محاسبه‌شده در پلاسیدوس است؛ تفسیر خانه بر اساس سیستم نشان کامل در اینجا اعمال نشده است.`,
+    evidenceIds: [`engine:${side}:specialistAstrology.traditionalLots`, `lot:${side}:${lot.id}`],
+  });
+  });
+}
+
+function buildRetrogradeItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  contacts: RealSynastryReport["contacts"],
+): ComparisonDeepLayerItem[] {
+  const retrogrades = snapshot.engineSnapshot?.retrogrades;
+  if (!retrogrades) return [];
+  if (!exactComparisonTime(snapshot)) {
+    return [buildDeferredLayerItem(`retrograde:${side}:time-limited`, `حرکت بازگشتی ${label}`,
+      "ساعت تولد معتبر نیست؛ وضعیت حرکت در زمان مرجع مبنای تفسیر فردی قرار نمی‌گیرد.", [`engine:${side}:retrogrades`])];
+  }
+  if (retrogrades.status !== "calculated") {
+    return [buildDeferredLayerItem(`retrograde:${side}:deferred`, `حرکت بازگشتی ${label}`, retrogrades.limitation ?? "حرکت بازگشتی برای این داده قابل استفاده نیست.", [`engine:${side}:retrogrades`])];
+  }
+  if (retrogrades.planetIds.length === 0) {
+    return [{
+      id: `retrograde:${side}:none`,
+      titleFa: `حرکت بازگشتی ${label}`,
+      meaningFa: "در محاسبهٔ چارت تولد، هیچ سیارهٔ اصلی در حرکت بازگشتی ثبت نشده است.",
+      relationshipExpressionFa: "",
+      supportiveExpressionFa: "",
+      stressExpressionFa: "",
+      contextualExpressionFa: "",
+      confidenceFa: "",
+      evidenceIds: [`engine:${side}:retrogrades`],
+    }];
+  }
+  return retrogrades.planetIds.map((planetId) => {
+    const related = contacts.filter(c => (side === "a" ? c.pointA : c.pointB).id === planetId)
+      .sort((a,b) => b.relevanceScore - a.relevanceScore || a.id.localeCompare(b.id))[0];
+    const planet = planetLabel(planetId);
+    return ({
+    id: `retrograde:${side}:${planetId}`,
+    titleFa: `${planet} بازگشتی در چارت ${label}`,
+    meaningFa: `در محاسبهٔ چارت تولد ${label}، حرکت ظاهری ${planet} بازگشتی ثبت شده است.`,
+    relationshipExpressionFa: related ? `در تماس «${related.titleFa}» نیز ${planet} متعلق به ${label} است؛ وضعیت حرکت به همان سیاره مربوط است، نه نشانهٔ قطعی نوع واکنش در رابطه.` : "",
+    supportiveExpressionFa: "",
+    stressExpressionFa: "",
+    contextualExpressionFa: "",
+    confidenceFa: "",
+    evidenceIds: [`engine:${side}:retrogrades`, `retrograde:${side}:${planetId}`, ...(related ? [related.id] : [])],
+  }); });
+}
+
+function buildSignatureItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  context: SynastryRelationshipContext,
+): ComparisonDeepLayerItem[] {
+  const signature = snapshot.engineSnapshot?.chartSignature;
+  if (!signature) return [];
+  if (!exactComparisonTime(snapshot)) {
+    return [buildDeferredLayerItem(`signature:${side}:time-limited`, `امضای چارت ${label}`,
+      "امضای کامل شامل جایگاه ماه در زمان مرجع است؛ با ساعت نامعلوم به رابطه تعمیم داده نمی‌شود.", [`engine:${side}:chartSignature`])];
+  }
+  return [{
+    id: `signature:${side}`,
+    titleFa: `امضای چارت ${label}`,
+    meaningFa: `در میان ${signature.evidence.length.toLocaleString("fa-IR")} جایگاه اصلی ${label}، عنصر غالب: ${deepLabelFa(signature.dominantElement)}؛ کیفیت غالب: ${deepLabelFa(signature.dominantModality)}؛ شیوهٔ بیان غالب: ${deepLabelFa(signature.dominantExpression)}.`,
+    relationshipExpressionFa: "",
+    supportiveExpressionFa: "",
+    stressExpressionFa: "",
+    contextualExpressionFa: `فراوانی عناصر: ${Object.entries(signature.elementCounts).map(([key,count]) => `${deepLabelFa(key)} ${count.toLocaleString("fa-IR")}`).join("، ")}؛ کیفیت‌ها: ${Object.entries(signature.modalityCounts).map(([key,count]) => `${deepLabelFa(key)} ${count.toLocaleString("fa-IR")}`).join("، ")}؛ بیان: ${Object.entries(signature.expressionCounts).map(([key,count]) => `${deepLabelFa(key)} ${count.toLocaleString("fa-IR")}`).join("، ")}.`,
+    confidenceFa: "",
+    evidenceIds: [`engine:${side}:chartSignature`, ...signature.evidence.map((item) => `placement:${side}:${item.placementId}`)],
+  }];
+}
+
+function buildNatalAspectItems(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+  contacts: RealSynastryReport["contacts"],
+): ComparisonDeepLayerItem[] {
+  return displayNatalAspects(snapshot).map((aspect) => {
+    const exact = exactComparisonTime(snapshot);
+    const related = exact ? contacts.filter((contact) => {
+      const point = side === "a" ? contact.pointA : contact.pointB;
+      return point.id === aspect.firstPlanetId || point.id === aspect.secondPlanetId;
+    }).sort((a, b) => b.relevanceScore - a.relevanceScore || a.id.localeCompare(b.id))[0] : undefined;
+    const shared = related ? (side === "a" ? related.pointA : related.pointB).label : "";
+    return ({
+    id: `natal-aspect:${side}:${aspect.id}`,
+    titleFa: `${aspect.firstPlanetLabel} ${comparisonAspectNameFa(aspect.aspectId, aspect.aspectLabel)} ${aspect.secondPlanetLabel} در چارت ${label}`,
+    meaningFa: exact ? (aspect.narrative || aspect.meaning) : `${aspect.firstPlanetLabel} و ${aspect.secondPlanetLabel} در محاسبهٔ زمان مرجع با جنبهٔ ${comparisonAspectNameFa(aspect.aspectId, aspect.aspectLabel)} ثبت شده‌اند؛ این ثبت تقریبی است و به‌تنهایی تفسیر فردی نیست.`,
+    relationshipExpressionFa: related ? `در تماس «${related.titleFa}» نیز ${shared} متعلق به ${label} است؛ اشتراک این نقطه زمینه‌ای برای مقایسهٔ دو شاهد است، نه اثبات فعال شدن جنبهٔ تولد.` : "",
+    supportiveExpressionFa: "",
+    stressExpressionFa: "",
+    contextualExpressionFa: "",
+    confidenceFa: exactComparisonTime(snapshot)
+      ? `فاصله از زاویهٔ دقیق در چارت تولد ${label}: ${aspect.orb.toFixed(2)} درجه.`
+      : "این جنبه از موقعیت‌های سیاره‌ای زمان مرجع به دست آمده است؛ زاویه و اورب قطعی نیستند.",
+    evidenceIds: [`engine:${side}:aspects`, `natal-aspect:${side}:${aspect.id}`, ...(related ? [related.id] : [])],
+  }); });
+}
+
+function localizeTechnicalReason(reason: string): string {
+  const known: Record<string, string> = {
+    "Calculated locally from Astronomy Engine GeoMoonState as an instantaneous lunar orbital plane node; no external API or Swiss runtime dependency is used.": "گرهٔ شمالی از صفحهٔ لحظه‌ای مدار ماه در موتور نجومی محلی محاسبه شده است؛ به سرویس بیرونی یا اجرای سوئیس اپمریس وابسته نیست.",
+    "Derived as the exact opposition of the selected local True/Osculating North Lunar Node.": "گرهٔ جنوبی دقیقاً در نقطهٔ مقابل گرهٔ شمالی واقعی/نوسانی محاسبه شده است.",
+    "Calculated locally from the validated True/Osculating Black Moon Lilith adapter. Natal-report interpretation is enabled; transit, chart-wheel and public SEO expansion remain separately gated.": "لیلیت واقعی/نوسانی از روش محلی اعتبارسنجی‌شده به دست آمده است. خوانش گزارش تولد مجاز است؛ ترانزیت، چرخ چارت و گسترش محتوای عمومی مجوز جداگانه می‌خواهند.",
+    "Advanced ephemeris provider blocked: missing-ephemeris-files": "فایل‌های محاسبات نجومی پیشرفته در دسترس نیستند؛ این نقطه فعلاً محاسبه و تفسیر نمی‌شود (missing-ephemeris-files).",
+    "astronomy-engine-geocentric-ecliptic-daily-motion": "تغییر روزانهٔ طول دایرةالبروجی زمین‌مرکزی در موتور نجومی",
+    "equal-weight-major-planets": "وزن برابر برای سیاره‌های اصلی",
+  };
+  return known[reason] ?? reason;
+}
+
+function buildPointLayerItem(input: {
+  id: string;
+  pointId: string;
+  titleFa: string;
+  label: string;
+  signId: string;
+  degreeInSign: number;
+  house: number | null;
+  referenceTime?: boolean;
+  reliability: string | null | undefined;
+  context: SynastryRelationshipContext;
+  evidenceIds: string[];
+  limitation: string | null;
+}): ComparisonDeepLayerItem {
+  const meaning = POINT_MEANING_FA[input.pointId] ?? "این نقطه یک لایهٔ محاسبه‌شدهٔ تکمیلی در چارت تولد است.";
+  const inquiry = layerInquiryText(POINT_INQUIRIES_FA[input.pointId], input.label, input.house);
+  const placement = `${SIGN_LABELS_FA[input.signId] ?? input.signId} ${input.degreeInSign.toFixed(1)}°${input.house ? `، خانهٔ ${input.house.toLocaleString("fa-IR")}` : ""}`;
+  return {
+    id: input.id,
+    titleFa: input.titleFa,
+    meaningFa: input.referenceTime ? "این نقطه فقط به‌عنوان دادهٔ محاسبه‌شده در زمان مرجع ثبت شده است." : meaning,
+    relationshipExpressionFa: input.referenceTime
+      ? `${input.titleFa} در زمان مرجع در ${placement} ثبت شده است؛ این موقعیت تقریبی است و شاهد شخصی قطعی یا هم‌پوشانی خانه‌ای نیست.`
+      : `${input.titleFa} در ${placement} قرار دارد؛ برای خوانش ${CONTEXT_LABELS_FA[input.context]}، این داده به چارت خود ${input.label} تعلق دارد، نه رفتار نفر مقابل.`,
+    supportiveExpressionFa: input.referenceTime ? "" : inquiry.supportive,
+    stressExpressionFa: input.referenceTime ? "" : inquiry.stress,
+    contextualExpressionFa: input.referenceTime ? "" : "برای این گروه از نقاط هنوز قاعدهٔ تأییدشدهٔ جنبه‌های میان دو چارت وجود ندارد؛ جایگاه فردی با جنبهٔ دونفره یکی نیست.",
+    confidenceFa: `${input.reliability ? `اعتبار داده: ${input.reliability === "calculated" ? "محاسبه‌شده" : input.reliability === "derived" ? "استخراج‌شده از محاسبهٔ دیگر" : input.reliability}. ` : ""}${input.limitation ? localizeTechnicalReason(input.limitation) : "محدودیت ویژه‌ای در دادهٔ محاسبه‌شده ثبت نشده است."}`,
+    evidenceIds: input.evidenceIds,
+  };
+}
+
+function buildDeferredLayerItem(
+  id: string,
+  titleFa: string,
+  reasonFa: string,
+  evidenceIds: string[],
+): ComparisonDeepLayerItem {
+  return {
+    id,
+    titleFa,
+    meaningFa: "",
+    relationshipExpressionFa: "",
+    supportiveExpressionFa: "",
+    stressExpressionFa: "",
+    contextualExpressionFa: localizeTechnicalReason(reasonFa),
+    confidenceFa: "DEFERRED_WITH_REASON",
+    evidenceIds,
+  };
+}
+
+function buildNatalContext(
+  snapshot: SynastryNatalSnapshot,
+  side: "a" | "b",
+  label: string,
+): ComparisonNatalContext {
+  const engine = snapshot.engineSnapshot;
+  const signature = engine?.chartSignature;
+  const retrograde = engine?.retrogrades;
+  const summaryFa = !exactComparisonTime(snapshot)
+    ? `${label} ساعت تولد معتبر ندارد؛ فقط موقعیت‌های سیاره‌ای قابل استفاده در زمان مرجع گزارش می‌شوند، نه امضای قطعی چارت.`
+    : signature
+    ? `${label} در امضای کلی چارت، عنصر: ${deepLabelFa(signature.dominantElement)}؛ کیفیت: ${deepLabelFa(signature.dominantModality)}؛ بیان: ${deepLabelFa(signature.dominantExpression)}. این شمارش توصیف جایگاه‌هاست، نه حکم دربارهٔ رفتار.`
+    : `${label} امضای کلی محاسبه‌شده ندارد؛ فقط جایگاه‌ها و جنبه‌های موجود گزارش می‌شوند.`;
+  const factsFa = [
+    ...(exactComparisonTime(snapshot) ? (engine?.placements ?? []).map((placement) => `${planetLabel(placement.id)}: ${SIGN_LABELS_FA[placement.signId] ?? placement.signId} ${placement.degreeInSign.toFixed(1)}°${placement.house ? `، خانه ${placement.house.toLocaleString("fa-IR")}` : ""}${placement.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`) : snapshot.placements.filter((point) => usableReferencePlanet(snapshot, point.id)).map((point) => `${point.label}: ${SIGN_LABELS_FA[point.signId] ?? point.signId} ${point.degreeInSign.toFixed(1)}° در زمان مرجع (تقریبی).`)),
+    ...displayNatalAspects(snapshot).map((aspect) => `${aspect.firstPlanetLabel} ${comparisonAspectNameFa(aspect.aspectId, aspect.aspectLabel)} ${aspect.secondPlanetLabel}: اورب ${aspect.orb.toFixed(2)}°${exactComparisonTime(snapshot) ? "" : " در زمان مرجع (تقریبی)"}.`),
+  ];
+  if (exactComparisonTime(snapshot) && retrograde?.status === "calculated" && retrograde.planetIds.length > 0) {
+    factsFa.push(`سیاره‌های بازگشتی ثبت‌شده: ${retrograde.planetIds.map(deepLabelFa).join("، ")}.`);
+  }
+  return {
+    chartSide: side,
+    chartLabel: label,
+    summaryFa,
+    factsFa,
+    evidenceIds: uniqueStrings([
+      `engine:${side}:placements`,
+      ...displayNatalAspects(snapshot).map((aspect) => `natal-aspect:${side}:${aspect.id}`),
+      signature && exactComparisonTime(snapshot) ? `engine:${side}:chartSignature` : "",
+      retrograde && exactComparisonTime(snapshot) ? `engine:${side}:retrogrades` : "",
+    ]),
+  };
+}
+
+function buildCalculationExplanation(
+  report: RealSynastryReport,
+  labels: { a: string; b: string },
+  birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
+): ComparisonCalculationExplanation {
+  const snapshots = [
+    { side: "a" as const, label: labels.a, snapshot: report.chartA, time: birthTime.a },
+    { side: "b" as const, label: labels.b, snapshot: report.chartB, time: birthTime.b },
+  ];
+  const methodNotesFa: string[] = [];
+  const warningsFa: string[] = [];
+  for (const entry of snapshots) {
+    const engine = entry.snapshot.engineSnapshot;
+    if (!engine) {
+      warningsFa.push(`${entry.label}: دادهٔ کامل موتور در این رکورد قدیمی وجود ندارد.`);
+      continue;
+    }
+    methodNotesFa.push(`${entry.label}: نسخهٔ ${engine.version}، شهر ${engine.cityLabel}، ${entry.time === "exact" ? "زمان جهانی تولد" : "زمان جهانی مرجع محاسبه، نه ساعت تولد"} ${engine.utcIso}.`);
+    if (engine.houseContext && entry.time === "exact") {
+      methodNotesFa.push(`${entry.label}: سیستم خانه ${engine.houseContext.appliedSystem === "placidus" ? "پلاسیدوس" : engine.houseContext.appliedSystem}، وضعیت ${engine.houseContext.confidence === "calculated-cusps" ? "مرز خانه‌ها محاسبه شده‌اند" : engine.houseContext.confidence}${entry.time === "exact" ? "" : "؛ دادهٔ خام، برای خوانش رابطه معتبر نیست"}.`);
+    }
+    if (engine.lunarNodes) {
+      methodNotesFa.push(`${entry.label}: روش محاسبهٔ گره‌های ماه ${engine.lunarNodes.method === "astronomy-engine-geomoonstate-instantaneous-orbital-plane-ecliptic-of-date" ? "صفحهٔ لحظه‌ای مدار ماه (Astronomy Engine)" : engine.lunarNodes.method ?? "نامشخص"}.`);
+    }
+    if (engine.lilith && engine.lilith.status === "calculated" && "validationStatus" in engine.lilith) {
+      methodNotesFa.push(`${entry.label}: لیلیت؛ ${engine.lilith.validationStatus === "independent-reference-fixtures-passed" ? "آزمون‌های مرجع مستقل موفق" : engine.lilith.validationStatus}؛ مجوز نمایش در گزارش: ${engine.lilith.approvedForReportOutput ? "دارد" : "ندارد"}.`);
+    }
+    if (engine.specialistAstrology?.fixedStars) {
+      const fixed = engine.specialistAstrology.fixedStars;
+      methodNotesFa.push(`${entry.label}: کاتالوگ ستاره‌های ثابت ${fixed.catalogueVersion} با فاصلهٔ مجاز بررسی ${fixed.conjunctionCandidateOrbDegrees.toFixed(2)}°.`);
+    }
+    if (engine.specialistAstrology?.traditionalLots && entry.time === "exact") {
+      methodNotesFa.push(`${entry.label}: مجموعه فرمول سهم‌ها ${engine.specialistAstrology.traditionalLots.formulaSetVersion}.`);
+    }
+    if (engine.specialistAstrology?.asteroidLab) {
+      methodNotesFa.push(`${entry.label}: آزمایش اجرام کوچک؛ ${engine.specialistAstrology.asteroidLab.surface === "separate-search" ? "جست‌وجوی جداگانه" : engine.specialistAstrology.asteroidLab.surface}، ورود به گزارش اصلی: ${engine.specialistAstrology.asteroidLab.mainReportPromotion === "not-automatic" ? "خودکار نیست" : engine.specialistAstrology.asteroidLab.mainReportPromotion}.`);
+    }
+    warningsFa.push(...(engine.calculationQuality?.warnings ?? []).map((item) => `${entry.label}: ${item}`));
+    warningsFa.push(...(engine.calculationQuality?.limitations ?? []).map((item) => `${entry.label}: ${item}`));
+  }
+  warningsFa.push(...report.quality.limitations);
+  const bothExact = birthTime.a === "exact" && birthTime.b === "exact";
+  return {
+    summaryFa: bothExact
+      ? "هر دو ساعت تولد به‌عنوان دقیق وارد این مقایسه شده‌اند؛ بنابراین زاویه‌ها و هم‌پوشانی‌های خانه‌ای در صورت وجود دادهٔ معتبر قابل استفاده‌اند."
+      : `ساعت تولد ${snapshots.filter((entry) => entry.time !== "exact").map((entry) => entry.label).join(" و ")} معلوم نیست. تماس‌های سیاره‌ای از زمان مرجع می‌آیند؛ درجه و اورب قطعی نیستند. زاویه‌ها و هم‌پوشانی خانه‌ها مبنای این مقایسه نیستند.`,
+    confidenceFa: report.quality.status === "complete"
+      ? "موتور داده‌های لازم را کامل گزارش کرده است؛ کامل بودن محاسبه به معنی پیش‌بینی قطعی رابطه نیست."
+      : "بعضی داده‌ها محدود یا ناموجودند. توضیح‌های زیر مشخص می‌کنند چه چیز محاسبه شده و چه چیزی نباید قطعی خوانده شود.",
+    methodNotesFa: uniqueStrings(methodNotesFa),
+    warningsFa: uniqueStrings(warningsFa),
+  };
+}
+
+function buildInterpretationCoverage(
+  report: RealSynastryReport,
+  deepLayers: ComparisonDeepLayer[],
+  contacts: ComparisonContactInterpretation[],
+  overlays: ComparisonOverlayInterpretation[],
+): ComparisonInterpretationCoverageEntry[] {
+  const deepEvidence = deepLayers.flatMap((layer) => layer.items.flatMap((item) => item.evidenceIds));
+  return REAL_ENGINE_SYNASTRY_COVERAGE_FIELDS.map((field) => {
+    const aEntry = report.chartA.engineCoverage?.[field];
+    const bEntry = report.chartB.engineCoverage?.[field];
+    const bothUnavailable = aEntry?.dataState !== "preserved" && bEntry?.dataState !== "preserved";
+    const timeRestricted = (!exactComparisonTime(report.chartA) || !exactComparisonTime(report.chartB)) && ["angles", "houses", "houseSystem", "ascendantLongitude", "houseContext"].includes(field);
+    const status: ComparisonInterpretationCoverageEntry["status"] = bothUnavailable
+      ? "unavailable-with-reason"
+      : timeRestricted ? "deferred-with-reason"
+      : TECHNICAL_COVERAGE_FIELDS.has(field)
+        ? "technically-explained"
+        : "interpreted";
+    const evidenceIds = uniqueStrings([
+      ...(field === "placements" || field === "angles" ? contacts.flatMap((item) => item.evidenceIds) : []),
+      ...(field === "houses" || field === "houseSystem" ? overlays.flatMap((item) => item.evidenceIds) : []),
+      ...deepEvidence.filter((id) => id.includes(`:${field}`) || id.includes(`.${field}`)),
+      `engine:a:${field}`,
+      `engine:b:${field}`,
+    ]);
+    return {
+      field,
+      status,
+      chartADataState: aEntry?.dataState ?? "unavailable",
+      chartBDataState: bEntry?.dataState ?? "unavailable",
+      reasonFa: bothUnavailable
+        ? `فیلد ${field} در هیچ‌یک از دو engine snapshot موجود نیست و از نبود آن معنای تفسیری ساخته نمی‌شود.`
+        : timeRestricted
+          ? "دادهٔ خام حفظ شده است؛ کاربرد خانه و زاویه در رابطه به ساعت معتبر هر دو نفر نیاز دارد."
+        : status === "technically-explained"
+          ? `فیلد ${field} برای روش، provenance یا کیفیت محاسبه توضیح داده می‌شود و معنای روان‌شناختی جعلی نمی‌گیرد.`
+          : `فیلد ${field} در لایهٔ خوانش، تماس‌ها، هم‌پوشانی‌ها یا زمینهٔ natal استفاده شده است.`,
+      evidenceIds,
+    };
+  });
+}
+
+function describeContactTheme(contact: SynastryInterChartAspect | null): string {
+  if (!contact) return "شیوهٔ نزدیک‌شدن و پاسخ‌دادن به یکدیگر";
+  const ids = new Set([contact.pointA.id, contact.pointB.id]);
+  if (contact.categories.includes("communication") || ids.has("mercury")) return "شیوهٔ حرف‌زدن، شنیدن و معناکردن پیام‌ها";
+  if (ids.has("venus") && ids.has("mars")) return "کشش، ابراز علاقه و سرعت نزدیک‌شدن";
+  if (ids.has("moon") && ids.has("saturn")) return "نیاز به امنیت در برابر احتیاط، مسئولیت یا ترس از آسیب‌پذیری";
+  if (ids.has("sun") && ids.has("saturn")) return "دیده‌شدن در برابر انتظار، مسئولیت و حساسیت به نقد";
+  if (contact.categories.includes("closeness") && contact.categories.includes("independence")) return "تعادل میان نزدیکی و نیاز به فضای شخصی";
+  if (contact.categories.includes("closeness")) return "امنیت، محبت و تجربهٔ نزدیک‌شدن";
+  if (contact.categories.includes("independence") || ids.has("saturn") || ids.has("uranus") || ids.has("pluto")) return "مرز، آزادی، تعهد و قدرت تغییر";
+  if (contact.categories.includes("luminary")) return "هویت، دیده‌شدن و حس تعلق در کنار یکدیگر";
+  return "ریتم اثرگذاری و واکنش دو نفر به یکدیگر";
+}
+
+function describeSignatureInteraction(chartA: SynastryNatalSnapshot, chartB: SynastryNatalSnapshot): string {
+  const a = exactComparisonTime(chartA) ? chartA.engineSnapshot?.chartSignature : undefined;
+  const b = exactComparisonTime(chartB) ? chartB.engineSnapshot?.chartSignature : undefined;
+  if (!a || !b) return "دو نفر همیشه با سرعت و شیوهٔ یکسانی احساس، تصمیم و اقدام را تنظیم نمی‌کنند";
+  if (a.dominantExpression && b.dominantExpression && a.dominantExpression !== b.dominantExpression) {
+    return "یکی از دو نفر معمولاً انرژی را مستقیم‌تر بیرون می‌برد و دیگری پیش از واکنش بیشتر دریافت و پردازش می‌کند";
+  }
+  if (a.dominantModality && b.dominantModality && a.dominantModality !== b.dominantModality) {
+    return "ریتم شروع‌کردن، ثابت‌ماندن و تغییر مسیر برای دو نفر یکسان نیست";
+  }
+  if (a.dominantElement && b.dominantElement && a.dominantElement !== b.dominantElement) {
+    return "دو نفر از مسیرهای متفاوتی به اطمینان می‌رسند؛ یکی ممکن است زودتر به عمل یا ایده برود و دیگری به تجربهٔ ملموس یا احساس";
+  }
+  return "بخش مهمی از ریتم کلی دو چارت شبیه است، اما همین شباهت می‌تواند بعضی نقاط کور مشترک را هم تقویت کند";
+}
+
+function chooseDeeperOpeningTheme(layers: ComparisonDeepLayer[]): string {
+  const priority = ["lunar-nodes", "special-points", "chart-signatures", "retrogrades", "traditional-lots", "fixed-stars", "natal-aspects"];
+  const layer = priority.map((id) => layers.find((item) => item.id === id && item.items.some(entry => entry.confidenceFa !== "DEFERRED_WITH_REASON" && !entry.meaningFa.includes("زمان مرجع") && !entry.relationshipExpressionFa.includes("زمان مرجع") && !entry.id.startsWith("retrograde:") && !entry.id.startsWith("fixed-star:") && !entry.id.startsWith("lot:") && !entry.id.startsWith("signature:") && !entry.id.startsWith("natal-aspect:")))).find(Boolean);
+  if (!layer) return "لایه‌های عمیق‌تر موتور در این رکورد شواهد کافی برای برداشت مستقل ندارند.";
+  if (layer.id === "lunar-nodes") return "گره‌های ماه در بخش تکمیلی به‌عنوان زمینهٔ فردی توضیح داده شده‌اند، نه شاهد مستقل رابطه.";
+  if (layer.id === "special-points") return "نقاط ویژه در بخش تکمیلی با محدودیت دادهٔ خود توضیح داده شده‌اند، نه به‌عنوان تماس تازه میان دو نفر.";
+  if (layer.id === "chart-signatures") return "امضای کلی دو چارت کمک می‌کند تفاوت ریتم واکنش‌ها فقط به یک تماس منفرد نسبت داده نشود.";
+  if (layer.id === "retrogrades") return "حرکت‌های بازگشتی ثبت‌شده می‌توانند سرعت پردازش و بیرونی‌کردن بعضی موضوع‌ها را برای یکی از دو نفر تغییر دهند.";
+  return `${layer.titleFa} به‌عنوان لایهٔ تکمیلی فقط وقتی وارد روایت می‌شود که با شواهد اصلی هم‌جهت باشد.`;
+}
+
+function describeRelationshipContextForContact(
+  context: SynastryRelationshipContext,
+  theme: string,
+): string {
+  const templates: Record<SynastryRelationshipContext, string> = {
+    romantic: `در رابطهٔ عاطفی، برای سنجش این برداشت به انتخاب‌های مشترک و واکنش به درخواست‌های یکدیگر توجه کنید.`,
+    friendship: `در دوستی، ${theme} بیشتر در کیفیت همراهی، احترام به آزادی و شیوهٔ حل سوءبرداشت‌ها دیده می‌شود.`,
+    family: `در رابطهٔ خانوادگی، ${theme} با نقش‌های قدیمی، توقع‌های تثبیت‌شده و حساسیت به سابقهٔ مشترک ترکیب می‌شود.`,
+    work: `در همکاری، بررسی کنید این تفاوت در تقسیم کار، بازخورد یا مرز اختیار چگونه خودش را نشان می‌دهد.`,
+    general: `در این رابطه، ${theme} یکی از مسیرهای اصلی مشاهدهٔ اثر متقابل دو نفر در زندگی واقعی است.`,
+  };
+  return templates[context];
+}
+
+function describeNatalModifier(
+  snapshot: SynastryNatalSnapshot,
+  pointId: string,
+  label: string,
+  time: SynastryBirthTimeStatus,
+): string {
+  if (time !== "exact") return `جنبه‌های فردی ${label} در زمان مرجع ثبت شده‌اند؛ به‌عنوان شاهد قطعی به این تماس اضافه نمی‌شوند.`;
+  const aspects = (snapshot.engineSnapshot?.aspects ?? []).filter(
+    (aspect) => aspect.firstPlanetId === pointId || aspect.secondPlanetId === pointId,
+  );
+  if (aspects.length > 0) {
+    const first = aspects[0];
+    const other = first.firstPlanetId === pointId ? first.secondPlanetLabel : first.firstPlanetLabel;
+    return `در چارت تولد ${label}، ${planetLabel(pointId)} با ${other} جنبهٔ ${comparisonAspectNameFa(first.aspectId, first.aspectLabel)} دارد. پرسش فردی: ${label} در موقعیت «${pointObservation(pointId)[0]}» چه می‌کند؟ این جنبه به‌تنهایی نحوهٔ واکنش به نفر مقابل را تعیین نمی‌کند.`;
+  }
+  const signature = snapshot.engineSnapshot?.chartSignature;
+  return signature
+    ? `برای این نقطه در چارت ${label} جنبهٔ مستقیمی ثبت نشده است؛ ترکیب کلی چارت شاهد اختصاصی این تماس نیست.`
+    : `برای ${label} زمینهٔ فردی اختصاصی ثبت نشده است؛ توضیح به خود تماس محدود می‌ماند.`;
+}
+
+function buildContactConfidence(
+  contact: SynastryInterChartAspect,
+  birthTime: { a: SynastryBirthTimeStatus; b: SynastryBirthTimeStatus },
+): string {
+  const angleDependent = contact.pointA.kind === "angle" || contact.pointB.kind === "angle";
+  if (angleDependent) {
+    return birthTime.a === "exact" && birthTime.b === "exact"
+      ? "این تماس به محور چارت وابسته است و با ساعت تولد دقیق هر دو نفر محاسبه شده است."
+      : "این تماس به زاویه وابسته است و با ساعت تولد نامعلوم نباید معتبر فرض شود.";
+  }
+  if (birthTime.a !== "exact" || birthTime.b !== "exact") return "فاصلهٔ سیاره‌ها در زمان مرجع محاسبه شده است؛ با تغییر ساعت تولد، درجه و اورب ممکن است تغییر کنند.";
+  return "فاصلهٔ سیاره‌ها از جایگاه محاسبه‌شدهٔ تولد به دست آمده است؛ تفسیر خانه و زاویه شاهد جداگانه می‌خواهد.";
+}
+
+function formatPointFact(point: SynastryNatalPoint, label: string, time: SynastryBirthTimeStatus): string {
+  if (time !== "exact") return `${point.label} ${label}: ${SIGN_LABELS_FA[point.signId] ?? point.signId} ${point.degreeInSign.toFixed(2)}° در زمان مرجع (تقریبی).`;
+  return `${point.label} ${label}: ${SIGN_LABELS_FA[point.signId] ?? point.signId} ${point.degreeInSign.toFixed(2)}°، طول ${point.longitude.toFixed(2)}°${point.natalHouse ? `، خانهٔ ${point.natalHouse.toLocaleString("fa-IR")}` : ""}${point.motion?.status === "retrograde" ? "، بازگشتی" : ""}.`;
+}
+
+function formatDegree(value: number): string {
+  return `${value.toFixed(2)}°`;
+}
+
+function findNatalAspectEvidence(snapshot: SynastryNatalSnapshot, pointId: string, side: "a" | "b", time: SynastryBirthTimeStatus): string[] {
+  if (time !== "exact") return [];
+  // Reference only the first natal aspect actually described by describeNatalModifier.
+  const aspect = snapshot.engineSnapshot?.aspects.find((item) => item.firstPlanetId === pointId || item.secondPlanetId === pointId);
+  return aspect ? [`natal-aspect:${side}:${aspect.id}`] : [];
+}
+
+function openingEvidenceIds(
+  contact: SynastryInterChartAspect | null,
+  overlay: SynastryHouseOverlay | null,
+  fallback: string,
+): string[] {
+  return uniqueStrings([
+    contact ? `contact:${contact.id}` : "",
+    overlay ? `overlay:${overlay.id}` : "",
+    fallback,
+  ]);
+}
+
+function signatureEvidenceId(report: RealSynastryReport): string {
+  const hasA = Boolean(report.chartA.engineSnapshot?.chartSignature);
+  const hasB = Boolean(report.chartB.engineSnapshot?.chartSignature);
+  return hasA || hasB ? "engine:pair:chartSignature" : "report:pair-context";
+}
+
+function buildNarrativeFingerprint(report: RealSynastryReport): string {
+  const parts = [
+    report.relationshipContext,
+    report.chartA.chartId,
+    report.chartB.chartId,
+    ...report.contacts.slice(0, 8).map((contact) => contact.canonicalKey),
+    ...report.houseOverlays.slice(0, 8).map((overlay) => overlay.id),
+    signatureFingerprint(report.chartA),
+    signatureFingerprint(report.chartB),
+    advancedFingerprint(report.chartA),
+    advancedFingerprint(report.chartB),
+  ];
+  let hash = 2166136261;
+  for (const character of parts.join("|")) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619) >>> 0;
+  }
+  return `pair-${hash.toString(16).padStart(8, "0")}`;
+}
+
+function signatureFingerprint(snapshot: SynastryNatalSnapshot): string {
+  const signature = snapshot.engineSnapshot?.chartSignature;
+  if (!signature) return "no-signature";
+  return [
+    signature.dominantElement,
+    signature.dominantModality,
+    signature.dominantExpression,
+    ...signature.lowElements,
+    ...signature.lowModalities,
+    ...signature.lowExpressions,
+  ].join(":");
+}
+
+function advancedFingerprint(snapshot: SynastryNatalSnapshot): string {
+  const engine = snapshot.engineSnapshot;
+  if (!engine) return "legacy-no-engine";
+  const special = (engine.specialPoints ?? []).map((point) => `${point.id}:${point.status}`).join(",");
+  const fixed = (engine.specialistAstrology?.fixedStars.conjunctionCandidates ?? []).map((item) => `${item.starId}:${item.anchorId}:${item.orbDegrees.toFixed(2)}`).join(",");
+  const lots = (engine.specialistAstrology?.traditionalLots.lots ?? []).map((item) => `${item.id}:${item.signId}`).join(",");
+  return `${special}|${fixed}|${lots}`;
+}
+
+function uniqueStrings(values: readonly string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}

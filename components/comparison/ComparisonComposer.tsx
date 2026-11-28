@@ -38,6 +38,7 @@ import type { ReportRecordSummary } from "@/types/storage";
 import { EditorialStickyCtaSequence } from "@/components/EditorialStickyCtaSequence";
 import { COMPARE_FIRST_CHART_STICKY_CTA_CAMPAIGN } from "@/lib/cta/editorial-sticky-cta";
 import { saveComparisonToAccount } from "@/lib/comparison/comparison-account-client";
+import { requestPremiumComparison } from "@/lib/comparison/comparison-premium-client";
 import { ensureServerCanonicalReport } from "@/lib/storage/account-report-save-client";
 import type { AstrologyReport } from "@/types/astro";
 import type { ComparisonRecord } from "@/types/comparison-product";
@@ -96,7 +97,7 @@ type ComparisonChartOption = {
   source: "device" | "account";
   sourceLabel: string;
 };
-export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED" }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED" }) {
+export function ComparisonComposer({ embedded = false, initialMonetizationMode = "CONFIGURED", premiumEnabled = false }: { embedded?: boolean; initialMonetizationMode?: "FREE_ALL" | "CONFIGURED"; premiumEnabled?: boolean }) {
   const router = useRouter();
   const productAccess = useProductAccess();
   // HALLEUS_FREE_ALL_RELATIONSHIP_BATCH1_R1
@@ -494,6 +495,26 @@ export function ComparisonComposer({ embedded = false, initialMonetizationMode =
       relationshipContext,
     ].join("|");
     const pending = pendingGenerationRef.current;
+    if (premiumEnabled && relationshipContext === "romantic") {
+      try {
+        const retryKey = pending?.signature === signature ? pending.recordId : crypto.randomUUID();
+        pendingGenerationRef.current = {signature, recordId: retryKey};
+        const reportId = await requestPremiumComparison({
+          chartAId: serverChartA.id, chartBId: serverChartB.id,
+          chartABirthTimeStatus: chartATimeStatus, chartBBirthTimeStatus: chartBTimeStatus,
+          relationshipContext: "romantic", retryKey,
+        });
+        window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "compare_complete" }));
+        pendingGenerationRef.current = null;
+        router.push("/compare/" + encodeURIComponent(reportId));
+      } catch {
+        setMessage("ساخت گزارش کامل نشد؛ دوباره تلاش کن.");
+      } finally {
+        generationInFlightRef.current = false;
+        setIsWorking(false);
+      }
+      return;
+    }
     const result = createPrivateComparison(chartA, chartB, {
       chartAId: chartA.id,
       chartBId: chartB.id,

@@ -191,7 +191,7 @@ export async function ComparisonLanding() {
         tabIndex={-1}
       >
         <h2 className={styles.builderTitle}>دو چارت را انتخاب کن</h2>
-        <ComparisonComposer embedded />
+        <ComparisonComposer embedded premiumEnabled={process.env.HALLEUS_ENABLE_COMPARE_PRIVATE_STORAGE === "true"} />
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="دو چارت را انتخاب کن" />
       </section>
 

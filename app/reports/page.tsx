@@ -3,6 +3,8 @@ import Link from "next/link";
 
 import { ReportsList } from "@/components/ReportsList";
 import { VedicD1AccountLibrary } from "@/components/vedic/VedicD1AccountLibrary";
+import { ComparisonPremiumLibrary } from "@/components/comparison/ComparisonPremiumLibrary";
+import {isComparisonStorageReady,isComparisonCheckoutReady} from "@/lib/comparison/comparison-payment-config";
 import {isVedicD1StorageReady,isVedicD1CheckoutReady} from "@/lib/vedic/vedic-d1-payment-config";
 export const dynamic="force-dynamic";
 
@@ -45,6 +47,8 @@ export default function ReportsPage() {
       </section>
 
       <ReportsList reportSource="account" />
+      {isComparisonStorageReady()&&<ComparisonPremiumLibrary checkoutEnabled={isComparisonCheckoutReady()}/>}
+
       {isVedicD1StorageReady()&&<VedicD1AccountLibrary checkoutEnabled={isVedicD1CheckoutReady()}/> }
 
       <aside className={styles.privacyNote}>

@@ -26,6 +26,7 @@ import { ensureAccountPersistenceUser } from "@/lib/database/account-persistence
 import { getAdminDatabase } from "@/lib/admin/admin-database";
 import {isVedicD1StorageReady} from "@/lib/vedic/vedic-d1-payment-config";
 import {claimVedicD1GuestReports} from "@/lib/vedic/vedic-d1-private-store";
+import {isComparisonStorageReady} from "@/lib/comparison/comparison-payment-config";
 import { readReportPage } from "@/lib/reports/report-access-contract";
 import {
   enableOwnedReportSharing,
@@ -553,7 +554,9 @@ export async function POST(request: Request) {
 
       const claimedVedic = guest && isVedicD1StorageReady()
         ? await claimVedicD1GuestReports(accountActor.userId,guest.userId) : 0;
-      const claimed = (guest ? await claimGuestRows(accountActor.userId, guest.userId) : 0) + claimedVedic;
+      const claimedComparison = guest && isComparisonStorageReady()
+        ? await (await import("@/lib/comparison/comparison-premium-store")).claimComparisonGuestReports(accountActor.userId,guest.userId) : 0;
+      const claimed = (guest ? await claimGuestRows(accountActor.userId, guest.userId) : 0) + claimedVedic + claimedComparison;
 
       const currentReportRecord = currentReportId
         ? await getOwnedReport(accountActor.userId, currentReportId)

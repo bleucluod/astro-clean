@@ -78,14 +78,15 @@ const ComparisonBiWheel = dynamic(
 
 type ComparisonReportProps = {
   comparisonId: string;
+  premiumRecord?: ComparisonRecord;
 };
 
 type ComparisonMode = "reading" | "technical";
 
-export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
+export function ComparisonReport({ comparisonId, premiumRecord }: ComparisonReportProps) {
   const router = useRouter();
-  const [record, setRecord] = useState<ComparisonRecord | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  const [record, setRecord] = useState<ComparisonRecord | null>(premiumRecord ?? null);
+  const [isReady, setIsReady] = useState(Boolean(premiumRecord));
   const [message, setMessage] = useState("");
   const [isWorking, setIsWorking] = useState(false);
   const [mode, setMode] = useState<ComparisonMode>("reading");
@@ -94,7 +95,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
   const [technicalPolarity, setTechnicalPolarity] = useState<TechnicalContactPolarity>("all");
   const [technicalSort, setTechnicalSort] = useState<TechnicalContactSort>("relevance");
   const [accountStatus, setAccountStatus] =
-    useState<ComparisonAccountStatus>("in-progress");
+    useState<ComparisonAccountStatus>(premiumRecord ? "saved" : "in-progress");
   const [accountFavorite, setAccountFavorite] = useState(false);
   const [accountNote, setAccountNote] = useState("");
 
@@ -117,6 +118,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
   }, [comparisonId]);
 
   useEffect(() => {
+    if (premiumRecord) return;
     const frame = window.requestAnimationFrame(() => {
       void loadRecord();
     });
@@ -128,16 +130,17 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
       window.cancelAnimationFrame(frame);
       unsubscribe();
     };
-  }, [loadRecord]);
+  }, [loadRecord, premiumRecord]);
   const reading = useMemo(() => {
     if (!record) return null;
+    if (premiumRecord) return premiumRecord.reading;
     return buildHumanFirstComparisonReading(record.report, {
       chartALabel: record.chartALabel,
       chartBLabel: record.chartBLabel,
       chartABirthTimeStatus: record.chartABirthTimeStatus,
       chartBBirthTimeStatus: record.chartBBirthTimeStatus,
     });
-  }, [record]);
+  }, [record, premiumRecord]);
 
   async function regenerate() {
     if (!record) return;
@@ -336,7 +339,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
           <p className={styles.privateNote}>
-            {accountStatus === "saved"
+            {premiumRecord ? "این گزارش کامل در حساب خصوصی تو ذخیره شده است." : accountStatus === "saved"
               ? "این خوانش خصوصی در حساب تو و روی همین دستگاه در دسترس است."
               : "این خوانش خصوصی روی همین دستگاه می‌ماند؛ اگر وارد حساب باشی می‌توانی همان نسخه را در حساب خصوصی‌ات هم نگه داری."}
           </p>
@@ -407,7 +410,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
               ))}
             </div>
           </section>
-          <SurfaceShowcaseSlot surface="synastry" slot="after-patterns" />
+          {!premiumRecord && <SurfaceShowcaseSlot surface="synastry" slot="after-patterns" />}
 
           <div className={styles.chapterSequence}>
             {reading.chapters.map((chapter) => (
@@ -415,7 +418,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             ))}
           </div>
 
-          <SurfaceShowcaseSlot surface="synastry" slot="after-chapters" />
+          {!premiumRecord && <SurfaceShowcaseSlot surface="synastry" slot="after-chapters" />}
           <FullInterpretationReading full={reading.fullInterpretation} />
 
           <section className={styles.relationshipChapter} id="comparison-growth">
@@ -439,7 +442,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
             </div>
           </section>
 
-          <SurfaceShowcaseSlot surface="synastry" slot="after-growth" />
+          {!premiumRecord && <SurfaceShowcaseSlot surface="synastry" slot="after-growth" />}
           <section className={styles.limitationsCard}>
             <p className={styles.eyebrow}>حدود این خوانش</p>
             <p>{reading.readingLimitFa}</p>
@@ -624,6 +627,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
         </p>
       ) : null}
 
+      {premiumRecord ? <section className={styles.reportActions}><Link className={styles.secondaryButton} href="/reports">گزارش‌های من</Link></section> :
       <section className={styles.reportActions} aria-label="مدیریت مقایسه">
         <Link className={styles.secondaryButton} href="/compare">
           برگشت به تاریخچه
@@ -670,7 +674,7 @@ export function ComparisonReport({ comparisonId }: ComparisonReportProps) {
         >
           حذف این مقایسه
         </button>
-      </section>
+      </section>}
     </div>
   );
 }
