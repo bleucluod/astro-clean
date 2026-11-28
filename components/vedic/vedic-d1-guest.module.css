@@ -120,3 +120,39 @@
 .accountSurface :global(button[type="submit"]:disabled) { opacity: .65; }
 .accountSurface :global(input:-webkit-autofill) { -webkit-text-fill-color: #f4f6f8 !important; box-shadow: 0 0 0 1000px #0f1217 inset !important; }
 @media (max-width: 760px) { .entryAccount { margin-inline: 14px; } }
+
+/* The embedded CMS guide is outside the Wiki page's dark-theme scope. */
+.vedicPage [data-vedic-migrated-guide="true"] {
+  --wiki-surface: #0b0d11;
+  --wiki-surface-raised: #11141a;
+  --wiki-border: rgba(255, 255, 255, .14);
+  --wiki-border-strong: rgba(255, 255, 255, .24);
+  --wiki-text: #ffffff;
+  --wiki-text-soft: #ffffff;
+  --wiki-muted: #ffffff;
+  --wiki-faint: #e2e8f0;
+  --wiki-blue: #c6e4ff;
+  --wiki-violet: #d6dde6;
+  color: #ffffff;
+  line-height: 2.05;
+  overflow-wrap: anywhere;
+}
+
+.vedicPage [data-vedic-migrated-guide="true"] :is(h2, h3, h4, p, li, strong, em, blockquote, th, td, code, figcaption, small, span) {
+  color: #ffffff !important;
+}
+
+.vedicPage [data-vedic-migrated-guide="true"] :is(a, a:visited, a span) {
+  color: #c6e4ff !important;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+
+.vedicPage [data-vedic-migrated-guide="true"] a:hover {
+  color: #ffffff !important;
+}
+
+.vedicPage [data-vedic-migrated-guide="true"] a:focus-visible {
+  outline: 2px solid #c6e4ff;
+  outline-offset: 3px;
+}
