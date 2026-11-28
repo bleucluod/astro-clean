@@ -749,9 +749,7 @@ export function ChartForm({
     // Keep date/time wheels visible in both mobile form modes.
     if (stepId === "date" || stepId === "time") return false;
     const step = chartProgress.steps.find((entry) => entry.id === stepId);
-    const errorKey: ChartFieldId = stepId === "date" ? "birthDate"
-      : stepId === "time" ? "birthTime"
-      : stepId === "city" ? "birthCity" : "name";
+    const errorKey: ChartFieldId = stepId === "city" ? "birthCity" : "name";
     return Boolean(step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
   }
 

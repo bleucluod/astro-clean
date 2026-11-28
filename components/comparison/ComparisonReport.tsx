@@ -1070,7 +1070,7 @@ function EvidenceDisclosure({ evidence }: { evidence: HumanFirstEvidence[] }) {
 
 
 function directionalAspectTitle(
-  contact: { pointA: { label: string; chartSide: "a" | "b" }; pointB: { label: string; chartSide: "a" | "b" }; aspectLabel: string },
+  contact: Pick<ComparisonRecord["report"]["contacts"][number], "pointA" | "pointB" | "aspectId" | "aspectLabel">,
   labels: { a: string; b: string },
 ) {
   return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
