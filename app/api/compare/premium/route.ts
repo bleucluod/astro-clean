@@ -35,7 +35,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  const stop=guard(request);if(stop)return stop;
  if(!request.headers.get("origin"))return fail(403,"ORIGIN");
- let owner;try{owner=await actor(request);}catch{return fail(401,"AUTH_REQUIRED");}if(!owner&&request.headers.has("authorization"))return fail(401,"AUTH_REQUIRED");
+ let owner:ComparisonActor|null;try{owner=await actor(request);}catch{return fail(401,"AUTH_REQUIRED");}if(!owner&&request.headers.has("authorization"))return fail(401,"AUTH_REQUIRED");
  if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type")??""))return fail(415,"INVALID_CONTENT_TYPE");
  const reader=request.body?.getReader();if(!reader)return fail(400,"INVALID_REQUEST");
  let raw:unknown;
