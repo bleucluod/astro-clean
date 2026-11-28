@@ -177,3 +177,11 @@ assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,
   'Vedic CSS blocks remain balanced');
 console.log('PASS Vedic guest UI: /chart inputs and lazy mobile wheels, one journey progress, city autocomplete, unknown-time safety and preview isolation');
 console.log('NOT RUN: real browser interaction, full typecheck/build and visual screenshot review');
+
+// Product editorial must not offer exit links. Wiki retains the default link mode.
+const vedicWikiRenderer=read('components/wiki/WikiArticleRender.tsx');
+assert.equal((page.match(/linksEnabled=\{false\}/g) ?? []).length,3);
+assert.ok(page.includes('contextLinks={[]}'));
+assert.ok(!screen.includes('<Link') && !screen.includes('<a '));
+for(const marker of ['if (!linksEnabled) return explicitLabel ?? target.label','if (!linksEnabled) return label || part','if (!linksEnabled) return external[1]','linksEnabled && contextLinks.length','linksEnabled && showcase?.filter',') : !linksEnabled ? (']) assert.ok(vedicWikiRenderer.includes(marker),marker);
+assert.ok(vedicWikiRenderer.includes('linksEnabled = true'));

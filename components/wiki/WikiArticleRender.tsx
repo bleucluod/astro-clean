@@ -26,9 +26,11 @@ const CORE_WIKI_ROUTES = new Set([
 export function WikiInlineText({
   text,
   targets,
+  linksEnabled = true,
 }: {
   text: string;
   targets: WikiInternalLinkTargets;
+  linksEnabled?: boolean;
 }) {
   // React escapes all text. Only these narrow, explicit Markdown constructs become markup.
   const parts = text.split(
@@ -45,6 +47,7 @@ export function WikiInlineText({
       if (!target) {
         return explicitLabel ?? null;
       }
+      if (!linksEnabled) return explicitLabel ?? target.label;
       return (
         <Link
           className={styles.inlineArticleLink}
@@ -60,6 +63,7 @@ export function WikiInlineText({
     if (pageMatch) {
       const href = (pageMatch[1] ?? "/").trim();
       const label = pageMatch[2].trim();
+      if (!linksEnabled) return label || part;
       const wikiPath = /^\/wiki\/[a-z0-9]+(?:[._-][a-z0-9]+)*$/.test(href);
       if ((CORE_WIKI_ROUTES.has(href) || wikiPath) && label) {
         return (
@@ -76,16 +80,17 @@ export function WikiInlineText({
     }
 
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`strong-${index}`}><WikiInlineText text={part.slice(2, -2)} targets={targets} /></strong>;
+      return <strong key={`strong-${index}`}><WikiInlineText text={part.slice(2, -2)} targets={targets} linksEnabled={linksEnabled} /></strong>;
     }
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={`italic-${index}`}><WikiInlineText text={part.slice(1, -1)} targets={targets} /></em>;
+      return <em key={`italic-${index}`}><WikiInlineText text={part.slice(1, -1)} targets={targets} linksEnabled={linksEnabled} /></em>;
     }
     if (part.startsWith("`") && part.endsWith("`")) {
       return <code key={`code-${index}`}>{part.slice(1, -1)}</code>;
     }
     const external = part.match(/^\[([^\]\r\n]+)\]\((https:\/\/[^\s)]+)\)$/);
     if (external) {
+      if (!linksEnabled) return external[1];
       try {
         const parsed = new URL(external[2]);
         if (parsed.protocol === "https:") {
@@ -136,7 +141,7 @@ function splitWikiTableRow(line: string): string[] {
 }
 
 /** Preserve approved multi-paragraph and list introductions without HTML injection. */
-export function WikiIntroText({ text, targets }: { text: string; targets: WikiInternalLinkTargets }) {
+export function WikiIntroText({ text, targets, linksEnabled = true }: { text: string; targets: WikiInternalLinkTargets; linksEnabled?: boolean }) {
   const groups = text.trim().split(/\r?\n\s*\r?\n/).filter(Boolean);
   return <>{groups.map((group, i) => {
     const lines = group.split(/\r?\n/);
@@ -145,19 +150,19 @@ export function WikiIntroText({ text, targets }: { text: string; targets: WikiIn
       if (cells[1].every(value => /^:?-{3,}:?$/.test(value)) && cells.slice(2).every(row => row.length === cells[0].length)) {
         return <div className={styles.bodyTableScroll} key={`intro-table-${i}`} role="region" aria-label="جدول مقاله" tabIndex={0}>
           <table className={styles.bodyTable}>
-            <thead><tr>{cells[0].map((cell, j) => <th key={j} scope="col"><WikiInlineText text={cell} targets={targets} /></th>)}</tr></thead>
-            <tbody>{cells.slice(2).map((row, j) => <tr key={j}>{row.map((cell, k) => <td key={k}><WikiInlineText text={cell} targets={targets} /></td>)}</tr>)}</tbody>
+            <thead><tr>{cells[0].map((cell, j) => <th key={j} scope="col"><WikiInlineText text={cell} targets={targets} linksEnabled={linksEnabled} /></th>)}</tr></thead>
+            <tbody>{cells.slice(2).map((row, j) => <tr key={j}>{row.map((cell, k) => <td key={k}><WikiInlineText text={cell} targets={targets} linksEnabled={linksEnabled} /></td>)}</tr>)}</tbody>
           </table>
         </div>;
       }
     }
     if (lines.every(line => /^[-*] /.test(line))) {
-      return <ul className={styles.bodyList} key={`intro-list-${i}`}>{lines.map((line, j) => <li key={j}><WikiInlineText text={line.slice(2)} targets={targets} /></li>)}</ul>;
+      return <ul className={styles.bodyList} key={`intro-list-${i}`}>{lines.map((line, j) => <li key={j}><WikiInlineText text={line.slice(2)} targets={targets} linksEnabled={linksEnabled} /></li>)}</ul>;
     }
     if (lines.every(line => /^\d+[.)] /.test(line))) {
-      return <ol className={styles.bodyList} key={`intro-ordered-${i}`}>{lines.map((line, j) => <li key={j}><WikiInlineText text={line.replace(/^\d+[.)] /, "")} targets={targets} /></li>)}</ol>;
+      return <ol className={styles.bodyList} key={`intro-ordered-${i}`}>{lines.map((line, j) => <li key={j}><WikiInlineText text={line.replace(/^\d+[.)] /, "")} targets={targets} linksEnabled={linksEnabled} /></li>)}</ol>;
     }
-    return <p key={`intro-p-${i}`}><WikiInlineText text={group} targets={targets} /></p>;
+    return <p key={`intro-p-${i}`}><WikiInlineText text={group} targets={targets} linksEnabled={linksEnabled} /></p>;
   })}</>;
 }
 
@@ -165,9 +170,11 @@ export function WikiIntroText({ text, targets }: { text: string; targets: WikiIn
 export function WikiKeyPoints({
   keyPoints,
   targets,
+  linksEnabled = true,
 }: {
   keyPoints: readonly string[];
   targets: WikiInternalLinkTargets;
+  linksEnabled?: boolean;
 }) {
   const visibleKeyPoints = keyPoints.filter((point) => point.trim().length > 0);
   const count = visibleKeyPoints.length;
@@ -191,7 +198,7 @@ export function WikiKeyPoints({
       <ul>
         {visibleKeyPoints.map((point, index) => (
           <li key={`${point}-${index}`}>
-            <WikiInlineText text={point} targets={targets} />
+            <WikiInlineText text={point} targets={targets} linksEnabled={linksEnabled} />
           </li>
         ))}
       </ul>
@@ -207,6 +214,7 @@ export function WikiArticleBody({
   rootId,
   showcase,
   trackShowcases = false,
+  linksEnabled = true,
 }: {
   sections: readonly WikiArticleSection[];
   contextLinks: readonly WikiArticleLink[];
@@ -215,6 +223,7 @@ export function WikiArticleBody({
   rootId?: string;
   showcase?: readonly PublicWikiShopShowcase[] | null;
   trackShowcases?: boolean;
+  linksEnabled?: boolean;
 }) {
   return (
     <div className={styles.articleBody} id={rootId}>
@@ -229,7 +238,7 @@ export function WikiArticleBody({
                   <ul className={styles.bodyList} key={`list-${index}`}>
                     {block.items.map((item, itemIndex) => (
                       <li key={`${itemIndex}-${item}`}>
-                        <WikiInlineText text={item} targets={targets} />
+                        <WikiInlineText text={item} targets={targets} linksEnabled={linksEnabled} />
                       </li>
                     ))}
                   </ul>
@@ -237,17 +246,17 @@ export function WikiArticleBody({
               }
               if (block.kind === "numbered-list") {
                 return <ol className={styles.bodyList} key={`ordered-${index}`}>{block.items.map((item, itemIndex) => (
-                  <li key={itemIndex}><WikiInlineText text={item} targets={targets} /></li>
+                  <li key={itemIndex}><WikiInlineText text={item} targets={targets} linksEnabled={linksEnabled} /></li>
                 ))}</ol>;
               }
               if (block.kind === "heading") {
-                return <h3 key={`h3-${index}`}><WikiInlineText text={block.text} targets={targets} /></h3>;
+                return <h3 key={`h3-${index}`}><WikiInlineText text={block.text} targets={targets} linksEnabled={linksEnabled} /></h3>;
               }
               if (block.kind === "table") {
                 return <div className={styles.bodyTableScroll} key={`table-${index}`} role="region" aria-label="جدول مقاله" tabIndex={0}>
                   <table className={styles.bodyTable}>
-                    <thead><tr>{block.header.map((cell, cellIndex) => <th key={cellIndex} scope="col"><WikiInlineText text={cell} targets={targets} /></th>)}</tr></thead>
-                    <tbody>{block.rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}><WikiInlineText text={cell} targets={targets} /></td>)}</tr>)}</tbody>
+                    <thead><tr>{block.header.map((cell, cellIndex) => <th key={cellIndex} scope="col"><WikiInlineText text={cell} targets={targets} linksEnabled={linksEnabled} /></th>)}</tr></thead>
+                    <tbody>{block.rows.map((row, rowIndex) => <tr key={rowIndex}>{row.map((cell, cellIndex) => <td key={cellIndex}><WikiInlineText text={cell} targets={targets} linksEnabled={linksEnabled} /></td>)}</tr>)}</tbody>
                   </table>
                 </div>;
               }
@@ -260,7 +269,7 @@ export function WikiArticleBody({
                 </figure>;
               }
               if (block.kind === "quote") {
-                return <blockquote className={styles.bodyQuote} key={`quote-${index}`}><WikiInlineText text={block.text} targets={targets} /></blockquote>;
+                return <blockquote className={styles.bodyQuote} key={`quote-${index}`}><WikiInlineText text={block.text} targets={targets} linksEnabled={linksEnabled} /></blockquote>;
               }
               if (block.kind === "divider") return <hr className={styles.bodyDivider} key={`divider-${index}`} />;
               const image = wikiInlineImage(block.text);
@@ -271,7 +280,7 @@ export function WikiArticleBody({
                 </figure>
               ) : (
                 <p key={`paragraph-${index}`}>
-                  <WikiInlineText text={block.text} targets={targets} />
+                  <WikiInlineText text={block.text} targets={targets} linksEnabled={linksEnabled} />
                 </p>
               );
             })
@@ -286,7 +295,7 @@ export function WikiArticleBody({
                 </figure>
               ) : (
                 <p key={paragraph}>
-                  <WikiInlineText text={paragraph} targets={targets} />
+                  <WikiInlineText text={paragraph} targets={targets} linksEnabled={linksEnabled} />
                 </p>
               );
             })}
@@ -294,7 +303,7 @@ export function WikiArticleBody({
               <ul className={styles.bodyList}>
                 {section.bullets.map((bullet) => (
                   <li key={bullet}>
-                    <WikiInlineText text={bullet} targets={targets} />
+                    <WikiInlineText text={bullet} targets={targets} linksEnabled={linksEnabled} />
                   </li>
                 ))}
               </ul>
@@ -310,14 +319,14 @@ export function WikiArticleBody({
             </figure>
           ))}
         </section>
-        {showcase?.filter((offer) => index === offer.afterSectionIndex &&
+        {linksEnabled && showcase?.filter((offer) => index === offer.afterSectionIndex &&
           section.title === offer.sectionTitle).map((offer) => (
           <WikiShopShowcaseCard key={offer.id} offer={offer} track={trackShowcases} />
         ))}
         </Fragment>
       ))}
 
-      {contextLinks.length ? (
+      {linksEnabled && contextLinks.length ? (
         <section className={styles.bodySection} aria-labelledby="article-links-title">
           <h2 id="article-links-title">برای ادامه بخوان</h2>
           <div className={styles.sideLinks}>
@@ -339,6 +348,8 @@ export function WikiArticleBody({
               <li key={typeof source === "string" ? source : source.href}>
                 {typeof source === "string" ? (
                   source
+                ) : !linksEnabled ? (
+                  source.label
                 ) : (
                   <a href={source.href} rel="noreferrer" target="_blank">
                     {source.label}

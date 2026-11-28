@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import reportStyles from "@/components/report/human-first-report.module.css";
 import { VedicD1GuestForm } from "./VedicD1GuestForm";
 import { VedicD1GuestResult } from "./VedicD1GuestResult";
@@ -56,7 +55,7 @@ export function VedicD1Screen({storageEnabled=false,checkoutEnabled=false,guide}
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>چرا نشان ماه من با چارت غربی فرق دارد؟</h2>
-        <p className={chartStyles.editorialParagraph}>اگر اطلاعات تولدت را در هر دو فرم یکسان وارد کرده‌ای و دو نام متفاوت می‌بینی، اول روش محاسبه را نگاه کن. هالیوس در چارت ودیک از روش سایدریال با مبنای لاهیری استفاده می‌کند. مبدأ نشان‌ها در این روش با چارت تروپیکال فرق دارد و این اختلاف می‌تواند جای ماه را از یک نشان به نشان کناری ببرد. برای مقایسه، تاریخ، ساعت و شهرت را در <Link href="/chart">چارت تولد غربی</Link> هم یکسان وارد کن.</p>
+        <p className={chartStyles.editorialParagraph}>اگر اطلاعات تولدت را در هر دو فرم یکسان وارد کرده‌ای و دو نام متفاوت می‌بینی، اول روش محاسبه را نگاه کن. هالیوس در چارت ودیک از روش سایدریال با مبنای لاهیری استفاده می‌کند. مبدأ نشان‌ها در این روش با چارت تروپیکال فرق دارد و این اختلاف می‌تواند جای ماه را از یک نشان به نشان کناری ببرد. برای مقایسه، تاریخ، ساعت و شهرت را در چارت تولد غربی هم یکسان وارد کن.</p>
       </section>
       <section className={chartStyles.heroEditorial}>
         <h2>ساعت و شهر تولد کجای نقشه اثر می‌گذارند؟</h2>

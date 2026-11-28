@@ -37,7 +37,7 @@ export default async function VedicPage() {
         guide={guide && article ? (
           <article className={chartStyles.heroEditorial} data-vedic-migrated-guide="true" aria-labelledby="vedic-guide-title">
             <h2 id="vedic-guide-title">{article.title}</h2>
-            <WikiIntroText text={article.intro} targets={guide.internalLinkTargets} />
+            <WikiIntroText text={article.intro} targets={guide.internalLinkTargets} linksEnabled={false} />
             {article.image ? (
               <figure className={wikiStyles.articleCover}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -46,9 +46,9 @@ export default async function VedicPage() {
                 {article.image.caption ? <figcaption>{article.image.caption}</figcaption> : null}
               </figure>
             ) : null}
-            <WikiKeyPoints keyPoints={article.keyPoints} targets={guide.internalLinkTargets} />
-            <WikiArticleBody sections={article.sections} contextLinks={article.contextLinks ?? []}
-              sources={article.sources ?? []} targets={guide.internalLinkTargets} />
+            <WikiKeyPoints keyPoints={article.keyPoints} targets={guide.internalLinkTargets} linksEnabled={false} />
+            <WikiArticleBody sections={article.sections} contextLinks={[]}
+              sources={article.sources ?? []} targets={guide.internalLinkTargets} linksEnabled={false} />
           </article>
         ) : null}
       />
