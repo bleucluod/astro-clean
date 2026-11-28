@@ -1,20 +1,23 @@
 import {createHash,randomUUID} from "node:crypto";
 import {isDeepStrictEqual} from "node:util";
+import {parseDirectComparison,type DirectComparisonRequest,type DirectBirth} from "./comparison-direct-input";
 import {getAdminDatabase} from "@/lib/admin/admin-database";
 import {generateReportContract} from "@/lib/report-generation";
 import {createPrivateComparison,getDefaultComparisonBirthTimeStatus} from "./comparison-premium-product-service";
 import {buildComparisonEvidencePlan} from "./comparison-evidence-plan";
-import {projectComparisonChapterPreview,refreshStoredComparisonChapterPreview} from "./comparison-preview-projection.mjs";
+import {projectComparisonChapterPreview,refreshStoredComparisonChapterPreview,projectComparisonPatternPreviews} from "./comparison-preview-projection.mjs";
 import type {AstrologyReport,BirthInput} from "@/types/astro";
 import type {ComparisonRecord} from "@/types/comparison-product";
 
 export type ComparisonActor={id:string;kind:"account"|"guest"};
-export type ComparisonRequest={chartAId:string;chartBId:string;relationshipContext:"romantic";chartABirthTimeStatus:"exact"|"unknown";chartBBirthTimeStatus:"exact"|"unknown";retryKey:string};
+type StoredChartComparisonRequest={chartAId:string;chartBId:string;relationshipContext:"romantic";chartABirthTimeStatus:"exact"|"unknown";chartBBirthTimeStatus:"exact"|"unknown";retryKey:string};
+export type ComparisonRequest=StoredChartComparisonRequest|DirectComparisonRequest;
 const keys=["chartAId","chartBId","relationshipContext","chartABirthTimeStatus","chartBBirthTimeStatus","retryKey"];
 const object=(v:unknown):v is Record<string,unknown>=>Boolean(v&&typeof v==="object"&&!Array.isArray(v));
 const validId=(v:unknown):v is string=>typeof v==="string"&&v.length>0&&v.length<=220&&v===v.trim()&&!/[\x00-\x1f\x7f]/u.test(v);
 const validTime=(v:unknown):v is "exact"|"unknown"=>v==="exact"||v==="unknown";
 export function parsePremiumComparison(v:unknown):ComparisonRequest|null{
+ const direct=parseDirectComparison(v);if(direct)return direct;
  if(!object(v)||Object.keys(v).length!==keys.length||keys.some(k=>!Object.hasOwn(v,k))||
  !validId(v.chartAId)||!validId(v.chartBId)||v.chartAId===v.chartBId||v.relationshipContext!=="romantic"||
  !validTime(v.chartABirthTimeStatus)||!validTime(v.chartBBirthTimeStatus)||
@@ -22,7 +25,7 @@ export function parsePremiumComparison(v:unknown):ComparisonRequest|null{
  return {chartAId:v.chartAId,chartBId:v.chartBId,relationshipContext:"romantic",chartABirthTimeStatus:v.chartABirthTimeStatus,chartBBirthTimeStatus:v.chartBBirthTimeStatus,retryKey:v.retryKey};
 }
 export type Preview=ReturnType<typeof projectComparisonChapterPreview>;
-export type PremiumComparisonView={id:string;chartALabel:string;chartBLabel:string;createdAt:string;purchaseStatus:"locked"|"pending"|"paid";amountToman:number|null;factor:string|null;preview:Preview;record?:ComparisonRecord};
+export type PremiumComparisonView={id:string;chartALabel:string;chartBLabel:string;createdAt:string;purchaseStatus:"locked"|"pending"|"paid";amountToman:number|null;factor:string|null;preview:Preview & {primaryPatterns:ReturnType<typeof projectComparisonPatternPreviews>};record?:ComparisonRecord};
 function column(actor:ComparisonActor){return actor.kind==="account"?"owner_id":"guest_owner_id";}
 function snapshot(row:Record<string,unknown>){
  const rec=row.record as ComparisonRecord, saved=row.preview as Preview;
@@ -40,8 +43,14 @@ function view(row:Record<string,unknown>,actor:ComparisonActor):PremiumCompariso
  purchaseStatus:paid?"paid":row.payment_status?"pending":"locked",amountToman:row.amount_toman==null?null:Number(row.amount_toman),
  factor:row.factor_id==null?null:String(row.factor_id),
  preview:{version:preview.version,overviewParagraphsFa:preview.overviewParagraphsFa,readyForSale:preview.readyForSale,
+ primaryPatterns:paid?[]:projectComparisonPatternPreviews(rec.reading),
  chapters:preview.chapters.map(c=>({id:c.id,title:c.title,eyebrow:c.eyebrow,storyTitle:c.storyTitle,evidenceStatus:c.evidenceStatus,excerptFa:c.excerptFa,previewReady:c.previewReady}))},
  ...(paid?{record:rec}:{})};
+}
+function calculateDirectChart(input:DirectBirth,id:string,at:string):AstrologyReport{
+ const result=generateReportContract({input,reportOwnerKind:"local",reportTier:"preview"},{generatedAt:at});
+ if(!result.ok||result.contract.fallback.used||!result.contract.report?.realEngine)throw Error("CHART_CALCULATION_FAILED");
+ return {...result.contract.report,id};
 }
 function calculateOwnedChart(stored:unknown,id:string,requested:"exact"|"unknown",at:string):AstrologyReport{
  if(!object(stored)||stored.id!==id||!object(stored.input)||!object(stored.realEngine))throw Error("CHART_UNAVAILABLE");
@@ -70,14 +79,24 @@ export async function createPremiumComparison(actor:ComparisonActor,input:Compar
    where r.${tx(col)}=${actor.id}::uuid and r.retry_key=${input.retryKey}`;
   if(old.length){if(old[0].binding_hash!==binding)throw Error("RETRY_CONFLICT");return view(old[0],actor);}
   const at=new Date().toISOString(),id=randomUUID();
-  const charts=await tx`select id,report_json from public.halleus_reports
-   where user_id=${actor.id}::uuid and deleted_at is null and id in (${input.chartAId},${input.chartBId})`;
-  const a=calculateOwnedChart(charts.find(row=>String(row.id)===input.chartAId)?.report_json,input.chartAId,input.chartABirthTimeStatus,at);
-  const b=calculateOwnedChart(charts.find(row=>String(row.id)===input.chartBId)?.report_json,input.chartBId,input.chartBBirthTimeStatus,at);
-  const generated=createPrivateComparison(a,b,{...input,recordId:id,generatedAt:at});
+  let a:AstrologyReport,b:AstrologyReport;
+  let chartABirthTimeStatus:"exact"|"unknown",chartBBirthTimeStatus:"exact"|"unknown";
+  if("birthA" in input){
+   a=calculateDirectChart(input.birthA,"compare-natal-"+id+"-a",at);
+   b=calculateDirectChart(input.birthB,"compare-natal-"+id+"-b",at);
+   chartABirthTimeStatus=input.birthA.birthTimeAccuracy==="known"?"exact":"unknown";
+   chartBBirthTimeStatus=input.birthB.birthTimeAccuracy==="known"?"exact":"unknown";
+  }else{
+   const charts=await tx`select id,report_json from public.halleus_reports
+    where user_id=${actor.id}::uuid and deleted_at is null and id in (${input.chartAId},${input.chartBId})`;
+   a=calculateOwnedChart(charts.find(row=>String(row.id)===input.chartAId)?.report_json,input.chartAId,input.chartABirthTimeStatus,at);
+   b=calculateOwnedChart(charts.find(row=>String(row.id)===input.chartBId)?.report_json,input.chartBId,input.chartBBirthTimeStatus,at);
+   chartABirthTimeStatus=input.chartABirthTimeStatus;chartBBirthTimeStatus=input.chartBBirthTimeStatus;
+  }
+  const generated=createPrivateComparison(a,b,{chartAId:a.id,chartBId:b.id,chartABirthTimeStatus,chartBBirthTimeStatus,relationshipContext:input.relationshipContext,recordId:id,generatedAt:at});
   if(!generated.ok)throw Error("GENERATION_INVALID");
   const rec=generated.record;
-  if(rec.id!==id||rec.chartAId!==input.chartAId||rec.chartBId!==input.chartBId||rec.chartABirthTimeStatus!==input.chartABirthTimeStatus||rec.chartBBirthTimeStatus!==input.chartBBirthTimeStatus||rec.relationshipContext!==input.relationshipContext)throw Error("GENERATION_BINDING");
+  if(rec.id!==id||rec.chartAId!==a.id||rec.chartBId!==b.id||rec.chartABirthTimeStatus!==chartABirthTimeStatus||rec.chartBBirthTimeStatus!==chartBBirthTimeStatus||rec.relationshipContext!==input.relationshipContext)throw Error("GENERATION_BINDING");
   const preview=projectComparisonChapterPreview(rec.reading,buildComparisonEvidencePlan(rec.report));
   const rows=await tx`insert into halleus_private.comparison_premium_reports(id,${tx(col)},retry_key,binding_hash,record,preview,ready_for_sale)
    values (${id}::uuid,${actor.id}::uuid,${input.retryKey},${binding},${JSON.stringify(rec)}::text::jsonb,${JSON.stringify(preview)}::text::jsonb,${preview.readyForSale}) returning *`;

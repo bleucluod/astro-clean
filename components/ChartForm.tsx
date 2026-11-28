@@ -14,6 +14,8 @@ import {
   type CSSProperties,
   type FormEvent,
   type ReactNode,
+  type Ref,
+  useImperativeHandle,
   useEffect,
   useMemo,
   useRef,
@@ -325,10 +327,6 @@ function getGregorianDayCount(year: string, month: string) {
 }
 
 
-function notifyLocalDataChanged() {
-  window.dispatchEvent(new Event("astro-clean-data-changed"));
-}
-
 function buildReportSaveFallbackMessage(message: string) {
   void message;
   return "ذخیرهٔ گزارش روی هالیوس تأیید نشد؛ گزارشی باز نمی‌شود. اتصال را بررسی کن و دوباره تلاش کن.";
@@ -527,25 +525,53 @@ function ChartStickyPortal({ children }: { children: ReactNode }) {
 
 export type ChartFormMode = "standalone" | "comparison";
 
+export type PreparedComparisonBirth = {
+  birthInput: BirthInput;
+};
+
+export type ComparisonFormHandle = {
+  prepare: () => Promise<PreparedComparisonBirth>;
+};
+
 export function ChartForm({
   mode = "standalone",
-  onComparisonChartSaved,
+  comparisonFormRef,
+  onComparisonReadyChange,
+  comparisonBusy = false,
+  comparisonHeadingId,
+  initialComparisonInput,
 }: {
   mode?: ChartFormMode;
-  onComparisonChartSaved?: (report: AstrologyReport) => void;
+  comparisonFormRef?: Ref<ComparisonFormHandle>;
+  onComparisonReadyChange?: (ready: boolean) => void;
+  comparisonBusy?: boolean;
+  comparisonHeadingId?: string;
+  initialComparisonInput?: BirthInput;
 } = {}) {
   const router = useRouter();
   const comparisonMode = mode === "comparison";
-  const [form, setForm] = useState<BirthInput>(initialForm);
-  const [dateMode, setDateMode] = useState<BirthDateMode>("jalali");
+  // Only the selected natal fields are restored when editing a comparison slot.
+  // Do not carry residence, transit or previous engine fields into a fresh chart.
+  const savedInput = comparisonMode ? initialComparisonInput : undefined;
+  const savedDate = savedInput?.birthDate.match(/^(\d{4})-(\d{2})-(\d{2})$/u);
+  const savedTime = savedInput?.birthTimeAccuracy === "known"
+    ? savedInput.birthTime.match(/^([01]\d|2[0-3]):([0-5]\d)$/u) : null;
+  const [form, setForm] = useState<BirthInput>(() => savedInput ? {
+    ...initialForm,
+    name: sanitizePersianName(savedInput.name ?? ""),
+    birthCity: savedInput.birthCity,
+    birthCountry: savedInput.birthCountry,
+    birthTime: savedTime ? savedTime[0] : "",
+  } : initialForm);
+  const [dateMode, setDateMode] = useState<BirthDateMode>(savedDate ? "gregorian" : "jalali");
   const [birthDateParts, setBirthDateParts] = useState<JalaliBirthDateParts>(
     initialJalaliBirthDateParts,
   );
   const [gregorianBirthDateParts, setGregorianBirthDateParts] =
-    useState<JalaliBirthDateParts>(initialJalaliBirthDateParts);
-  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>("known");
+    useState<JalaliBirthDateParts>(savedDate ? { year: savedDate[1], month: savedDate[2], day: savedDate[3] } : initialJalaliBirthDateParts);
+  const [birthTimeMode, setBirthTimeMode] = useState<BirthTimeMode>(savedInput && !savedTime ? "unknown" : "known");
   const [birthTimeParts, setBirthTimeParts] =
-    useState<BirthTimeParts>(initialBirthTimeParts);
+    useState<BirthTimeParts>(savedTime ? { hour: savedTime[1], minute: savedTime[2] } : initialBirthTimeParts);
   const [showAccountPanel, setShowAccountPanel] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [realEngineRequest, setRealEngineRequest] =
@@ -564,7 +590,7 @@ export function ChartForm({
   const [currentResidenceCity, setCurrentResidenceCity] = useState("");
   // Current residence is optional, but when supplied it enables a personal transit reading.
   const includeTransitReading = !comparisonMode && Boolean(currentResidenceCity.trim());
-  const [selectedBirthCityId, setSelectedBirthCityId] = useState("");
+  const [selectedBirthCityId, setSelectedBirthCityId] = useState(savedInput?.birthCityId ?? "");
   const [selectedCurrentResidenceCityId, setSelectedCurrentResidenceCityId] =
     useState("");
 
@@ -594,7 +620,7 @@ export function ChartForm({
 
   useEffect(() => {
     const restoreFrame = window.requestAnimationFrame(() => {
-      const savedLocation = loadLastStudyLocation();
+      const savedLocation = comparisonMode ? null : loadLastStudyLocation();
 
       if (savedLocation) {
         setSelectedCurrentResidenceCityId(savedLocation.cityId);
@@ -608,7 +634,7 @@ export function ChartForm({
         window.clearTimeout(openReportTimerRef.current);
       }
     };
-  }, []);
+  }, [comparisonMode]);
 
   useEffect(() => {
     if (realEngineRequest.status === "idle") {
@@ -715,14 +741,18 @@ export function ChartForm({
     selectedBirthCityId,
   ]);
 
+  useEffect(() => {
+    if (comparisonMode) onComparisonReadyChange?.(chartProgress.completed === 4);
+  }, [comparisonMode, chartProgress.completed, onComparisonReadyChange]);
+
   function isCollapsedStep(stepId: ChartJourneyStepId) {
-    // Keep date/time wheels visible on the standalone /chart mobile journey.
-    if (!comparisonMode && (stepId === "date" || stepId === "time")) return false;
+    // Keep date/time wheels visible in both mobile form modes.
+    if (stepId === "date" || stepId === "time") return false;
     const step = chartProgress.steps.find((entry) => entry.id === stepId);
     const errorKey: ChartFieldId = stepId === "date" ? "birthDate"
       : stepId === "time" ? "birthTime"
       : stepId === "city" ? "birthCity" : "name";
-    return Boolean(!comparisonMode && step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
+    return Boolean(step?.complete && editingStep !== stepId && !fieldErrors[errorKey]);
   }
 
   function openJourneyStep(stepId: ChartJourneyStepId) {
@@ -1021,7 +1051,7 @@ export function ChartForm({
     normalizedForm: BirthInput,
     engineCity: HalleusCityOption,
   ) {
-    setRealEngineRequest({
+    if (!comparisonMode) setRealEngineRequest({
       status: "loading",
       message: "چارت تولد در حال محاسبه است؛ گزارش مستقیم بعد از آماده شدن باز می‌شود.",
     });
@@ -1065,14 +1095,14 @@ export function ChartForm({
         );
       }
 
-      setRealEngineRequest({
+      if (!comparisonMode) setRealEngineRequest({
         status: "loading",
         message: "چارت آماده شد؛ گزارش در حال آماده‌سازی نهایی است…",
       });
 
       return payload;
     } catch (error) {
-      setRealEngineRequest({
+      if (!comparisonMode) setRealEngineRequest({
         status: "error",
         message:
           error instanceof Error
@@ -1084,8 +1114,28 @@ export function ChartForm({
     }
   }
 
+  // Validate both natal inputs before either calculation. New comparison
+  // inputs never enter the standalone personal-report save/navigation path.
+  useImperativeHandle(comparisonFormRef, () => ({
+    async prepare() {
+      setFieldErrors({});
+      let normalizedBirth: ReturnType<typeof normalizeBirthForm>;
+      try {
+        normalizedBirth = normalizeBirthForm(await ensureCityDirectory());
+      } catch (error) {
+        if (error instanceof ChartFormValidationError) {
+          setFieldErrors({ [error.field]: error.message });
+        }
+        throw error;
+      }
+
+      return { birthInput: normalizedBirth.normalizedForm };
+    },
+  }));
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (comparisonMode) return;
 
     if (submissionInFlightRef.current || generatedReportPath) {
       return;
@@ -1160,16 +1210,6 @@ export function ChartForm({
       if (!comparisonMode) {
         window.dispatchEvent(new CustomEvent(HALLEUS_ANALYTICS_ACTION, { detail: "chart_complete" }));
       }
-      if (comparisonMode) {
-        notifyLocalDataChanged();
-        submissionInFlightRef.current = false;
-        setIsSubmitting(false);
-        setSaveMessage("چارت روی هالیوس ذخیره شد و به مقایسه برگشت.");
-        setRealEngineRequest({ status: "ready", message: "چارت آماده شد." });
-        onComparisonChartSaved?.(saveResult.accountRecord.report);
-        return;
-      }
-
       const nextPath = `/reports/${saveResult.accountRecord.id}?source=account`;
       const nextMessage =
         saveResult.accountStatus === "account-saved"
@@ -1201,20 +1241,20 @@ export function ChartForm({
   }
 
   return (
-    <section className={comparisonMode ? "chart-reference-page" : "chart-reference-page " + journeyStyles.journeyRoot} aria-label="فرم ساخت چارت تولد">
+    <section className={"chart-reference-page " + journeyStyles.journeyRoot} aria-label={comparisonMode ? "مشخصات تولد" : "فرم ساخت چارت تولد"} inert={comparisonMode && comparisonBusy}>
       <div className="chart-reference-shell">
         <div className="chart-reference-content">
           <form
             className="chart-reference-form"
-            id="chart-birth-data-form"
-            aria-labelledby="birth-data-heading"
+            id={comparisonMode ? `${comparisonHeadingId}-form` : "chart-birth-data-form"}
+            aria-labelledby={comparisonMode ? comparisonHeadingId : "birth-data-heading"}
             onSubmit={handleSubmit}
             ref={formRef}
           >
-            {!comparisonMode ? (
+            {!comparisonMode ? <>
               <div className={journeyStyles.journeyProgress} aria-live="polite">
                 <div className={journeyStyles.progressHeading}>
-                  <span>آسمان تو در حال شکل‌گرفتنه</span>
+                  <span>{comparisonMode ? "مشخصات تولد" : "آسمان تو در حال شکل‌گرفتنه"}</span>
                   <strong>{chartProgress.completed.toLocaleString("fa-IR")} از ۴</strong>
                 </div>
                 <div className={journeyStyles.orbitTrack}>
@@ -1237,7 +1277,6 @@ export function ChartForm({
                     : "هر اطلاعاتی که تکمیل کنی، یک نقطه از آسمانت روشن می‌شه."}
                 </p>
               </div>
-            ) : null}
             <div className="chart-form-progress" aria-live="polite">
               <div className="chart-form-progress-header">
                 <span>پیشرفت اطلاعات ضروری</span>
@@ -1270,11 +1309,13 @@ export function ChartForm({
               </div>
             </div>
 
+            </> : null}
+
             <div className="chart-form-fields">
               <div className={journeyStyles.journeyStep + (isCollapsedStep("name") ? " " + journeyStyles.stepCollapsed : "")}
                 data-chart-step="name">
                 <button type="button" className={journeyStyles.stepSummary}
-                  aria-controls="chart-journey-name"
+                  aria-controls={comparisonMode ? `${comparisonHeadingId}-name` : "chart-journey-name"}
                   aria-label="ویرایش نام"
                   aria-expanded={!isCollapsedStep("name")}
                   onClick={() => openJourneyStep("name")}>
@@ -1283,7 +1324,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{(form.name ?? "").trim()}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-name" onFocusCapture={() => setEditingStep("name")}>
+                <div className={journeyStyles.stepBody} id={comparisonMode ? `${comparisonHeadingId}-name` : "chart-journey-name"} onFocusCapture={() => setEditingStep("name")}>
               <label className="chart-field chart-field-full">
                 <span className="chart-field-label">
                   <span aria-hidden="true">♙</span>
@@ -1292,7 +1333,7 @@ export function ChartForm({
                 <input
                   required
                   aria-required="true"
-                  autoComplete="name"
+                  autoComplete={comparisonMode ? "off" : "name"}
                   dir="rtl"
                   lang="fa"
                   value={form.name}
@@ -1303,7 +1344,7 @@ export function ChartForm({
                       sanitizePersianName(event.target.value),
                     );
                   }}
-                  placeholder="نام خود را به فارسی وارد کنید"
+                  placeholder={comparisonMode ? "نام را به فارسی وارد کنید" : "نام خود را به فارسی وارد کنید"}
                 />
                 <FieldError message={fieldErrors.name} />
               </label>
@@ -1313,7 +1354,7 @@ export function ChartForm({
               <div className={journeyStyles.journeyStep + (isCollapsedStep("date") ? " " + journeyStyles.stepCollapsed : "")}
                 data-chart-step="date">
                 <button type="button" className={journeyStyles.stepSummary}
-                  aria-controls="chart-journey-date"
+                  aria-controls={comparisonMode ? `${comparisonHeadingId}-date` : "chart-journey-date"}
                   aria-label="ویرایش تاریخ تولد"
                   aria-expanded={!isCollapsedStep("date")}
                   onClick={() => openJourneyStep("date")}>
@@ -1322,7 +1363,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{dateMode === "jalali" ? [birthDateParts.day, birthDateParts.month, birthDateParts.year].join("/") : [gregorianBirthDateParts.day, gregorianBirthDateParts.month, gregorianBirthDateParts.year].join("/")}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-date" onFocusCapture={() => setEditingStep("date")}>
+                <div className={journeyStyles.stepBody} id={comparisonMode ? `${comparisonHeadingId}-date` : "chart-journey-date"} onFocusCapture={() => setEditingStep("date")}>
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row chart-date-title-row">
                   <span className="chart-field-label">
@@ -1359,7 +1400,6 @@ export function ChartForm({
                   </div>
                 </div>
 
-                {!comparisonMode ? (
                   <MobileBirthDatePicker
                     mode={dateMode}
                     value={dateMode === "jalali" ? birthDateParts : gregorianBirthDateParts}
@@ -1367,7 +1407,6 @@ export function ChartForm({
                     monthOptions={dateMode === "jalali" ? JALALI_MONTH_OPTIONS : GREGORIAN_MONTH_OPTIONS}
                     onConfirm={applyMobileBirthDate}
                   />
-                ) : null}
 
                                 {dateMode === "jalali" ? (
                   <div
@@ -1468,7 +1507,7 @@ export function ChartForm({
               <div className={journeyStyles.journeyStep + (isCollapsedStep("time") ? " " + journeyStyles.stepCollapsed : "")}
                 data-chart-step="time">
                 <button type="button" className={journeyStyles.stepSummary}
-                  aria-controls="chart-journey-time"
+                  aria-controls={comparisonMode ? `${comparisonHeadingId}-time` : "chart-journey-time"}
                   aria-label="ویرایش ساعت تولد"
                   aria-expanded={!isCollapsedStep("time")}
                   onClick={() => openJourneyStep("time")}>
@@ -1477,7 +1516,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{birthTimeMode === "unknown" ? "ساعت نامشخص" : [birthTimeParts.hour, birthTimeParts.minute].join(":")}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-time" onFocusCapture={() => setEditingStep("time")}>
+                <div className={journeyStyles.stepBody} id={comparisonMode ? `${comparisonHeadingId}-time` : "chart-journey-time"} onFocusCapture={() => setEditingStep("time")}>
               <div className="chart-field chart-field-full">
                 <div className="chart-field-title-row chart-time-title-row">
                   <span className="chart-field-label">
@@ -1499,7 +1538,7 @@ export function ChartForm({
                   </label>
                 </div>
 
-                {!comparisonMode && birthTimeMode === "known" ? (
+                {birthTimeMode === "known" ? (
                   <DeferredMobileBirthTimePicker value={birthTimeParts} onConfirm={applyMobileBirthTime} />
                 ) : null}
 
@@ -1540,7 +1579,7 @@ export function ChartForm({
                 </div>
                 ) : null}
 
-                {birthTimeMode === "unknown" ? (
+                {!comparisonMode && birthTimeMode === "unknown" ? (
                   <small className="field-hint">
                     اگر ساعت دقیق را نمی‌دانی، می‌توانی ادامه بدهی؛ در گزارش مشخص می‌کنیم کدام بخش‌ها به ساعت دقیق وابسته‌اند.
                   </small>
@@ -1553,7 +1592,7 @@ export function ChartForm({
               <div className={journeyStyles.journeyStep + (isCollapsedStep("city") ? " " + journeyStyles.stepCollapsed : "")}
                 data-chart-step="city">
                 <button type="button" className={journeyStyles.stepSummary}
-                  aria-controls="chart-journey-city"
+                  aria-controls={comparisonMode ? `${comparisonHeadingId}-city` : "chart-journey-city"}
                   aria-label="ویرایش شهر تولد"
                   aria-expanded={!isCollapsedStep("city")}
                   onClick={() => openJourneyStep("city")}>
@@ -1562,7 +1601,7 @@ export function ChartForm({
                   <strong className={journeyStyles.summaryValue}>{form.birthCity.trim()}</strong>
                   <span className={journeyStyles.summaryEdit}>ویرایش</span>
                 </button>
-                <div className={journeyStyles.stepBody} id="chart-journey-city" onFocusCapture={() => setEditingStep("city")}>
+                <div className={journeyStyles.stepBody} id={comparisonMode ? `${comparisonHeadingId}-city` : "chart-journey-city"} onFocusCapture={() => setEditingStep("city")}>
               <div className="chart-field chart-city-field chart-city-card">
                 <label className="chart-city-label">
                   <span className="chart-field-label">
@@ -1648,7 +1687,7 @@ export function ChartForm({
           </form>
 
 
-          <div className="chart-form-actions">
+          {!comparisonMode ? <div className="chart-form-actions">
             <button
               className="button chart-submit-button"
               ref={mainSubmitRef}
@@ -1664,15 +1703,9 @@ export function ChartForm({
                   width={1400}
                 />
               </span>
-              {isSubmitting
-                ? comparisonMode
-                  ? "در حال ساخت چارت…"
-                  : "در حال ساخت گزارش…"
-                : comparisonMode
-                  ? "ساخت چارت برای مقایسه"
-                  : "ساخت گزارش"}
+              {isSubmitting ? "در حال ساخت گزارش…" : "ساخت گزارش"}
             </button>
-          </div>
+          </div> : null}
 
           {!comparisonMode ? (
             <p className="chart-form-reassurance">

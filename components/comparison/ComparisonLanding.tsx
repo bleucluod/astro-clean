@@ -3,7 +3,7 @@ import Image from "next/image";
 
 
 import { siteConfig } from "@/lib/config/seo";
-import { getPublicReportAccessPolicy } from "@/lib/monetization/product-entitlement-service";
+import { COMPARISON_PRICE_TOMAN } from "@/lib/comparison/comparison-price";
 
 import { ComparisonBuilderLink } from "./ComparisonBuilderLink";
 import { ComparisonComposer } from "./ComparisonComposer";
@@ -12,11 +12,11 @@ import styles from "./comparison-landing.module.css";
 const faqItems = [
   {
     question: "آیا چارت ازدواج هالیوس رایگان است؟",
-    answer: "بله. فعلاً می‌توانی چارت ازدواج رایگان دو نفر را در هالیوس بسازی و تحلیل رابطه را ببینی. این وضعیت به شرایط فعلی دسترسی محصول مربوط است.",
+    answer: "ساخت چارت ازدواج و دیدن پیش‌نمایش تحلیل رابطه رایگان است. برای باز کردن گزارش کامل، پس از ورود به حساب هالیوس ۵۰۰٬۰۰۰ تومان پرداخت می‌کنی.",
   },
   {
     question: "محاسبه چارت سیناستری به چه اطلاعاتی نیاز دارد؟",
-    answer: "تاریخ تولد هر دو نفر لازم است. ساعت و شهر تولد، اگر دقیق باشند، بخش‌های بیشتری از چارت را قابل محاسبه می‌کنند. در این صفحه دو چارت ازپیش‌ساخته‌شده را انتخاب می‌کنی؛ اگر هنوز چارت نداری، ابتدا چارت تولد بساز.",
+    answer: "تاریخ تولد هر دو نفر لازم است. ساعت و شهر تولد، اگر دقیق باشند، بخش‌های بیشتری از چارت را قابل محاسبه می‌کنند. در همین صفحه مشخصات تولد هر دو نفر را وارد کن؛ اگر چارت قبلی داری، می‌توانی آن را هم انتخاب کنی.",
   },
   {
     question: "سینستری و سیناستری با هم فرق دارند؟",
@@ -28,11 +28,11 @@ const faqItems = [
   },
   {
     question: "بدون ساعت تولد هم می‌شود چارت ساخت؟",
-    answer: "بله. هنگام ساخت چارت، نامعلوم‌بودن ساعت را مشخص کن. در انتخاب‌گر مقایسه نیز ساعت غیرقطعی را دقیق تأیید نکن؛ بخش‌هایی مثل رایزینگ و هم‌پوشانی خانه‌ها از خوانش کنار می‌روند، اما سایر ارتباط‌های قابل اتکا بررسی می‌شوند.",
+    answer: "بله. در فرم هر نفر گزینهٔ ساعت نامعلوم را انتخاب کن. اگر از چارت قبلی استفاده می‌کنی، ساعت غیرقطعی را دقیق تأیید نکن؛ بخش‌هایی مثل رایزینگ و هم‌پوشانی خانه‌ها از خوانش کنار می‌روند، اما سایر ارتباط‌های قابل اتکا بررسی می‌شوند.",
   },
   {
     question: "آیا این تحلیل فقط برای ازدواج است؟",
-    answer: "خیر. تمرکز اصلی صفحه روی رابطهٔ عاطفی و زوجین است، اما در سازنده می‌توانی نوع رابطه را برای دوستی، خانواده، همکاری یا حالت عمومی هم مشخص کنی. نوع رابطه کمک می‌کند توضیح‌های تحلیلی به زمینهٔ واقعی نزدیک‌تر باشند.",
+    answer: "خیر. این گزارش برای رابطهٔ عاطفی است؛ برای شناخت رابطهٔ عاشقانه لازم نیست ازدواج کرده باشید.",
   },
 ] as const;
 
@@ -43,7 +43,7 @@ const relationshipAreas = [
   },
   {
     title: "امنیت عاطفی",
-    body: "هر نفر چگونه با احساسات دیگری روبه‌رو می‌شود؟ نیاز به توجه، اطمینان، خلوت یا پاسخ‌گرفتن ممکن است برای دو نفر ریتم متفاوتی داشته باشد. در چارت عاطفی رایگان هالیوس، این نیازها کنار کشش و شیوهٔ گفت‌وگو بررسی می‌شوند؛ نمی‌شود میزان عشق دو نفر را با یک عدد از چارت استخراج کرد.",
+    body: "هر نفر چگونه با احساسات دیگری روبه‌رو می‌شود؟ نیاز به توجه، اطمینان، خلوت یا پاسخ‌گرفتن ممکن است برای دو نفر ریتم متفاوتی داشته باشد. در تحلیل چارت عاطفی هالیوس، این نیازها کنار کشش و شیوهٔ گفت‌وگو بررسی می‌شوند؛ نمی‌شود میزان عشق دو نفر را با یک عدد از چارت استخراج کرد.",
   },
   {
     title: "کشش و صمیمیت",
@@ -71,23 +71,16 @@ function jsonLd(value: unknown) {
 }
 
 // HALLEUS_SITEWIDE_SEO_HOMEPAGE_REFRESH_R1
-export async function ComparisonLanding() {
-  const accessPolicy = await getPublicReportAccessPolicy();
-  const freeAllAccess = accessPolicy.monetizationMode === "FREE_ALL";
-  const effectiveFaqItems = freeAllAccess
-    ? faqItems
-    : faqItems.filter(
-        (item) => item.question !== "آیا چارت ازدواج هالیوس رایگان است؟",
-      );
+export function ComparisonLanding() {
   const pageUrl = `${siteConfig.url}/compare`;
   const heroImageUrl = `${siteConfig.url}/halleus-synastry-chart-comparison.webp`;
   const schemas = [
     {
       "@context": "https://schema.org",
       "@type": "WebPage",
-      name: "چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد",
+      name: "چارت ازدواج آنلاین | مقایسه دو چارت تولد با پیش‌نمایش رایگان",
       description:
-        "چارت ازدواج دو نفر را رایگان بسازید؛ مقایسه دو چارت تولد، تحلیل رابطه، کشش، امنیت عاطفی و جنبه‌های سیناستری، حتی بدون ساعت دقیق تولد.",
+        "چارت ازدواج دو نفر را بسازید و پیش‌نمایش رایگان تحلیل رابطه را بخوانید؛ مقایسه دو چارت تولد، کشش، امنیت عاطفی و جنبه‌های سیناستری، حتی بدون ساعت دقیق تولد.",
       url: pageUrl,
       inLanguage: "fa-IR",
       primaryImageOfPage: {
@@ -108,16 +101,13 @@ export async function ComparisonLanding() {
       image: heroImageUrl,
       description:
         "ابزار مقایسه دو چارت تولد برای تحلیل رابطه و ازدواج بدون درصد سازگاری یا حکم قطعی.",
-      ...(freeAllAccess
-        ? {
-            isAccessibleForFree: true,
-            offers: {
-              "@type": "Offer",
-              price: "0",
-              priceCurrency: "IRR",
-            },
-          }
-        : {}),
+      isAccessibleForFree: false,
+      offers: {
+        "@type": "Offer",
+        name: "گزارش کامل رابطه",
+        price: String(COMPARISON_PRICE_TOMAN * 10),
+        priceCurrency: "IRR",
+      },
     },
     {
       "@context": "https://schema.org",
@@ -130,7 +120,7 @@ export async function ComparisonLanding() {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: effectiveFaqItems.map((item) => ({
+      mainEntity: faqItems.map((item) => ({
         "@type": "Question",
         name: item.question,
         acceptedAnswer: { "@type": "Answer", text: item.answer },
@@ -158,8 +148,8 @@ export async function ComparisonLanding() {
           <span className={styles.eyebrow}>مقایسه دو چارت تولد</span>
           <h1 id="compare-page-title">چارت ازدواج و سیناستری دو نفر</h1>
           <p>دو نفر می‌توانند از همان دیدار اول کشش زیادی به هم داشته باشند، اما هنگام اختلاف انگار به دو زبان متفاوت حرف بزنند. گاهی هم رابطه آرام پیش می‌رود، ولی اعتماد و امنیت عاطفی‌اش عمیق‌تر می‌شود. چارت ازدواج به‌جای چسباندن یک برچسب «سازگار» یا «ناسازگار» به دو نفر، همین تفاوت‌های مشخص را کنار هم می‌گذارد.</p>
-          <p>در هالیوس، چارت ازدواج آنلاین از مقایسهٔ دو چارت تولد ساخته می‌شود: جایگاه سیاره‌ها، ارتباط میان آن‌ها و موضوع‌هایی مثل گفت‌وگو، احساسات، کشش، مرزها و تعهد. نتیجه دربارهٔ تجربهٔ یک رابطه حرف می‌زند، نه اینکه به‌جای آدم‌ها برای ازدواج تصمیم بگیرد. فعلاً می‌توانی چارت ازدواج رایگان را همین‌جا بسازی؛ فقط باید چارت تولد هر دو نفر را از قبل داشته باشی.</p>
-          <p><strong>ساخت چارت ازدواج در هالیوس فعلاً رایگان است.</strong></p>
+          <p>در هالیوس، چارت ازدواج آنلاین از مقایسهٔ دو چارت تولد ساخته می‌شود: جایگاه سیاره‌ها، ارتباط میان آن‌ها و موضوع‌هایی مثل گفت‌وگو، احساسات، کشش، مرزها و تعهد. نتیجه دربارهٔ تجربهٔ یک رابطه حرف می‌زند، نه اینکه به‌جای آدم‌ها برای ازدواج تصمیم بگیرد. می‌توانی چارت ازدواج را همین‌جا با مشخصات تولد هر دو نفر بسازی و پیش‌نمایش رایگان آن را بخوانی.</p>
+          <p><strong>پیش‌نمایش چارت ازدواج رایگان است؛ گزارش کامل پس از ورود و پرداخت ۵۰۰٬۰۰۰ تومان باز می‌شود.</strong></p>
           <div className={styles.heroActions}>
             <ComparisonBuilderLink className={styles.primaryButton}>
               چارت دو نفر را مقایسه کن
@@ -190,7 +180,7 @@ export async function ComparisonLanding() {
         aria-label="سازنده چارت ازدواج و سیناستری"
         tabIndex={-1}
       >
-        <h2 className={styles.builderTitle}>دو چارت را انتخاب کن</h2>
+        <h2 className={styles.builderTitle}>مشخصات تولد دو نفر را وارد کن</h2>
         <ComparisonComposer embedded premiumEnabled={process.env.HALLEUS_ENABLE_COMPARE_PRIVATE_STORAGE === "true"} />
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="دو چارت را انتخاب کن" />
       </section>
@@ -236,7 +226,7 @@ export async function ComparisonLanding() {
           <span className={styles.eyebrow}>روش محاسبه</span>
           <h2 id="compare-method-title">مقایسه دو چارت تولد چطور انجام می‌شود؟</h2>
           <p>
-          ابتدا هر چارت تولد با اطلاعات ثبت‌شدهٔ همان فرد محاسبه شده است. وقتی دو چارت را در سازنده انتخاب می‌کنی، هالیوس ارتباط سیاره‌های یکی با سیاره‌ها و نقاط مهم دیگری را بررسی می‌کند. یک جنبه می‌تواند میان ماهِ نفر اول و زهرهٔ نفر دوم باشد یا میان عطاردِ یکی و زحلِ دیگری. هویت دو نفر در خوانش فنی حفظ می‌شود؛ ارتباط‌ها بی‌نام و یک‌طرفه نیستند.
+          ابتدا هر چارت تولد با اطلاعات همان فرد محاسبه می‌شود. وقتی مشخصات دو نفر را وارد می‌کنی یا چارت قبلی را انتخاب می‌کنی، هالیوس ارتباط سیاره‌های یکی با سیاره‌ها و نقاط مهم دیگری را بررسی می‌کند. یک جنبه می‌تواند میان ماهِ نفر اول و زهرهٔ نفر دوم باشد یا میان عطاردِ یکی و زحلِ دیگری. هویت دو نفر در خوانش فنی حفظ می‌شود؛ ارتباط‌ها بی‌نام و یک‌طرفه نیستند.
         </p>
           <p>
             در <strong>تفسیر سیناستری</strong> فقط وجود یک زاویه مهم نیست؛ اینکه چه سیاره‌هایی درگیرند، نوع ارتباط چیست و آن الگو بیشتر به کدام بخش رابطه مربوط می‌شود هم اهمیت دارد.
@@ -346,7 +336,7 @@ export async function ComparisonLanding() {
           <h2 id="compare-final-title">الگوهای میان دو چارت را واضح‌تر ببین</h2>
         </div>
         <ComparisonBuilderLink className={styles.primaryButton}>
-          ساخت چارت ازدواج رایگان
+          ساخت چارت ازدواج و پیش‌نمایش رایگان
         </ComparisonBuilderLink>
               <R3ApprovedInlineParagraphs page="compare" sectionTitle="الگوهای میان دو چارت را واضح‌تر ببین" />
       </section>

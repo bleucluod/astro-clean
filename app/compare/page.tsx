@@ -3,9 +3,9 @@ import type { Metadata } from "next";
 import { ComparisonLanding } from "@/components/comparison/ComparisonLanding";
 import { buildPublicPageMetadata } from "@/lib/config/seo";
 
-const title = "چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد";
+const title = "چارت ازدواج آنلاین | مقایسه دو چارت تولد با پیش‌نمایش رایگان";
 const description =
-  "چارت ازدواج دو نفر را رایگان بسازید؛ مقایسه دو چارت تولد، تحلیل رابطه، کشش، امنیت عاطفی و جنبه‌های سیناستری، حتی بدون ساعت دقیق تولد.";
+  "چارت ازدواج دو نفر را بسازید و پیش‌نمایش رایگان تحلیل رابطه را بخوانید؛ مقایسه دو چارت تولد، کشش، امنیت عاطفی و جنبه‌های سیناستری، حتی بدون ساعت دقیق تولد.";
 
 export const metadata: Metadata = {
   ...buildPublicPageMetadata({

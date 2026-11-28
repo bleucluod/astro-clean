@@ -52,7 +52,7 @@ const sources = Object.fromEntries(
 );
 
 requireMarkers("public comparison metadata", sources.indexPage, [
-  "چارت ازدواج آنلاین رایگان | مقایسه دو چارت تولد",
+  "چارت ازدواج آنلاین | مقایسه دو چارت تولد با پیش‌نمایش رایگان",
   'canonical: "/compare"',
   "index: true",
   "follow: true",
@@ -82,7 +82,7 @@ requireMarkers("comparison approved SEO copy R7", sources.landing, [
   "سیناستری بدون ساعت تولد",
   "فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟",
   "سینستری و سیناستری با هم فرق دارند؟",
-  "ساخت چارت ازدواج رایگان",
+  "ساخت چارت ازدواج و پیش‌نمایش رایگان",
   "چارت ازدواج آنلاین از مقایسهٔ دو چارت تولد ساخته می‌شود",
   "جنبه‌های سیناستری",
   "چرخ دوگانه چارت تولد",
@@ -154,12 +154,14 @@ forbidMarkers("comparison retired dashboard progress R12", sources.composer, [
 
 
 
-requireMarkers("comparison R21 empty picker chart-creation path", sources.composer, [
-  'href="/chart"',
-  'target="_blank"',
-  'rel="noreferrer noopener"',
-  "اول چارت تولد را بساز و بعد به این صفحه برگرد.",
-  ">ساخت چارت تولد</Link>",
+requireMarkers("comparison direct two-person builder", sources.composer, [
+  "DirectChartForm",
+  'comparisonHeadingId="compare-person-a"',
+  'comparisonHeadingId="compare-person-b"',
+  "comparisonFormRef={formARef}",
+  "comparisonFormRef={formBRef}",
+  "ویرایش مشخصات تولد",
+  "انتخاب از چارت‌های ذخیره‌شده",
 ]);
 forbidMarkers("comparison R21 retired repetitive builder copy", sources.composer, [
   "چارت آماده نداری؟",
@@ -207,7 +209,7 @@ requireMarkers("comparison app-like premium builder styles R12", sources.styles,
 
 requireMarkers("comparison composer", sources.composer, [
   "relationshipContext",
-  "savePrivateComparison",
+  "requestPremiumComparison",
   "generationInFlightRef",
   "pendingGenerationRef",
   "generationDisabled",
@@ -217,8 +219,10 @@ requireMarkers("comparison composer", sources.composer, [
   'href="/chart"',
   "ساعت تولد این چارت دقیق است",
 ]);
-forbidMarkers("comparison stored-chart-only journey R12", sources.composer, [
-  "ChartForm",
+forbidMarkers("comparison no obsolete or demo journey", sources.composer, [
+  "comparisonDemoRequest",
+  "initComparisonDemo",
+  "localDemo",
   "chartCreationSlot",
   "inlineChartDialog",
   "onComparisonChartSaved",
@@ -307,13 +311,17 @@ requireMarkers("comparison private server persistence client", sources.accountCl
 forbidMarkers("comparison large-payload transport", sources.accountClient, [
   "keepalive: true",
 ]);
-requireMarkers("comparison server-save acknowledgement", sources.composer, [
-  "const accountSaveResult = await saveComparisonToAccount",
-  'accountSaveResult.status !== "saved"',
-  'accountSaveResult.status !== "guest-saved"',
-  "ثبت خصوصی روی هالیوس کامل نشد؛ دوباره تلاش کن.",
-  "savePrivateComparison(result.record)",
-  'router.push(`/compare/${encodeURIComponent(result.record.id)}`)',
+requireMarkers("comparison private server-generation acknowledgement", sources.composer, [
+  'await requestPremiumComparison({birthA,birthB,relationshipContext:"romantic",retryKey},',
+  'router.push("/compare/" + encodeURIComponent(reportId))',
+  "pendingGenerationRef",
+  "ComparisonPremiumLibrary",
+]);
+forbidMarkers("comparison no standalone natal write or free comparison bypass", sources.composer, [
+  "ensureServerCanonicalReport",
+  "createPrivateComparison",
+  "savePrivateComparison",
+  "saveComparisonToAccount",
 ]);
 requireMarkers("comparison private persistence policy", sources.accountPersistence, [
   "STORED_COMPARISON_REPORT_VERSION",
@@ -384,11 +392,10 @@ requireMarkers("comparison Slice 4 hit targets", sources.styles, [
   "min-height: 48px",
   ".lazyWheelPlaceholder",
 ]);
-requireMarkers("comparison current free launch policy", sources.composer, [
-  "TEMPORARY_COMPARE_FREE_ACCESS_2026_09",
-  "temporaryFreeRelationshipAccess = true",
-  'if (!freeAllAccess && productAccess.status === "loading")',
-  "freeAllAccess ||",
+requireMarkers("comparison private storage gate", sources.composer, [
+  "generationInFlightRef.current || accountChartLoadingId !== null || !premiumEnabled",
+  "generationDisabled = !premiumEnabled",
+  "ساخت گزارش تازه موقتاً در دسترس نیست.",
 ]);
 requireMarkers("comparison mobile-first dark correction", sources.styles, [
   "Halleus compare user-review dark result and mobile correction",
@@ -508,9 +515,9 @@ if (failures.length > 0) {
 
 console.log("Comparison product check passed.");
 console.log("- /compare uses a dedicated static dark landing with final metadata, schema, social image, and builder anchor");
-console.log("- /compare selects stored natal charts only; chart creation lives on /chart");
-console.log("- relationship context remains; the explicit consent gate and inline creation flow are removed");
-console.log("- comparison records keep a private local copy and persist a private server copy for guest or authenticated account flows");
+console.log("- /compare accepts both natal inputs in one form, with optional saved-chart selection");
+console.log("- new comparisons are romantic; legacy reports remain readable");
+console.log("- new comparisons are generated privately on the server; legacy persistence remains supported");
 console.log("- three patterns, support/friction, communication, emotional security, boundaries, repair, and bi-wheel remain visible");
 console.log("- history, delete, refresh, and retry flows remain present");
 console.log("- only the public landing is discoverable and analytics-eligible; private result paths remain excluded");

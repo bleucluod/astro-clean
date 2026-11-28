@@ -5,11 +5,25 @@ import {getSupabaseBrowserAuthClient} from "@/lib/auth/supabase-browser-client";
 import {SupabaseAuthPanel} from "@/components/SupabaseAuthPanel";
 import {ComparisonPayButton} from "./ComparisonPayButton";
 import {ComparisonReport} from "./ComparisonReport";
+import {COMPARISON_PRICE_TOMAN} from "@/lib/comparison/comparison-price";
 import type {PremiumComparisonView} from "@/lib/comparison/comparison-premium-store";
 import styles from "./comparison.module.css";
 type Summary=Pick<PremiumComparisonView,"id"|"chartALabel"|"chartBLabel"|"createdAt"|"purchaseStatus">;
 type Session={kind:"loading"}|{kind:"error"}|{kind:"guest"}|{kind:"account";owner:string};
-export function ComparisonPremiumLibrary({checkoutEnabled,directReportId}:{checkoutEnabled:boolean;directReportId?:string}){
+function ComparisonPreviewLock() {
+  return (
+    <div className={styles.previewLock} aria-hidden="true">
+      <div className={styles.previewLockLines}><span /><span /><span /><span /></div>
+      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="10" width="14" height="11" rx="2" />
+        <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+        <path d="M12 14v3" />
+      </svg>
+    </div>
+  );
+}
+
+export function ComparisonPremiumLibrary({checkoutEnabled,directReportId,onComparePage=false}:{checkoutEnabled:boolean;directReportId?:string;onComparePage?:boolean}){
  const [session,setSession]=useState<Session>({kind:"loading"});
  const [report,setReport]=useState<PremiumComparisonView|null>(null),[items,setItems]=useState<Summary[]>([]);
  const [page,setPage]=useState(1),[more,setMore]=useState(false),[error,setError]=useState(false),[revision,setRevision]=useState(0),[authRetry,setAuthRetry]=useState(0);
@@ -61,30 +75,37 @@ export function ComparisonPremiumLibrary({checkoutEnabled,directReportId}:{check
  if(session.kind==="loading")return directReportId?<p role="status">در حال بررسی حساب…</p>:null;
  if(session.kind==="error")return <div className={styles.emptyState}><p role="status">بررسی نشست حساب ممکن نشد.</p><button type="button" className={styles.secondaryButton} onClick={()=>setAuthRetry(n=>n+1)}>تلاش مجدد</button></div>;
  if(!directReportId){
-  if(!items.length&&!error&&session.kind==="guest")return null;
-  return <section className={styles.product} dir="rtl"><h2>گزارش‌های عاطفی من</h2>
+  if(!items.length&&!error&&(session.kind==="guest"||onComparePage))return null;
+  return <section className={onComparePage?styles.historySection:styles.product} dir="rtl"><div className={styles.sectionHeading}><h2>{onComparePage?"مقایسه‌های قبلی":"گزارش‌های عاطفی من"}</h2></div>
    {error&&<p role="status">دریافت گزارش‌ها ممکن نشد. <button type="button" onClick={retry}>تلاش مجدد</button></p>}
-   {items.map(item=><p key={item.id}><Link href={"/compare/"+encodeURIComponent(item.id)}>{item.chartALabel} و {item.chartBLabel} — {item.purchaseStatus==="paid"?"خریداری‌شده":item.purchaseStatus==="pending"?"در انتظار تأیید":"پیش‌نمایش رایگان"}</Link></p>)}
+   <div className={styles.historyGrid}>{items.map(item=><article className={styles.historyCard} key={item.id}><div><span>{item.purchaseStatus==="paid"?"خریداری‌شده":item.purchaseStatus==="pending"?"در انتظار تأیید":"پیش‌نمایش رایگان"}</span><h3>{item.chartALabel} و {item.chartBLabel}</h3><p>{new Date(item.createdAt).toLocaleDateString("fa-IR")}</p></div><div className={styles.cardActions}><Link className={styles.secondaryButton} href={"/compare/"+encodeURIComponent(item.id)}>باز کردن</Link></div></article>)}</div>
    {page>1&&<button type="button" onClick={()=>setPage(n=>n-1)}>قبلی</button>}{more&&<button type="button" onClick={()=>setPage(n=>n+1)}>بعدی</button>}
   </section>;
  }
  if(error)return <div className={styles.product}><p role="status">دریافت گزارش ممکن نشد.</p>{session.kind==="guest"&&login}<button type="button" className={styles.secondaryButton} onClick={retry}>تلاش مجدد</button><Link href="/reports">گزارش‌های من</Link></div>;
  if(!report)return <p role="status">در حال دریافت گزارش…</p>;
  if(report.purchaseStatus==="paid"&&report.record&&session.kind==="account")return <ComparisonReport key={report.id} comparisonId={report.id} premiumRecord={report.record}/>;
- return <div className={styles.product+" "+styles.humanFirstProduct} dir="rtl">
+ return <div className={styles.product+" "+styles.humanFirstProduct} dir="rtl" data-comparison-reading="human-first">
   <section className={styles.reportHero+" "+styles.humanReportHero}>
    <div><h1>این رابطه از چه داستانی می‌گوید؟</h1><div className={styles.overviewParagraphs}>{report.preview.overviewParagraphsFa.map((p,i)=><p key={i} className={styles.heroLead}>{p}</p>)}</div></div>
    <aside className={styles.pairCard}><span>{report.chartALabel}</span><b aria-hidden="true">↔</b><span>{report.chartBLabel}</span></aside>
   </section>
+  <div className={styles.readingFlow}>
+   <section className={styles.relationshipChapter} aria-labelledby="comparison-primary-patterns-title">
+    <div className={styles.sectionHeading}><p className={styles.eyebrow}>سه الگوی اصلی میان شما</p><h2 id="comparison-primary-patterns-title">سه چرخه‌ای که بهتر است زودتر بشناسید</h2><p>این سه چرخه از کنار هم گذاشتن یافته‌های فصل‌ها ساخته شده‌اند؛ هر فصل سپس موضوع خودش را جداگانه توضیح می‌دهد.</p></div>
+    <div className={styles.relationshipPatternList}>{report.preview.primaryPatterns.map((pattern,index)=><article className={styles.relationshipPattern} key={pattern.id}><span>{(index+1).toLocaleString("fa-IR")}</span><div><h3>{pattern.title}</h3><p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{pattern.excerptFa}</p><ComparisonPreviewLock/><p className={styles.privateNote}>ادامه پس از خرید گزارش باز می‌شود.</p></div></article>)}</div>
+   </section>
   <div className={styles.chapterSequence}>{report.preview.chapters.map(ch=><section className={styles.relationshipChapter} key={ch.id}>
    <div className={styles.sectionHeading}><p className={styles.eyebrow}>{ch.eyebrow}</p><h2>{ch.title}</h2></div>
-   <article className={styles.chapterStory}><h3>{ch.storyTitle}</h3><p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{ch.excerptFa}</p><p>ادامهٔ فصل در گزارش کامل</p></article>
+   <article className={styles.chapterStory}><h3>{ch.storyTitle}</h3><p className={styles.storyLead} style={{whiteSpace:"pre-line"}}>{ch.excerptFa}</p><ComparisonPreviewLock/>{ch.evidenceStatus!=="supported"&&<p className={styles.privateNote}>{ch.evidenceStatus==="insufficient"?"شواهد این فصل برای نتیجه‌گیری اختصاصی کافی نیست.":"این بخش با محدودیت شواهد خوانده می‌شود."}</p>}<p>ادامهٔ فصل پس از خرید باز می‌شود.</p></article>
   </section>)}</div>
-  <section className={styles.relationshipChapter}><h2>گزارش کامل رابطه</h2>
+  <section className={styles.relationshipChapter} aria-label="خرید گزارش کامل"><div className={styles.sectionHeading}><h2>گزارش کامل رابطه</h2><p>ادامهٔ سه الگو و پنج فصل، لایه‌های عمیق‌تر، جزئیات نجومی و گام بعدی</p><p>{COMPARISON_PRICE_TOMAN.toLocaleString("fa-IR")} تومان</p></div>
    {!report.preview.readyForSale?<p>نسخهٔ کامل این گزارش هنوز آمادهٔ خرید نیست.</p>:session.kind==="guest"?login:
    <ComparisonPayButton reportId={report.id} owner={session.owner} enabled={checkoutEnabled} pending={report.purchaseStatus==="pending"} amount={report.amountToman} onRefresh={retry}/>}
    {report.purchaseStatus==="pending"&&<p>اگر پرداخت انجام شده ولی تأیید نشده، با شمارهٔ فاکتور {report.factor} پیگیری کن.</p>}
    <Link href="/reports">گزارش‌های من</Link>
   </section>
+  </div>
+  <section className={styles.reportActions}><Link className={styles.secondaryButton} href="/compare">برگشت به مقایسه‌ها</Link></section>
  </div>;
 }

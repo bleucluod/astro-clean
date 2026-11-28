@@ -28,6 +28,7 @@ try{
   await tx.unsafe(migration.replace(/\bbegin;/i,"").replace(/commit;\s*$/i,""));
   const adapter=(...args)=>tx(...args);adapter.begin=fn=>tx.savepoint(fn);
   const cache=new Map();
+  let guestBootstraps=0;
   function load(path){
    const abs=resolve(root,path);if(cache.has(abs))return cache.get(abs).exports;
    const mod={exports:{}};cache.set(abs,mod);
@@ -35,6 +36,10 @@ try{
    const errors=(code.diagnostics??[]).filter(d=>d.category===ts.DiagnosticCategory.Error);assert.equal(errors.length,0,abs);
    const req=q=>{
     if(q==="@/lib/admin/admin-database")return {getAdminDatabase:()=>adapter};
+    if(q==="@/lib/comparison/comparison-payment-config")return {isComparisonStorageReady:()=>true};
+    if(q==="@/lib/auth/supabase-server-user")return {getSupabaseUserFromAuthorizationHeader:async auth=>auth==="Bearer fixture-account"?{id:"22222222-2222-4222-8222-222222222222"}:null};
+    if(q==="@/lib/database/account-persistence-user")return {ensureAccountPersistenceUser:async input=>{assert.equal(input.databaseUrl,"fixture-only");guestBootstraps++;}};
+    if(q==="@/lib/config/env"&&["guest-report-session.ts","app/api/compare/premium/route.ts"].some(suffix=>abs.replaceAll("\\","/").endsWith(suffix)))return {getHalleusRuntimeEnv:()=>({databaseUrl:"fixture-only",siteUrl:"https://halleus.ir",authSecret:"fixture-guest-secret-for-isolated-tests"})};
     if(!q.startsWith("@/")&&!q.startsWith("."))return native(q);
     const base=q.startsWith("@/")?resolve(root,q.slice(2)):resolve(dirname(abs),q);
     const f=[base,base+".ts",base+".mjs",base+".js",resolve(base,"index.ts")].find(p=>existsSync(p)&&[".ts",".mjs",".js"].includes(extname(p)));
@@ -90,6 +95,71 @@ try{
   assert.equal((await store.listPremiumComparisons(account,0)).length,1);checks++;
   const acl=await tx`select has_table_privilege('anon','halleus_private.comparison_premium_reports','SELECT') as a,has_table_privilege('authenticated','halleus_private.comparison_premium_payments','UPDATE') as b,relrowsecurity as rls from pg_class where oid='halleus_private.comparison_premium_reports'::regclass`;
   check("private RLS and permissions",()=>assert.deepEqual([acl[0].a,acl[0].b,acl[0].rls],[false,false,true]));
+
+  // Exercise the actual direct-entry HTTP route, signed guest cookie and
+  // immutable v7 snapshot using the real generator and disposable DB.
+  const route=load("app/api/compare/premium/route.ts");
+  const direct={birthA:inputs[0],birthB:inputs[1],relationshipContext:"romantic",retryKey:"fixture-direct-comparison-retry"};
+  const parser=load("lib/comparison/comparison-direct-input.ts");
+  check("direct input rejects invalid dates, coordinates, extra fields and other contexts",()=>{
+   assert.ok(parser.parseDirectComparison(direct));
+   for(const birthA of [{...direct.birthA,birthDate:"2001-02-30"},{...direct.birthA,birthLatitude:91},{...direct.birthA,birthTimezone:"Not/AZone"},{...direct.birthA,record:{}},{...direct.birthA,currentResidenceCity:"extra"}])assert.equal(parser.parseDirectComparison({...direct,birthA}),null);
+   assert.equal(parser.parseDirectComparison({...direct,relationshipContext:"friendship"}),null);
+   assert.equal(parser.parseDirectComparison({...direct,birthA:{...direct.birthA,birthTime:"03:20"}}).birthA.birthTime,"12:00");
+   assert.equal(parser.parseDirectComparison({...direct,birthA:{...direct.birthA,birthTimeAccuracy:"known",birthTime:"03:20"}}).birthA.birthTime,"03:20");
+  });
+  const endpoint="https://halleus.ir/api/compare/premium";
+  const post=(payload,headers={})=>route.POST(new Request(endpoint,{method:"POST",headers:{"Origin":"https://halleus.ir","Content-Type":"application/json",...headers},body:JSON.stringify(payload)}));
+  const get=(id,headers={})=>route.GET(new Request(endpoint+"?id="+id,{headers}));
+  assert.equal((await post(direct,{Origin:"https://invalid.example"})).status,403);checks++;
+  assert.equal((await post(direct,{Authorization:"Bearer invalid"})).status,401);checks++;
+  assert.equal((await post({...direct,birthA:{...direct.birthA,record:{}}})).status,400);checks++;
+  assert.equal(guestBootstraps,0);
+  const response=await post(direct);
+  assert.equal(response.status,200,await response.clone().text());
+  const directId=(await response.json()).reportId,cookieHeader=response.headers.get("set-cookie");
+  assert.match(cookieHeader,/^halleus_guest_reports=/);
+  assert.match(cookieHeader,/HttpOnly; SameSite=Lax/);
+  assert.match(response.headers.get("cache-control"),/no-store/);
+  const cookie=cookieHeader.split(";")[0];
+  check("fresh guest direct generation sets signed cookie exactly once",()=>{assert.match(directId,flow.UUID);assert.equal(guestBootstraps,1);});
+  assert.equal((await get(directId)).status,401);checks++;
+  assert.equal((await get(directId,{Cookie:cookie+"tampered"})).status,401);checks++;
+  const directView=(await (await get(directId,{Cookie:cookie})).json()).report;
+  const directRaw=(await tx`select record,preview,ready_for_sale from halleus_private.comparison_premium_reports where id=${directId}::uuid`)[0];
+  check("three bounded patterns, five complete chapter previews, no unpaid record or raw input",()=>{
+   assert.ok(directView.preview.readyForSale);
+   assert.equal(directView.preview.chapters.length,5);assert.equal(directView.preview.primaryPatterns.length,3);
+   assert.equal(directView.record,undefined);assert.equal(directView.reading,undefined);
+   assert.equal(directRaw.preview.version,"comparison-chapter-preview-v7");assert.equal(directRaw.preview.primaryPatterns,undefined);
+   assert.equal(directRaw.record.privacy.rawBirthInputStored,false);
+   assert.equal(directRaw.record.chartABirthTimeStatus,"unknown");assert.equal(directRaw.record.chartBBirthTimeStatus,"unknown");
+   for(const [index,p] of directView.preview.primaryPatterns.entries()){
+    const raw=directRaw.record.reading.primaryPatterns[index],fields=["humanExperience","personA","personB","cycle","dailySituation","strength","challenge","practicalStep"];
+    const story=fields.map(k=>raw[k].trim()).filter(Boolean).join("\n\n");
+    assert.ok(story.startsWith(p.excerptFa));assert.ok(p.excerptFa.length<story.length);
+    assert.ok(p.excerptFa.trim().split(/\s+/u).length<=Math.floor(story.trim().split(/\s+/u).length/5));
+   }
+   assert.ok(directRaw.record.chartAId.startsWith("compare-natal-"+directId));
+  });
+  assert.equal((await (await post(direct,{Cookie:cookie})).json()).reportId,directId);checks++;
+  assert.equal((await post({...direct,birthB:{...direct.birthB,name:"تغییر"}},{Cookie:cookie})).status,409);checks++;
+  const claim=await post({action:"claim_guest"},{Cookie:cookie,Authorization:"Bearer fixture-account"});
+  const claimBody=await claim.json();
+  check("same direct report claims into account",()=>{assert.equal(claim.status,200);assert.equal(claimBody.claimed,1);});
+  assert.equal((await get(directId,{Cookie:cookie})).status,404);checks++;
+  const authView=(await (await get(directId,{Authorization:"Bearer fixture-account"})).json()).report;
+  assert.equal(authView.id,directId);assert.equal(authView.record,undefined);checks++;
+  const directStart=await flow.startComparisonPayment(account.id,directId,config,ledger,async x=>({providerPaymentId:"188",amountRial:5000000,redirectUrl:"https://invalid.example/"}));
+  assert.equal(directStart.status,"redirect");
+  const directPayment=(await tx`select id from halleus_private.comparison_premium_payments where report_id=${directId}::uuid`)[0];
+  const directQuery=new URLSearchParams({attempt:directPayment.id,proof:flow.proofFor(config.secret,directId),id_get:"188",trans_id:"199"});
+  const settled=await flow.finishComparisonPayment(directQuery,config,ledger,async x=>({status:"paid",providerReference:x.transactionId,confirmedAmountToman:x.expectedAmountToman}));
+  assert.equal(settled.status,"paid");assert.equal(settled.reportId,directId);
+  const directPaid=(await (await get(directId,{Authorization:"Bearer fixture-account"})).json()).report;
+  check("paid direct report opens same exact immutable record",()=>{assert.equal(directPaid.purchaseStatus,"paid");assert.deepEqual(directPaid.record,directRaw.record);});
+  const [natalCount]=await tx`select count(*)::integer as n from public.halleus_reports`;
+  check("direct form creates no separate natal report rows",()=>assert.equal(natalCount.n,2));
   throw rollback;
  });}catch(e){if(e!==rollback)throw e;}
  const clean=(await sql`select to_regnamespace('auth') as a,to_regnamespace('halleus_private') as b,to_regclass('public.halleus_reports') as c`)[0];

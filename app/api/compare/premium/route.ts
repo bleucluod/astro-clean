@@ -1,7 +1,8 @@
 import {getHalleusRuntimeEnv} from "@/lib/config/env";
 import {isTrustedAdminRequestOrigin} from "@/lib/admin/admin-origin";
 import {getSupabaseUserFromAuthorizationHeader} from "@/lib/auth/supabase-server-user";
-import {readGuestReportSession} from "@/lib/auth/guest-report-session";
+import {readGuestReportSession,createGuestReportSession,GUEST_REPORT_COOKIE_NAME,GUEST_REPORT_COOKIE_OPTIONS} from "@/lib/auth/guest-report-session";
+import {ensureAccountPersistenceUser} from "@/lib/database/account-persistence-user";
 import {isComparisonStorageReady} from "@/lib/comparison/comparison-payment-config";
 import {UUID} from "@/lib/comparison/comparison-payment-flow";
 import {parsePremiumComparison,createPremiumComparison,getPremiumComparison,listPremiumComparisons,claimComparisonGuestReports,type ComparisonActor} from "@/lib/comparison/comparison-premium-store";
@@ -34,7 +35,7 @@ export async function GET(request:Request){
 export async function POST(request:Request){
  const stop=guard(request);if(stop)return stop;
  if(!request.headers.get("origin"))return fail(403,"ORIGIN");
- let owner;try{owner=await actor(request);}catch{return fail(401,"AUTH_REQUIRED");}if(!owner)return fail(401,"AUTH_REQUIRED");
+ let owner;try{owner=await actor(request);}catch{return fail(401,"AUTH_REQUIRED");}if(!owner&&request.headers.has("authorization"))return fail(401,"AUTH_REQUIRED");
  if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type")??""))return fail(415,"INVALID_CONTENT_TYPE");
  const reader=request.body?.getReader();if(!reader)return fail(400,"INVALID_REQUEST");
  let raw:unknown;
@@ -43,11 +44,24 @@ export async function POST(request:Request){
  catch{return fail(400,"INVALID_JSON");}finally{reader.releaseLock();}
  try{
   if(raw&&typeof raw==="object"&&!Array.isArray(raw)&&Object.keys(raw).length===1&&(raw as {action?:unknown}).action==="claim_guest"){
-   if(owner.kind!=="account")return fail(401,"AUTH_REQUIRED");
+   if(owner?.kind!=="account")return fail(401,"AUTH_REQUIRED");
    const guest=readGuestReportSession(request);return reply(200,{ok:true,claimed:guest?await claimComparisonGuestReports(owner.id,guest.userId):0});
   }
   const input=parsePremiumComparison(raw);if(!input)return fail(400,"INVALID_REQUEST");
+  let cookie:string|undefined;
+  if(!owner){
+   if(!("birthA" in input))return fail(401,"AUTH_REQUIRED");
+   const guest=createGuestReportSession();
+   const databaseUrl=getHalleusRuntimeEnv().databaseUrl;if(!databaseUrl)return fail(503,"STORAGE_DISABLED");
+   await ensureAccountPersistenceUser({databaseUrl,userId:guest.userId,displayName:"Halleus Guest",provider:"email"});
+   owner={kind:"guest",id:guest.userId};
+   const opts=GUEST_REPORT_COOKIE_OPTIONS;
+   cookie=GUEST_REPORT_COOKIE_NAME+"="+encodeURIComponent(guest.token)+"; Path="+opts.path+"; Max-Age="+opts.maxAge+"; HttpOnly; SameSite=Lax"+(opts.secure?"; Secure":"");
+  }
   if(owner.kind==="account"){const guest=readGuestReportSession(request);if(guest)await claimComparisonGuestReports(owner.id,guest.userId);}
-  const report=await createPremiumComparison(owner,input);return reply(200,{ok:true,reportId:report.id});
+  const report=await createPremiumComparison(owner,input);
+  const response=reply(200,{ok:true,reportId:report.id});
+  if(cookie)response.headers.append("Set-Cookie",cookie);
+  return response;
  }catch(e){const code=e instanceof Error?e.message:"";if(["RETRY_CONFLICT","CHART_UNAVAILABLE","TIME_STATUS_INVALID","CHART_CALCULATION_FAILED"].includes(code))return fail(409,code);return fail(503,"GENERATION_UNAVAILABLE");}
 }

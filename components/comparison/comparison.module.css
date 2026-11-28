@@ -4986,3 +4986,142 @@
   }
 }
 /* END HALLEUS_COMPARE_EMPTY_PICKER_PHONE_R21 */
+
+/* Direct natal entry: one existing chart form, embedded below the pair. */
+.directEntryButton {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid rgba(190, 203, 232, 0.35);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font: inherit;
+  cursor: pointer;
+}
+.directEntryButton:disabled { opacity: 0.5; cursor: not-allowed; }
+.directEntryButton:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.directEntryPanel {
+  min-width: 0;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid rgba(190, 203, 232, 0.24);
+  border-radius: 16px;
+}
+.directEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.directEntryPanel {
+  --chart-bg: #030406;
+  --chart-border: rgba(255, 255, 255, 0.09);
+}
+.directEntryPanel .directEntryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.directEntryPanel :global(.chart-form-actions::after) { content: none !important; }
+
+/* Direct comparison uses the same full-width natal form as /chart. */
+.directPeopleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  min-width: 0;
+}
+.directPeopleGrid > .directEntryPanel {
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.directPeopleGrid .directEntryHeader {
+  margin-bottom: 0;
+}
+
+/* Keep city results in the active person's layout, not over the next form. */
+.directPeopleGrid > .directEntryPanel :global(.chart-city-card .city-suggestion-chips.has-suggestions) {
+  position: static !important;
+  inset: auto !important;
+  z-index: auto !important;
+}
+
+.optionalChartPicker {
+  min-width: 0;
+  margin: 0 16px 14px;
+}
+.directPeopleGrid .personCard {
+  margin: 0 16px 16px;
+}
+
+/* Compact comparison only; preserve shared picker controls and touch sizes. */
+.product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-final-product-builder="r17"] {
+  padding: clamp(14px, 2.5vw, 24px);
+}
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader { gap: 8px; }
+.product[data-embedded="true"][data-builder-simplified="r12"] .finalBuilderHeader h2 { margin: 2px 0 0; }
+.product[data-embedded="true"][data-builder-simplified="r12"] .builderProgress { gap: 4px; margin: 10px 0 4px; padding: 0; }
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .flowStep[data-flow-step="charts"] {
+  margin: 0; padding: 4px 0 10px; gap: 0;
+}
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .flowStep[data-flow-step="relationship"] {
+  margin: 0; padding: 10px 0 0; gap: 0;
+}
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .relationshipFieldset { min-width: 0; margin: 0; padding: 0; }
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .relationshipFieldset legend {
+  position: static; width: auto; height: auto; overflow: visible;
+  clip: auto; clip-path: none; margin: 0 0 8px; padding: 0;
+  font-size: .88rem; font-weight: 700; white-space: normal;
+}
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .relationshipGrid { margin: 0; gap: 6px; }
+.product[data-embedded="true"][data-app-like-builder="r11"][data-builder-simplified="r12"] .composerCard > .primaryButton { margin-top: 10px; }
+.directPeopleGrid { gap: 8px; }
+.directPeopleGrid > .directEntryPanel { border-radius: 14px; }
+.directPeopleGrid .directEntryHeader { padding: 8px 12px 2px !important; gap: 0; }
+.directPeopleGrid .directEntryHeader h4 { margin: 0; font-size: .9rem; line-height: 1.5; }
+.directPeopleGrid .directEntryPanel :global(.chart-reference-page),
+.directPeopleGrid .directEntryPanel :global(.chart-reference-shell) {
+  min-height: 0 !important; height: auto !important; margin: 0 !important;
+}
+.directPeopleGrid .directEntryPanel :global(.chart-reference-content) {
+  min-height: 0 !important; height: auto !important;
+  padding: 0 12px 6px !important; margin: 0 !important;
+  gap: 0 !important; align-content: start !important;
+}
+.directPeopleGrid .directEntryPanel :global(.chart-reference-form),
+.directPeopleGrid .directEntryPanel :global(.chart-form-fields) {
+  min-height: 0 !important; height: auto !important; margin: 0 !important;
+  padding: 0 !important; gap: 0 !important;
+  grid-auto-rows: max-content; align-content: start !important;
+}
+.directPeopleGrid .directEntryPanel :global(.chart-field) {
+  margin: 0 !important; padding: 8px 0 !important; gap: 6px !important;
+}
+.directPeopleGrid .optionalChartPicker { margin: 2px 12px 4px; }
+.product[data-embedded="true"][data-builder-simplified="r12"] .directPeopleGrid .chartPickerTrigger { min-height: 44px; padding-block: 5px; }
+.product[data-embedded="true"][data-builder-simplified="r12"] .directPeopleGrid .personCard {
+  margin: 2px 12px 8px; padding: 8px !important; gap: 6px; border-radius: 12px;
+}
+.directPeopleGrid .personCard .timeAccuracyChoice { margin: 0; padding: 6px 0 0; }
+@media (max-width: 760px) {
+  .product[data-embedded="true"][data-builder-simplified="r12"] .composerCard[data-final-product-builder="r17"] { padding: 12px 8px; border-radius: 18px; }
+  .product[data-embedded="true"][data-builder-simplified="r12"] .accountButton { min-height: 44px; padding-block: 5px; }
+  .directPeopleGrid .directEntryHeader { padding: 6px 8px 0 !important; }
+  .directPeopleGrid .directEntryPanel :global(.chart-reference-content) { padding: 0 8px 4px !important; }
+  .directPeopleGrid .directEntryPanel :global(.chart-field) { padding: 4px 0 !important; gap: 4px !important; }
+  .directPeopleGrid .optionalChartPicker,
+  .product[data-embedded="true"][data-builder-simplified="r12"] .directPeopleGrid .personCard { margin-inline: 8px; }
+}
+
+/* Match the Vedic locked continuation: decorative lines, never private text. */
+.previewLock { position: relative; display: grid; place-items: center; min-height: 90px; color: #d6dde6; isolation: isolate; }
+.previewLockLines { position: absolute; inset: 3px 0; display: grid; align-content: space-around; gap: 8px; padding: 4px 0; mask-image: linear-gradient(to bottom, #000 0%, transparent 100%); }
+.previewLockLines span { display: block; height: 7px; width: 95%; border-radius: 10px; background: rgb(216 221 229 / 22%); }
+.previewLockLines span:nth-child(2) { width: 83%; }
+.previewLockLines span:nth-child(3) { width: 92%; }
+.previewLockLines span:nth-child(4) { width: 65%; }
+.previewLock svg { z-index: 1; box-sizing: content-box; padding: 12px; border-radius: 50%; background: #11141a; border: 1px solid rgba(216, 221, 229, .14); }

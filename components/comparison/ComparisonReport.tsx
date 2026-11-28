@@ -46,6 +46,7 @@ import type {
   SynastryRelationshipContext,
 } from "@/types/synastry-engine";
 
+import { comparisonAspectNameFa, comparisonContactHasInterpretiveData } from "@/lib/comparison/comparison-premium-full-interpretation";
 import styles from "./comparison.module.css";
 import { SurfaceShowcaseSlot } from "@/components/shop/SurfaceShowcaseSlot";
 
@@ -286,6 +287,7 @@ export function ComparisonReport({ comparisonId, premiumRecord }: ComparisonRepo
     a: normalizePersonLabel(record.chartALabel, "نفر اول"),
     b: normalizePersonLabel(record.chartBLabel, "نفر دوم"),
   };
+  const technicalBirthTime = { a: record.chartABirthTimeStatus, b: record.chartBBirthTimeStatus };
   const filteredTechnicalContacts = filterTechnicalContacts(
     record.report.contacts,
     technicalCategory,
@@ -329,9 +331,7 @@ export function ComparisonReport({ comparisonId, premiumRecord }: ComparisonRepo
 
       <section className={`${styles.reportHero} ${styles.humanReportHero}`}>
         <div>
-          <p className={styles.eyebrow}>
-            {formatRelationshipContext(record.relationshipContext)}
-          </p>
+          {record.relationshipContext !== "romantic" && <p className={styles.eyebrow}>{formatRelationshipContext(record.relationshipContext)}</p>}
           <h1>این رابطه از چه داستانی می‌گوید؟</h1>
           <div className={styles.overviewParagraphs}>
             {reading.overviewParagraphsFa.map((paragraph, index) => (
@@ -462,8 +462,8 @@ export function ComparisonReport({ comparisonId, premiumRecord }: ComparisonRepo
           <section className={styles.technicalDetails}>
             <div className={styles.sectionHeading}>
               <p className={styles.eyebrow}>جزئیات فنی</p>
-              <h2>تماس‌ها را مرحله‌به‌مرحله باز کن</h2>
-              <p>در شروع فقط هشت تماس مهم دیده می‌شود. دسته، polarity و ترتیب نمایش را می‌توانی بدون تغییر خود محاسبه فیلتر کنی.</p>
+              <h2>تماس‌های میان دو چارت</h2>
+              <p>ابتدا هشت تماس با رتبهٔ بالاتر نمایش داده می‌شوند. فیلترها فقط ترتیب و انتخاب نمایش را عوض می‌کنند، نه محاسبه را.</p>
             </div>
             <div className={styles.technicalToolbar}>
               <label className={styles.technicalControl}>
@@ -498,24 +498,24 @@ export function ComparisonReport({ comparisonId, premiumRecord }: ComparisonRepo
             </div>
 
             {technicalCategory === "houses" ? (
-              <p className={styles.technicalEmpty}>فیلتر خانه‌ها فعال است؛ هم‌پوشانی‌های جهت‌دار پایین نمایش داده می‌شوند.</p>
+              <p className={styles.technicalEmpty}>هم‌پوشانی خانه‌ها، در صورت وجود دادهٔ معتبر، در بخش بعدی نمایش داده می‌شود.</p>
             ) : visibleTechnicalContacts.length > 0 ? (
               <>
                 <div className={styles.contactList}>
                   {visibleTechnicalContacts.map((contact) => (
                     <article className={styles.contactCard} data-polarity={contact.polarity} key={contact.id}>
                       <div>
-                        <span>{contact.aspectLabel}</span>
+                        <span>{comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)}</span>
                         <strong data-person-direction="true">{directionalAspectTitle(contact, labels)}</strong>
-                        <small className={styles.contactDirection}>{contact.titleFa}</small>
+                        <small className={styles.contactDirection}>{comparisonContactHasInterpretiveData(contact, technicalBirthTime) ? "تماس قابل بررسی نمادین" : "ثبت زمان مرجع؛ خارج از شواهد تفسیری"}</small>
                       </div>
-                      <p className={styles.contactReason}>{describeContactImportance(contact)}</p>
+                      <p className={styles.contactReason}>{comparisonContactHasInterpretiveData(contact, technicalBirthTime) ? describeContactImportance(contact) : "این تماس فقط برای بررسی محاسبه حفظ شده است؛ از آن دربارهٔ رابطه نتیجه نمی‌گیریم."}</p>
                       <div className={styles.contactCategoryTags}>
                         {contact.categories.map((category) => <span key={category}>{formatContactCategory(category)}</span>)}
                       </div>
                       <dl className={styles.contactFacts}>
                         <div><dt>فاصلهٔ زاویه‌ای</dt><dd>{formatDegree(contact.separation)}</dd></div>
-                        <div><dt>اورب</dt><dd>{formatDegree(contact.orb)}</dd></div>
+                        <div><dt>{technicalBirthTime.a === "exact" && technicalBirthTime.b === "exact" ? "اورب" : "اورب زمان مرجع"}</dt><dd>{formatDegree(contact.orb)}</dd></div>
                       </dl>
                     </article>
                   ))}
@@ -745,7 +745,7 @@ function FullInterpretationReading({
       >
         <div className={styles.sectionHeading}>
           <p className={styles.eyebrow}>تمام تماس‌های محاسبه‌شده</p>
-          <h2>هیچ تماس محاسبه‌شده‌ای فقط به خاطر وزن کمتر حذف نشده است</h2>
+          <h2>توضیح همهٔ تماس‌های ثبت‌شده</h2>
           <p>
             ترتیب همچنان بر اساس اهمیت است، اما همهٔ تماس‌های موجود explanation،
             زمینهٔ natal، اثر context و evidence خودشان را دارند.
@@ -791,7 +791,7 @@ function FullInterpretationReading({
         >
           <div className={styles.sectionHeading}>
             <p className={styles.eyebrow}>تمام هم‌پوشانی‌های خانه‌ای</p>
-            <h2>اثر هر نفر در زندگی دیگری، با جهت و context روشن</h2>
+            <h2>جایگاه‌های هر نفر در خانه‌های نفر دیگر</h2>
           </div>
           <div className={styles.fullInterpretationStack}>
             {full.overlays.map((overlay) => (
@@ -828,7 +828,7 @@ function FullInterpretationReading({
         data-full-interpretation="natal-context"
       >
         <div className={styles.sectionHeading}>
-          <p className={styles.eyebrow}>زمینهٔ natal هر دو نفر</p>
+          <p className={styles.eyebrow}>زمینهٔ چارت تولد هر دو نفر</p>
           <h2>چرا یک تماس مشابه برای این دو نفر الزاماً یکسان تجربه نمی‌شود؟</h2>
         </div>
         <div className={styles.fullInterpretationStack}>
@@ -862,7 +862,7 @@ function FullInterpretationReading({
           <p>{full.calculation.summaryFa}</p>
           <p>{full.calculation.confidenceFa}</p>
           <details className={styles.inlineTechnicalDetails}>
-            <summary>روش‌ها و provenance</summary>
+            <summary>روش محاسبه و منبع داده</summary>
             <ul className={styles.fullInterpretationFacts}>
               {full.calculation.methodNotesFa.map((item, index) => (
                 <li key={`method-${index}`}>{item}</li>
@@ -1073,7 +1073,7 @@ function directionalAspectTitle(
   contact: { pointA: { label: string; chartSide: "a" | "b" }; pointB: { label: string; chartSide: "a" | "b" }; aspectLabel: string },
   labels: { a: string; b: string },
 ) {
-  return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${contact.aspectLabel} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
+  return `${contact.pointA.label}ِ ${labels[contact.pointA.chartSide]} در ${comparisonAspectNameFa(contact.aspectId, contact.aspectLabel)} با ${contact.pointB.label}ِ ${labels[contact.pointB.chartSide]}`;
 }
 
 function filterTechnicalContacts(

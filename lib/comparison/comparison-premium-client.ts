@@ -1,9 +1,9 @@
 "use client";
 import {getSupabaseBrowserAccessState} from "@/lib/auth/supabase-browser-client";
 import type {ComparisonRequest} from "./comparison-premium-store";
-export async function requestPremiumComparison(input:ComparisonRequest):Promise<string>{
+export async function requestPremiumComparison(input:ComparisonRequest,sessionStillCurrent=()=>true):Promise<string>{
  const auth=await getSupabaseBrowserAccessState();
- if(auth.kind==="unavailable")throw Error("AUTH");
+ if(auth.kind==="unavailable"||!sessionStillCurrent())throw Error("AUTH");
  const response=await fetch("/api/compare/premium",{method:"POST",cache:"no-store",
  headers:{"Content-Type":"application/json",...(auth.kind==="account"?{Authorization:"Bearer "+auth.accessToken}:{})},body:JSON.stringify(input)});
  const data=await response.json();

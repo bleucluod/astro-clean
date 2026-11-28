@@ -1,18 +1,32 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {execFileSync} from "node:child_process";
-const base="55598c3e2854d548890f21c15bc45310f7321d11";
+const base="53bdc6cf57475776bcd9ad198090a6e610d9e271";
 const normalize=s=>s.replace(/\r\n/g,"\n");
 const read=p=>normalize(readFileSync(p,"utf8"));
 const old=p=>normalize(execFileSync("git",["show",base+":"+p],{encoding:"utf8",maxBuffer:8*1024*1024}));
-for(const p of ["app/compare/page.tsx","components/r3-approved-visible-copy.tsx","lib/r3-approved-visible-additions.generated.json","lib/comparison/comparison-product-service.ts","lib/comparison/comparison-full-interpretation.ts"]){
+for(const p of ["components/r3-approved-visible-copy.tsx","lib/comparison/comparison-product-service.ts","lib/comparison/comparison-full-interpretation.ts","lib/comparison/comparison-premium-product-service.ts","lib/comparison/comparison-premium-full-interpretation.ts","lib/comparison/comparison-evidence-plan.ts","lib/comparison/comparison-romantic-opening.mjs","lib/comparison/comparison-romantic-opening-v2.mjs","lib/comparison/comparison-payment-flow.ts","lib/comparison/comparison-payment-store.ts","lib/comparison/comparison-payment-config.ts","lib/comparison/comparison-price.ts","app/api/compare/payment/route.ts","app/api/compare/payment/return/route.ts","database/migrations/0048_private_comparison_premium.sql"]){
  assert.equal(read(p),old(p),p+" changed");
 }
-const landing="components/comparison/ComparisonLanding.tsx";
-assert.equal(read(landing).replace(' premiumEnabled={process.env.HALLEUS_ENABLE_COMPARE_PRIVATE_STORAGE === "true"}',''),old(landing));
+const originalCopy=JSON.parse(old("lib/r3-approved-visible-additions.generated.json"));
+const currentCopy=JSON.parse(read("lib/r3-approved-visible-additions.generated.json"));
+for(const key of Object.keys(originalCopy))if(key!=="compare")assert.deepEqual(currentCopy[key],originalCopy[key],key+" editorial copy changed");
+const projection="lib/comparison/comparison-preview-projection.mjs";
+assert.ok(read(projection).startsWith(old(projection).trimEnd()),"immutable v7 projection changed");
+const landing=read("components/comparison/ComparisonLanding.tsx");
+assert.ok(landing.includes("premiumEnabled={process.env.HALLEUS_ENABLE_COMPARE_PRIVATE_STORAGE === \"true\"}"));
+assert.match(landing,/price: String\(COMPARISON_PRICE_TOMAN \* 10\)/);
 const composer=read("components/comparison/ComparisonComposer.tsx");
-assert.match(composer,/premiumEnabled && relationshipContext === "romantic"/);
-assert.ok(composer.indexOf("await requestPremiumComparison")<composer.indexOf("const result = createPrivateComparison"));
+assert.equal((composer.match(/<DirectChartForm\b/g)||[]).length,2);
+assert.match(composer,/await requestPremiumComparison\(\{birthA,birthB,relationshipContext:"romantic",retryKey\},/);
+assert.doesNotMatch(composer,/createPrivateComparison|saveComparisonToAccount|savePrivateComparison|ensureServerCanonicalReport|comparisonDemoRequest/);
+const chartForm=read("components/ChartForm.tsx");
+assert.match(chartForm,/return \{ birthInput: normalizedBirth.normalizedForm \}/);
+const library=read("components/comparison/ComparisonPremiumLibrary.tsx");
+assert.match(library,/report.preview.primaryPatterns.map/);
+assert.match(library,/report.preview.chapters.map/);
+assert.match(library,/report.purchaseStatus==="paid"&&report.record&&session.kind==="account"/);
+assert.match(library,/previewLockLines/);
 const report=read("components/comparison/ComparisonReport.tsx");
 assert.match(report,/if \(premiumRecord\) return premiumRecord.reading;/);
 const store=read("lib/comparison/comparison-premium-store.ts");
@@ -25,4 +39,4 @@ assert.ok(config.includes("HALLEUS_COMPARE_BITPAY_PAYMENTS_ENABLED==='true'"));
 const api=read("app/api/compare/premium/route.ts");
 assert.match(api,/private, no-store/);
 assert.match(api,/noindex, nofollow/);
-console.log("COMPARE_PREMIUM_BOUNDARY_PASS (public copy, legacy writer and access boundary)");
+console.log("COMPARE_PREMIUM_BOUNDARY_PASS (restored UI, immutable writers, payment and v7 chapter boundary)");
