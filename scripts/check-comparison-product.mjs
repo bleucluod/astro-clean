@@ -75,7 +75,7 @@ requireMarkers("dedicated comparison landing", sources.landing, [
 ]);
 requireMarkers("comparison approved SEO copy R7", sources.landing, [
   "چارت ازدواج چیست؟",
-  "در تحلیل چارت ازدواج چه چیزهایی می‌بینید؟",
+  "در تحلیل چارت ازدواج چه چیزهایی می‌بینی؟",
   "مقایسه دو چارت تولد چطور انجام می‌شود؟",
   "آیا چارت ازدواج درصد سازگاری می‌دهد؟",
   "بخش فنی چارت سیناستری",
@@ -83,10 +83,10 @@ requireMarkers("comparison approved SEO copy R7", sources.landing, [
   "فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟",
   "سینستری و سیناستری با هم فرق دارند؟",
   "ساخت چارت ازدواج رایگان",
-  "تحلیل رابطه با چارت تولد",
+  "چارت ازدواج آنلاین از مقایسهٔ دو چارت تولد ساخته می‌شود",
   "جنبه‌های سیناستری",
   "چرخ دوگانه چارت تولد",
-  "چارت زوجین",
+  "الگوهای میان دو چارت را واضح‌تر ببین",
 ]);
 forbidMarkers("comparison retired pre-R7 copy", sources.landing, [
   "چارت سیناستری؛ تحلیل رابطه و ازدواج دو نفر",
@@ -360,9 +360,18 @@ requireMarkers("comparison Slice 4 accessibility and performance", sources.repor
   "handleTabKeyDown",
 ]);
 forbidMarkers("comparison result nested landmark", sources.report, ["<main"]);
-requireMarkers("comparison DB-safe learning links", sources.landing, [
-  'href="/wiki"',
-  'href="/chart"',
+// The approved R3 copy moved the learning link into the inline editorial renderer.
+requireMarkers("comparison chart creation link", sources.composer, ['href="/chart"']);
+requireMarkers("comparison inline learning section", sources.landing, [
+  'R3ApprovedInlineParagraphs page="compare" sectionTitle="فرق چارت ازدواج با طالع‌بینی ازدواج با اسم چیست؟"',
+]);
+const approvedCompare = JSON.parse(read("lib/r3-approved-visible-additions.generated.json")).compare;
+requireMarkers("comparison approved Wiki learning link", JSON.stringify(approvedCompare), [
+  "https://halleus.ir/wiki/marriage-timing-in-natal-chart",
+]);
+requireMarkers("comparison approved inline link renderer", read("components/r3-approved-visible-copy.tsx"), [
+  "<Link href={strongLink[2]}>",
+  "<Link href={link[2]}",
 ]);
 forbidMarkers("comparison unverified hardcoded Wiki links", sources.landing, [
   "/wiki/birth-chart-basics",

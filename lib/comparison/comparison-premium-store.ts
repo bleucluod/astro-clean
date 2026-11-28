@@ -48,8 +48,10 @@ function calculateOwnedChart(stored:unknown,id:string,requested:"exact"|"unknown
  const input=stored.input as BirthInput;
  if(requested==="exact"&&getDefaultComparisonBirthTimeStatus(stored as unknown as AstrologyReport)!=="exact")throw Error("TIME_STATUS_INVALID");
  const result=generateReportContract({input:{...input,birthTimeAccuracy:requested==="unknown"?"unknown":"known"},reportOwnerKind:"local",reportTier:"preview"},{generatedAt:at});
- if(!result.ok||result.contract.fallback.used||!result.contract.report.realEngine)throw Error("CHART_CALCULATION_FAILED");
- return {...result.contract.report,id};
+ if(!result.ok)throw Error("CHART_CALCULATION_FAILED");
+ const report=result.contract.report;
+ if(result.contract.fallback.used||!report?.realEngine)throw Error("CHART_CALCULATION_FAILED");
+ return {...report,id};
 }
 export async function getPremiumComparison(actor:ComparisonActor,id:string){
  const sql=getAdminDatabase();

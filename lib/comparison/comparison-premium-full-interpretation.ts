@@ -1175,7 +1175,7 @@ function formatDegree(value: number): string {
 function findNatalAspectEvidence(snapshot: SynastryNatalSnapshot, pointId: string, side: "a" | "b", time: SynastryBirthTimeStatus): string[] {
   if (time !== "exact") return [];
   // Reference only the first natal aspect actually described by describeNatalModifier.
-  const aspect = snapshot.engineSnapshot?.aspects.find((item) => item.firstPlanetId === pointId || item.secondPlanetId === pointId);
+  const aspect = snapshot.engineSnapshot?.aspects?.find((item) => item.firstPlanetId === pointId || item.secondPlanetId === pointId);
   return aspect ? [`natal-aspect:${side}:${aspect.id}`] : [];
 }
 

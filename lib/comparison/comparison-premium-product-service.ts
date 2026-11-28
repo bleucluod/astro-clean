@@ -9,6 +9,7 @@ import { buildRomanticOpeningV2 } from "@/lib/comparison/comparison-romantic-ope
 import type { AstrologyReport } from "@/types/astro";
 import type {
   ComparisonNarrativeChapter,
+  ComparisonOpeningEvidence,
   ComparisonPrimaryPattern,
   ComparisonReading,
   ComparisonRecord,
@@ -33,7 +34,7 @@ const EMOTIONAL_POINT_IDS = new Set(["moon", "venus", "saturn"]);
 const BOUNDARY_POINT_IDS = new Set(["saturn", "uranus", "pluto"]);
 
 // Private runtime metadata, not a new stored/public reading field.
-type OpeningPrimaryCoverage = "specific" | "general";
+type OpeningPrimaryCoverage = "specific" | "general" | "fallback";
 const openingPrimaryCoverage = new WeakMap<HumanFirstDirectionalNarrativeBlock, OpeningPrimaryCoverage>();
 function markOpeningPrimaryCoverage(block: HumanFirstDirectionalNarrativeBlock, coverage: OpeningPrimaryCoverage) {
   openingPrimaryCoverage.set(block, coverage);
@@ -3185,8 +3186,8 @@ function buildBoundaryChapter(
   // A remaining allocated support must contribute its own boundary question.
   // The planet supplies the interpretive lens, the personal point supplies the domain.
   const boundaryLens = (contact: SynastryInterChartAspect) => {
-    const outer = ["saturn", "uranus", "pluto"].find(id => owner(contact, id));
-    const target = ["sun", "venus", "asc", "dsc", "ic", "mc"].find(id => owner(contact, id));
+    const outer = (["saturn", "uranus", "pluto"] as const).find(id => owner(contact, id));
+    const target = (["sun", "venus", "asc", "dsc", "ic", "mc"] as const).find(id => owner(contact, id));
     if (!outer || !target) return null;
     const holder = owner(contact, outer)!;
     const person = owner(contact, target)!;
@@ -3259,7 +3260,7 @@ function buildBoundaryChapter(
       assign(primary, "saturn", "معیار مسئولیت و امکان اتکا را وارد توافق می‌کند.");
       assign(primary, "dsc", "از رفتار مشخص طرف مقابل معنای شراکت را می‌سنجد.");
       if (support && owner(support, "saturn") && owner(support, "ic")) {
-        const privateSide = owner(support, "ic");
+        const privateSide = owner(support, "ic")!;
         const dutySide = owner(support, "saturn");
         authoredSupportChallenge = ` ${describe(support)} ${relationship === "romantic" ? "" : "در خوانش نجومی "}${support.aspectId === "square" || support.aspectId === "opposition" ? "تفاوت میان انتظار از مسئولیت و نیاز به حفظ اختیار شخصی را برجسته می‌کند" : "پیوند مسئولیت مشترک با حفظ اختیار شخصی را برجسته می‌کند"}. آی‌سی به حریم خانه و زندگی خصوصی مربوط است. فرض کنید ${dutySide} بخواهد ${concrete.privacy(privateSide)}. در این موقعیت ${privateSide} می‌تواند درخواست تازه را رد کند، بدون اینکه تعهد قبلی‌اش لغو شود.`;
         challenge += authoredSupportChallenge;
@@ -3961,8 +3962,16 @@ function buildPairNarrative(
         openingPrimaryCoverage: openingPrimaryCoverage.get(chapter.block),
       })), names)
     : null;
-  const opening = personalOpening?.opening ?? legacyOpening;
-  const openingEvidence = personalOpening?.openingEvidence ?? legacyOpeningEvidence;
+  const rawOpening = personalOpening?.opening ?? legacyOpening;
+  if (rawOpening.length !== 2 || rawOpening.some(paragraph => typeof paragraph !== "string")) {
+    throw new Error("INVALID_COMPARISON_OPENING");
+  }
+  const opening: [string, string] = [rawOpening[0], rawOpening[1]];
+  const openingEvidence: ComparisonOpeningEvidence[] = (personalOpening?.openingEvidence ?? legacyOpeningEvidence).map(entry => {
+    const paragraph = entry.paragraph;
+    if (paragraph !== 1 && paragraph !== 2) throw new Error("INVALID_COMPARISON_OPENING_EVIDENCE");
+    return { ...entry, paragraph };
+  });
   const questions: [string, string, string] = [draft[0].question, draft[1].question, draft[2].question];
   // A symmetric or unallocated finding does not establish different personal roles.
   // Keep common advice in shared practice rather than printing it twice as individual evidence.
